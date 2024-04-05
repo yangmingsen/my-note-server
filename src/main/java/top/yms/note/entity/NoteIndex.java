@@ -1,0 +1,140 @@
+package top.yms.note.entity;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.util.Date;
+
+/**
+ *
+ * create by yangmingsen
+ * t_note_index
+ */
+public class NoteIndex {
+    /**
+     */
+    private Long id;
+
+    /**
+     */
+    private Long parentId;
+
+    /**
+     */
+    private Long userId;
+
+    /**
+     */
+    private String name;
+
+    /**
+     * 是否为目录(0是目录，1是文件)
+     */
+    private String isile;
+
+    /**
+     * 文件类型(为文件时有值)
+     */
+    private String type;
+
+    /**
+     * 是否删除(1删除，0否)
+     */
+    private String del;
+
+    /**
+     */
+    @JsonFormat(locale = "zh", timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date createTime;
+
+    /**
+     */
+    private Date updateTime;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name == null ? null : name.trim();
+    }
+
+    public String getIsile() {
+        return isile;
+    }
+
+    public void setIsile(String isile) {
+        this.isile = isile == null ? null : isile.trim();
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type == null ? null : type.trim();
+    }
+
+    public String getDel() {
+        return del;
+    }
+
+    public void setDel(String del) {
+        this.del = del == null ? null : del.trim();
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    @Override
+    public String toString() {
+        return "NoteIndex{" +
+                "id=" + id +
+                ", parentId=" + parentId +
+                ", userId=" + userId +
+                ", name='" + name + '\'' +
+                ", isile='" + isile + '\'' +
+                ", type='" + type + '\'' +
+                ", del='" + del + '\'' +
+                ", createTime=" + createTime +
+                ", updateTime=" + updateTime +
+                '}';
+    }
+}

@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.yms.note.mapper.NoteIndexUpdateLogMapper">
+  <resultMap id="BaseResultMap" type="top.yms.note.entity.NoteIndexUpdateLog">
+    <id column="f_id" jdbcType="BIGINT" property="id" />
+    <result column="f_index_id" jdbcType="BIGINT" property="indexId" />
+    <result column="f_type" jdbcType="VARCHAR" property="type" />
+    <result column="f_create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="f_content" jdbcType="VARCHAR" property="content" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    f_id, f_index_id, f_type, f_create_time, f_content
+  </sql>
+  <select id="selectByExample" parameterType="top.yms.note.entity.NoteIndexUpdateLogExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from t_note_index_update_log
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_note_index_update_log
+    where f_id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_note_index_update_log
+    where f_id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="top.yms.note.entity.NoteIndexUpdateLogExample">
+    delete from t_note_index_update_log
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="top.yms.note.entity.NoteIndexUpdateLog">
+    insert into t_note_index_update_log (f_id, f_index_id, f_type,
+                                         f_create_time, f_content)
+    values (#{id,jdbcType=BIGINT}, #{indexId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR},
+            #{createTime,jdbcType=TIMESTAMP}, #{content,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertBatch" parameterType="java.util.List">
+    insert into t_note_index_update_log(f_index_id, f_type, f_create_time, f_content ) values
+    <foreach collection="list" item="iter" separator=",">
+      (
+      #{iter.indexId, jdbcType=BIGINT},
+      #{iter.type, jdbcType=VARCHAR},
+      #{iter.createTime, jdbcType=TIMESTAMP},
+      #{iter.content, jdbcType=VARCHAR}
+      )
+    </foreach>
+  </insert>
+  <insert id="insertSelective" parameterType="top.yms.note.entity.NoteIndexUpdateLog">
+    insert into t_note_index_update_log
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        f_id,
+      </if>
+      <if test="indexId != null">
+        f_index_id,
+      </if>
+      <if test="type != null">
+        f_type,
+      </if>
+      <if test="createTime != null">
+        f_create_time,
+      </if>
+      <if test="content != null">
+        f_content,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="indexId != null">
+        #{indexId,jdbcType=BIGINT},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="content != null">
+        #{content,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="top.yms.note.entity.NoteIndexUpdateLogExample" resultType="java.lang.Long">
+    select count(*) from t_note_index_update_log
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update t_note_index_update_log
+    <set>
+      <if test="record.id != null">
+        f_id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.indexId != null">
+        f_index_id = #{record.indexId,jdbcType=BIGINT},
+      </if>
+      <if test="record.type != null">
+        f_type = #{record.type,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null">
+        f_create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.content != null">
+        f_content = #{record.content,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update t_note_index_update_log
+    set f_id = #{record.id,jdbcType=BIGINT},
+    f_index_id = #{record.indexId,jdbcType=BIGINT},
+    f_type = #{record.type,jdbcType=VARCHAR},
+    f_create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    f_content = #{record.content,jdbcType=VARCHAR}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="top.yms.note.entity.NoteIndexUpdateLog">
+    update t_note_index_update_log
+    <set>
+      <if test="indexId != null">
+        f_index_id = #{indexId,jdbcType=BIGINT},
+      </if>
+      <if test="type != null">
+        f_type = #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        f_create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="content != null">
+        f_content = #{content,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where f_id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="top.yms.note.entity.NoteIndexUpdateLog">
+    update t_note_index_update_log
+    set f_index_id = #{indexId,jdbcType=BIGINT},
+        f_type = #{type,jdbcType=VARCHAR},
+        f_create_time = #{createTime,jdbcType=TIMESTAMP},
+        f_content = #{content,jdbcType=VARCHAR}
+    where f_id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
