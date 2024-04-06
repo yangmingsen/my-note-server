@@ -3,6 +3,7 @@ package top.yms.note;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.ImportResource;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import top.yms.note.mapper.NoteIndexMapper;
 import top.yms.note.service.NoteIndexService;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
  */
 @EnableTransactionManagement
 @SpringBootApplication
+@ImportResource(locations = "classpath:spring-mongo.xml")
 public class MyNoteApplication {
     public static void main(String[] args) {
         ConfigurableApplicationContext applicationContext = SpringApplication.run(MyNoteApplication.class, args);

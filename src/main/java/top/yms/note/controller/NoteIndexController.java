@@ -9,12 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import top.yms.note.comm.BusinessException;
 import top.yms.note.comm.CommonErrorCode;
+import top.yms.note.comm.Constants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.NoteTree;
 import top.yms.note.entity.RestOut;
 import top.yms.note.service.NoteIndexService;
 import top.yms.note.utils.IdWorker;
+import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.MenuListVo;
 
 import java.util.Collections;
@@ -36,8 +38,9 @@ public class NoteIndexController {
 
 
 
-    @GetMapping("/{uid}")
-    public RestOut<List<NoteIndex>> findByUid(@PathVariable Long uid) {
+    @GetMapping("/list")
+    public RestOut<List<NoteIndex>> findByUid() {
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         log.info("findByUid: {}", uid);
         List<NoteIndex> noteList = noteIndexService.findByUserId(uid);
         log.info("findByUid: {} , count: {}", uid, noteList.size());
@@ -46,7 +49,8 @@ public class NoteIndexController {
 
 
     @GetMapping("/tree")
-    public RestOut<List<NoteTree>> findNoteTreeByUid(@RequestParam("uid") Long uid) {
+    public RestOut findNoteTreeByUid() {
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         log.info("findNoteTreeByUid: {}", uid);
         List<NoteTree> noteTreeList = noteIndexService.findNoteTreeByUid(uid);
         log.info("findByUid: {} , count: {}", uid, noteTreeList.size());
@@ -55,13 +59,12 @@ public class NoteIndexController {
 
     /**
      * 根据 uid和nid找 列表
-     * @param uid
      * @param parentId
      * @return
      */
     @GetMapping("/sub")
-    public RestOut<List<NoteIndex>> findSubBy(@RequestParam("uid") Long uid,
-                                              @RequestParam("nid") Long parentId) {
+    public RestOut<List<NoteIndex>> findSubBy(@RequestParam("nid") Long parentId) {
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         if (uid == null || parentId==null) {
             throw new BusinessException(CommonErrorCode.E_100101);
         }
@@ -74,10 +77,9 @@ public class NoteIndexController {
     }
 
     @GetMapping("/menuList")
-    public RestOut<MenuListVo> findMenuList(@RequestParam("uid") Long uid,
-                                            @RequestParam("nid") Long nid) {
+    public RestOut<MenuListVo> findMenuList(@RequestParam("nid") Long nid) {
         //0->dir(menu); 1->file(content)
-        Map<String, List<NoteIndex>>  mapList = findSubBy(uid, nid).getResult().orElse(Collections.emptyList()).stream().collect(Collectors.groupingBy(NoteIndex::getIsile));
+        Map<String, List<NoteIndex>>  mapList = findSubBy(nid).getResult().orElse(Collections.emptyList()).stream().collect(Collectors.groupingBy(NoteIndex::getIsile));
         MenuListVo res = new MenuListVo();
         res.setMenuList(mapList.get("0"));
         res.setNoteContentMenuList(mapList.get("1"));
@@ -88,6 +90,8 @@ public class NoteIndexController {
 
     @PostMapping("add")
     public RestOut<String> add(@RequestBody NoteIndex node) {
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        node.setUserId(uid);
         log.info("add: {}", node);
         if (node == null) {
             throw new BusinessException(CommonErrorCode.E_200202);
@@ -108,6 +112,8 @@ public class NoteIndexController {
 
     @PostMapping("/update")
     public RestOut<String> update(@RequestBody NoteIndex node) {
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        node.setUserId(uid);
         log.info("update: {}", node);
         if (node == null) {
             throw new BusinessException(CommonErrorCode.E_200202);

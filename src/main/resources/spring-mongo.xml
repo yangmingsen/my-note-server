@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd">
+
+    <!-- Client - forp:123456@forptest -->
+    <!--	<mongo:mongo-client id="mongoClient" host="172.20.2.72" port="9431" credentials="forp_whzq:whzq_W3Qz@forp_whzq">-->
+    <!--	<mongo:mongo-client id="mongoClient" host="172.20.2.72" port="9431" credentials="forp:whzq_W3Qz@forp">-->
+    <mongo:mongo-client id="mongoClient" host="106.12.253.7" port="9430" credentials="forp_whzq:DuNgoNuVc234@forp_whzq">
+        <!--
+        <mongo:client-options
+                connections-per-host="${mongo.connections_per_host}"
+                threads-allowed-to-block-for-connection-multiplier="${mongo.threads_allowed_to_block_for_connection_multiplier}"
+                connect-timeout="${mongo.connect_timeout}"
+                max-wait-time="${mongo.max_wait_time}"
+                socket-timeout="${mongo.socket_timeout}" />
+        -->
+    </mongo:mongo-client>
+
+
+    <!-- Factory -->
+    <!--	<mongo:db-factory id="mongoDbFactory" dbname="forp_whzq" mongo-ref="mongoClient"/>-->
+    <!--	<mongo:db-factory id="mongoDbFactory" dbname="forp" mongo-ref="mongoClient"/>-->
+    <mongo:db-factory id="mongoDbFactory" dbname="forp_whzq" mongo-ref="mongoClient"/>
+    <mongo:mapping-converter id="converter" db-factory-ref="mongoDbFactory"/>
+
+    <!-- Grid FS Template -->
+    <bean id="gridFsTemplate" class="org.springframework.data.mongodb.gridfs.GridFsTemplate">
+        <constructor-arg ref="mongoDbFactory"/>
+        <constructor-arg ref="converter"/>
+    </bean>
+
+    <!-- Mongo Template -->
+    <bean id="documentTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+        <constructor-arg ref="mongoDbFactory"/>
+        <constructor-arg ref="converter"/>
+    </bean>
+</beans>

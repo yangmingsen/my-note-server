@@ -110,7 +110,11 @@ public class PrintSqlInterceptor implements Interceptor {
                 value = "";
             }
         }
-        return value.replace("$", "\\$");
+        String res =  value.replace("$", "\\$");
+        if (res.length() > 50) {
+            return res.substring(0, 50)+"...'";
+        }
+        return res;
     }
 
     private static void logs(long time, String sql, String sqlId) {
