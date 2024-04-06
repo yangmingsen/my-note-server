@@ -22,8 +22,10 @@ public enum CommonErrorCode implements ErrorCode {
     E_200210(200210,"未登录"),
 
 
+
     E_203000(203000, "Note parentId不能为空"),
     E_203001(203001, "Note Id不能为空"),
+    E_203002(203002, "wangEditor上传文件失败"),
 
 
     /**

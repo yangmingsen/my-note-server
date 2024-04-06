@@ -51,6 +51,32 @@ public class NoteIndex {
      */
     private Date updateTime;
 
+    /**
+     * 存储位置(mysql,mongo)
+     */
+    private String storeSite;
+
+    /**
+     * 可能是t_note_file表的t_file_id
+     */
+    private String siteId;
+
+    public String getStoreSite() {
+        return storeSite;
+    }
+
+    public void setStoreSite(String storeSite) {
+        this.storeSite = storeSite;
+    }
+
+    public String getSiteId() {
+        return siteId;
+    }
+
+    public void setSiteId(String siteId) {
+        this.siteId = siteId;
+    }
+
     public Long getId() {
         return id;
     }

@@ -9,6 +9,7 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
+import top.yms.note.comm.FileTypeEnum;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,14 @@ import java.util.List;
  * Created by yangmingsen on 2024/4/6.
  */
 public class Funtet02 {
+
+    @Test
+    public void test333() {
+        if (FileTypeEnum.WER.compare("wer")) {
+            System.out.println("ok");
+
+        }
+    }
 
     @Test
     public void test1318() {

@@ -10,9 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.Constants;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.entity.NoteFile;
+import top.yms.note.entity.NoteIndex;
+import top.yms.note.exception.WangEditorUploadException;
 import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.utils.MongoDB;
@@ -31,6 +34,9 @@ public class NoteFileService {
 
     @Autowired
     private NoteFileMapper noteFileMapper;
+
+    @Autowired
+    private NoteIndexService noteIndexService;
 
 
     /**
@@ -58,7 +64,7 @@ public class NoteFileService {
      * @return
      */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
-    public JSONObject uploadFileForWer(MultipartFile file) {
+    public JSONObject uploadFileForWer(MultipartFile file) throws WangEditorUploadException {
         JSONObject res = new JSONObject();
 
         Map<String, Object> reqInfo = LocalThreadUtils.get();
@@ -67,7 +73,7 @@ public class NoteFileService {
 
         try {
             DBObject metaData = new BasicDBObject();
-            metaData.put("type", "crm.custdocfiles.files");
+            metaData.put("type", Constants.MONGO_FILE_SITE);
             String fileId = MongoDB.saveFile(file, null, metaData);
             String fileName = file.getOriginalFilename();
             String fileType = file.getContentType();
@@ -82,9 +88,7 @@ public class NoteFileService {
             noteFile.setUserId(userId);
             noteFile.setUrl(url);
             noteFile.setCreateTime(new Date());
-
             noteFileMapper.insertSelective(noteFile);
-
 
             JSONObject data = new JSONObject();
             data.put("url", url);
@@ -94,10 +98,8 @@ public class NoteFileService {
             res.put("errno", 0);
             return res;
         } catch (Exception e) {
-            //错误返回
-            res.put("errno", 1);
-            res.put("message", e.getMessage());
-            return res;
+            log.error("uploadFileForWer Error", e);
+            throw new WangEditorUploadException(CommonErrorCode.E_203002);
         }
 
     }
@@ -109,6 +111,31 @@ public class NoteFileService {
             return noteFiles.get(0);
         }
         return null;
+    }
+
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
+    public void addNote(MultipartFile file, NoteIndex note) throws Exception{
+        DBObject metaData = new BasicDBObject();
+        metaData.put("type", Constants.MONGO_FILE_SITE);
+        String fileId = MongoDB.saveFile(file, null, metaData);
+        //先默认上传到mongo
+        note.setStoreSite(Constants.MONGO);
+        note.setSiteId(fileId);
+
+        //存储到t_note_index
+        noteIndexService.add(note);
+
+        String url = Constants.BASE_URL+fileId;
+        //store to t_note_file
+        NoteFile noteFile = new NoteFile();
+        noteFile.setFileId(fileId);
+        noteFile.setName(note.getName());
+        noteFile.setType(note.getType());
+        noteFile.setSize(file.getSize());
+        noteFile.setUserId(note.getUserId());
+        noteFile.setUrl(url);
+        noteFile.setCreateTime(new Date());
+        noteFileMapper.insertSelective(noteFile);
     }
 
 }

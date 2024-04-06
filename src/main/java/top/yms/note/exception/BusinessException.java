@@ -1,4 +1,6 @@
-package top.yms.note.comm;
+package top.yms.note.exception;
+
+import top.yms.note.comm.ErrorCode;
 
 /**
  * 自定义的异常类型

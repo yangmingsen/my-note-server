@@ -3,6 +3,7 @@ package top.yms.note.config;
 /**
  * Created by yangmingsen on 2022/9/30.
  */
+import com.alibaba.fastjson2.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import top.yms.note.comm.*;
 import top.yms.note.entity.RestOut;
+import top.yms.note.exception.BusinessException;
+import top.yms.note.exception.WangEditorUploadException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -49,6 +52,20 @@ public class GlobalExceptionHandler {
         LOGGER.error("系统异常：",e);
         //统一定义为99999系统未知错误
         return  RestOut.error(999999, e.getMessage()) ;
+    }
 
+    @ExceptionHandler(value = WangEditorUploadException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public JSONObject processLoginException(HttpServletRequest request,
+                                            HttpServletResponse response,
+                                            Exception e) {
+
+        LOGGER.error("wangEditor上传失败",e);
+        JSONObject res = new JSONObject();
+        //错误返回
+        res.put("errno", 1);
+        res.put("message", e.getMessage());
+        return res;
     }
 }

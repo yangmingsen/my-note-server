@@ -12,6 +12,15 @@ public class NoteIndexQuery {
     private Long parentId;
     private String name;
     /**
+     * 存储位置(mysql,mongo)
+     */
+    private String storeSite;
+
+    /**
+     * 可能是t_note_file表的t_file_id
+     */
+    private String siteId;
+    /**
      * true 删除
      * false 非删除
      */
@@ -30,6 +39,7 @@ public class NoteIndexQuery {
 
         NoteIndexExample example = new NoteIndexExample();
         NoteIndexExample.Criteria criteria = example.createCriteria();
+
         if (userId != null) {
             criteria.andUserIdEqualTo(userId);
         }
@@ -41,6 +51,12 @@ public class NoteIndexQuery {
         }
         if (StringUtils.isNotBlank(name)) {
             criteria.andNameLike(name);
+        }
+        if (StringUtils.isNotBlank(siteId)) {
+            criteria.andSiteIdEqualTo(siteId);
+        }
+        if (StringUtils.isNotBlank(storeSite)) {
+            criteria.andStoreSiteEqualTo(storeSite);
         }
         if (isDel) {
             criteria.andDelEqualTo("1");
@@ -90,10 +106,43 @@ public class NoteIndexQuery {
             query.setParentId(parentId);
             return this;
         }
+        public Builder siteId(String siteId) {
+            query.siteId= siteId;
+            return this;
+        }
+        public Builder storeSite(String storeSite) {
+            query.storeSite= storeSite;
+            return this;
+        }
+
 
         public NoteIndexQuery get() {
             return query;
         }
+    }
+
+    public String getStoreSite() {
+        return storeSite;
+    }
+
+    public void setStoreSite(String storeSite) {
+        this.storeSite = storeSite;
+    }
+
+    public String getSiteId() {
+        return siteId;
+    }
+
+    public void setSiteId(String siteId) {
+        this.siteId = siteId;
+    }
+
+    public NoteIndexExample getExample() {
+        return example;
+    }
+
+    public void setExample(NoteIndexExample example) {
+        this.example = example;
     }
 
     public Long getUserId() {

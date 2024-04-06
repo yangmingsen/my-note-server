@@ -11,6 +11,8 @@
     <result column="f_del" jdbcType="CHAR" property="del" />
     <result column="f_create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="f_update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="f_store_site" jdbcType="VARCHAR" property="storeSite" />
+    <result column="f_site_id" jdbcType="VARCHAR" property="siteId" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -71,7 +73,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    f_id, f_parent_id, f_user_id, f_name, f_isfile, f_type, f_del, f_create_time, f_update_time
+    f_id, f_parent_id, f_user_id, f_name, f_isfile, f_type, f_del, f_create_time, f_update_time,
+        f_store_site, f_site_id
   </sql>
   <select id="selectByExample" parameterType="top.yms.note.entity.NoteIndexExample" resultMap="BaseResultMap">
     select
@@ -106,10 +109,11 @@
   <insert id="insert" parameterType="top.yms.note.entity.NoteIndex">
     insert into t_note_index (f_id, f_parent_id, f_user_id, 
       f_name, f_isfile, f_type, f_del, 
-      f_create_time, f_update_time)
+      f_create_time, f_update_time, f_store_site, f_site_id)
     values (#{id,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, 
       #{name,jdbcType=VARCHAR}, #{isile,jdbcType=CHAR}, #{type,jdbcType=VARCHAR}, #{del,jdbcType=CHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{storeSite,jdbcType=VARCHAR},
+            #{siteId,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="top.yms.note.entity.NoteIndex">
     insert into t_note_index
@@ -141,6 +145,12 @@
       <if test="updateTime != null">
         f_update_time,
       </if>
+      <if test="storeSite != null">
+        f_store_site,
+      </if>
+      <if test="siteId != null">
+        f_site_id,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="id != null">
@@ -169,6 +179,12 @@
       </if>
       <if test="updateTime != null">
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="storeSite != null">
+        #{storeSite,jdbcType=VARCHAR},
+      </if>
+      <if test="siteId != null">
+        #{siteId,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -208,6 +224,12 @@
       <if test="record.updateTime != null">
         f_update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.storeSite != null">
+        f_store_site = #{record.storeSite,jdbcType=VARCHAR},
+      </if>
+      <if test="record.siteId != null">
+        f_site_id = #{record.siteId,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -223,7 +245,9 @@
       f_type = #{record.type,jdbcType=VARCHAR},
       f_del = #{record.del,jdbcType=CHAR},
       f_create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      f_update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+      f_update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      f_store_site = #{record.storeSite,jdbcType=VARCHAR},
+     f_site_id = #{record.siteId,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -255,6 +279,12 @@
       <if test="updateTime != null">
         f_update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="storeSite != null">
+        f_store_site = #{storeSite,jdbcType=VARCHAR},
+      </if>
+      <if test="siteId != null">
+        f_site_id = #{siteId,jdbcType=VARCHAR},
+      </if>
     </set>
     where f_id = #{id,jdbcType=BIGINT}
   </update>
@@ -267,7 +297,9 @@
       f_type = #{type,jdbcType=VARCHAR},
       f_del = #{del,jdbcType=CHAR},
       f_create_time = #{createTime,jdbcType=TIMESTAMP},
-      f_update_time = #{updateTime,jdbcType=TIMESTAMP}
+      f_update_time = #{updateTime,jdbcType=TIMESTAMP},
+        f_store_site = #{storeSite,jdbcType=VARCHAR},
+        f_site_id = #{siteId,jdbcType=VARCHAR}
     where f_id = #{id,jdbcType=BIGINT}
   </update>
   <update id="delByIds" >

@@ -7,6 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import top.yms.note.exception.BusinessException;
+import top.yms.note.comm.Constants;
+import top.yms.note.comm.FileTypeEnum;
+import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.config.NoteOpType;
 import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.entity.NoteIndex;
@@ -38,17 +42,6 @@ public class NoteIndexService {
     @Autowired
     private IdWorker idWorker;
 
-    @Deprecated
-    private String mockDataFromDir() {
-        String path = "G:\\Project\\Java\\JavaProject\\";
-        FunTest funTest = new FunTest();
-        funTest.mockDataFromDir(path).stream().forEach(item ->  {
-//                    log.info("insert: {}", item);
-                    noteIndexMapper.insert(item);
-        });
-
-        return "OK";
-    }
 
 
     public List<NoteIndex> findByUserId(Long userid) {
@@ -78,8 +71,6 @@ public class NoteIndexService {
         List<NoteIndex> noteIndexList =  noteIndexMapper.selectByExample(
                 NoteIndexQuery.Builder.build().uid(uid).del(false).filter(2).get().example()
         );
-
-
         //列表转换为结构树
         Map<Long, NoteTree> noteTreeMap = new HashMap<>();
         for (NoteIndex note : noteIndexList) {
@@ -111,22 +102,34 @@ public class NoteIndexService {
 
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
-    public void add(NoteIndex node) {
-        long genId = idWorker.nextId();
-        node.setId(genId);
-        Long parentId = node.getParentId();
-        if (parentId == null) {
-            node.setParentId(0L);
+    public void add(NoteIndex note) {
+        List<NoteIndex> noteIndexList = noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().nid(note.getParentId()).get().example());
+        if (noteIndexList.size() == 0) {
+            throw new BusinessException(NoteIndexErrorCode.E_203110);
         }
-        node.setCreateTime(new Date());
-        noteIndexMapper.insertSelective(node);
+
+        long genId = idWorker.nextId();
+        note.setId(genId);
+
+        String noteType = note.getType();
+        if (FileTypeEnum.WER.compare(noteType)) {
+            note.setStoreSite(Constants.MYSQL);
+            note.setSiteId("");
+        }
+
+        Long parentId = note.getParentId();
+        if (parentId == null) {
+            note.setParentId(0L);
+        }
+        note.setCreateTime(new Date());
+        noteIndexMapper.insertSelective(note);
 
         NoteIndexUpdateLog logData = new NoteIndexUpdateLog();
         logData.setIndexId(genId);
         logData.setCreateTime(new Date());
         logData.setType(NoteOpType.ADD);
         Gson gson = new Gson();
-        String gsonStr = gson.toJson(node);
+        String gsonStr = gson.toJson(note);
         logData.setContent(gsonStr);
         noteIndexLogMapper.insert(logData);
 
@@ -134,6 +137,12 @@ public class NoteIndexService {
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
     public void update(NoteIndex node) {
+        Long id = node.getId();
+        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        if (noteIndex == null) {
+            throw new BusinessException(NoteIndexErrorCode.E_203106);
+        }
+
         node.setUpdateTime(new Date());
         noteIndexMapper.updateByPrimaryKeySelective(node);
 

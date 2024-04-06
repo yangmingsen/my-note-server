@@ -690,6 +690,145 @@ public class NoteIndexExample {
             addCriterion("f_update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+        public Criteria andStoreSiteIsNull() {
+            addCriterion("f_store_site is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStoreSiteIsNotNull() {
+            addCriterion("f_store_site is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStoreSiteEqualTo(String value) {
+            addCriterion("f_store_site =", value, "storeSite");
+            return (Criteria) this;
+        }
+
+        public Criteria andStoreSiteNotEqualTo(String value) {
+            addCriterion("f_store_site <>", value, "storeSite");
+            return (Criteria) this;
+        }
+
+        public Criteria andStoreSiteGreaterThan(String value) {
+            addCriterion("f_store_site >", value, "storeSite");
+            return (Criteria) this;
+        }
+
+        public Criteria andStoreSiteGreaterThanOrEqualTo(String value) {
+            addCriterion("f_store_site >=", value, "storeSite");
+            return (Criteria) this;
+        }
+
+        public Criteria andStoreSiteLessThan(String value) {
+            addCriterion("f_store_site <", value, "storeSite");
+            return (Criteria) this;
+        }
+
+        public Criteria andStoreSiteLessThanOrEqualTo(String value) {
+            addCriterion("f_store_site <=", value, "storeSite");
+            return (Criteria) this;
+        }
+
+        public Criteria andStoreSiteLike(String value) {
+            addCriterion("f_store_site like", value, "storeSite");
+            return (Criteria) this;
+        }
+
+        public Criteria andStoreSiteNotLike(String value) {
+            addCriterion("f_store_site not like", value, "storeSite");
+            return (Criteria) this;
+        }
+
+        public Criteria andStoreSiteIn(List<String> values) {
+            addCriterion("f_store_site in", values, "storeSite");
+            return (Criteria) this;
+        }
+
+        public Criteria andStoreSiteNotIn(List<String> values) {
+            addCriterion("f_store_site not in", values, "storeSite");
+            return (Criteria) this;
+        }
+
+        public Criteria andStoreSiteBetween(String value1, String value2) {
+            addCriterion("f_store_site between", value1, value2, "storeSite");
+            return (Criteria) this;
+        }
+
+        public Criteria andStoreSiteNotBetween(String value1, String value2) {
+            addCriterion("f_store_site not between", value1, value2, "storeSite");
+            return (Criteria) this;
+        }
+
+        public Criteria andSiteIdIsNull() {
+            addCriterion("f_site_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSiteIdIsNotNull() {
+            addCriterion("f_site_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSiteIdEqualTo(String value) {
+            addCriterion("f_site_id =", value, "siteId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSiteIdNotEqualTo(String value) {
+            addCriterion("f_site_id <>", value, "siteId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSiteIdGreaterThan(String value) {
+            addCriterion("f_site_id >", value, "siteId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSiteIdGreaterThanOrEqualTo(String value) {
+            addCriterion("f_site_id >=", value, "siteId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSiteIdLessThan(String value) {
+            addCriterion("f_site_id <", value, "siteId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSiteIdLessThanOrEqualTo(String value) {
+            addCriterion("f_site_id <=", value, "siteId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSiteIdLike(String value) {
+            addCriterion("f_site_id like", value, "siteId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSiteIdNotLike(String value) {
+            addCriterion("f_site_id not like", value, "siteId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSiteIdIn(List<String> values) {
+            addCriterion("f_site_id in", values, "siteId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSiteIdNotIn(List<String> values) {
+            addCriterion("f_site_id not in", values, "siteId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSiteIdBetween(String value1, String value2) {
+            addCriterion("f_site_id between", value1, value2, "siteId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSiteIdNotBetween(String value1, String value2) {
+            addCriterion("f_site_id not between", value1, value2, "siteId");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
