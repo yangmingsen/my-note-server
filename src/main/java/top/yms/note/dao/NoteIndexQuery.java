@@ -11,6 +11,7 @@ public class NoteIndexQuery {
     private Long id;
     private Long parentId;
     private String name;
+
     /**
      * 存储位置(mysql,mongo)
      */
@@ -135,14 +136,6 @@ public class NoteIndexQuery {
 
     public void setSiteId(String siteId) {
         this.siteId = siteId;
-    }
-
-    public NoteIndexExample getExample() {
-        return example;
-    }
-
-    public void setExample(NoteIndexExample example) {
-        this.example = example;
     }
 
     public Long getUserId() {

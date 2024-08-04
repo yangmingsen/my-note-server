@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import top.yms.note.dao.NoteIndexQuery;
+import top.yms.note.entity.AntTreeNode;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.Constants;
@@ -17,6 +19,7 @@ import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.MenuListVo;
 
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,6 +57,20 @@ public class NoteIndexController {
         return RestOut.success(noteTreeList);
     }
 
+    @GetMapping("/antTree")
+    public RestOut findAntTree() {
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        log.info("antTree: {}", uid);
+        List<NoteTree> noteTreeList = noteIndexService.findNoteTreeByUid(uid);
+        List<AntTreeNode> antTreeList = new LinkedList<>();
+        for (NoteTree noteTree : noteTreeList) {
+            antTreeList.add(noteIndexService.transferToAntTree(noteTree));
+        }
+
+        log.info("antTree: {} , count: {}", uid, antTreeList.size());
+        return RestOut.success(antTreeList);
+    }
+
     /**
      * 根据 uid和nid找 列表
      * @param parentId
@@ -70,8 +87,37 @@ public class NoteIndexController {
         log.info("findSubBy: uid= {}, parentId={}, count:{}", uid, parentId, resList.size());
 
         return RestOut.success(resList);
-
     }
+
+
+    /**
+     * 需求： 从子层返回上一层。
+     * <p>使用当前层的id找到parentId, 然后根据parentId找到所有该parentId下面的子节点</p>
+     * @param id
+     * @return
+     */
+    @GetMapping("/findBackParentDir")
+    public RestOut<List<NoteIndex>> findBackParentDir(@RequestParam("id") Long id) {
+        if (id == null) {
+            throw new BusinessException(NoteIndexErrorCode.E_203104);
+        }
+        List<NoteIndex> resList =  noteIndexService.findBackParentDir(id);
+        log.info("findBackParentDir: id= {},  count:{}", id, resList.size());
+
+        return RestOut.success(resList);
+    }
+
+    @GetMapping("/findOne")
+    public RestOut<NoteIndex> findOne(@RequestParam("id") Long id) {
+        if (id == null) {
+            throw new BusinessException(NoteIndexErrorCode.E_203104);
+        }
+        NoteIndex res = noteIndexService.findOne(id);
+        log.info("findOne: id= {},  count:{}", id, res);
+
+        return RestOut.success(res);
+    }
+
 
     @GetMapping("/menuList")
     public RestOut<MenuListVo> findMenuList(@RequestParam("nid") Long nid) {
@@ -108,20 +154,17 @@ public class NoteIndexController {
     }
 
     @PostMapping("/update")
-    public RestOut<String> update(@RequestBody NoteIndex node) {
+    public RestOut<String> update(@RequestBody NoteIndex note) {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
-        node.setUserId(uid);
-        log.info("update: {}", node);
-        if (node == null) {
+        note.setUserId(uid);
+        log.info("update: {}", note);
+        if (note == null) {
             throw new BusinessException(CommonErrorCode.E_200202);
         }
-        if (node.getId() == null) {
+        if (note.getId() == null) {
             throw new BusinessException(CommonErrorCode.E_203001);
         }
-
-        noteIndexService.update(node);
-
-
+        noteIndexService.update(note);
         return RestOut.succeed("ok");
     }
 
@@ -133,6 +176,34 @@ public class NoteIndexController {
         }
         noteIndexService.delDir(parentId);
         return RestOut.succeed("ok");
+    }
+
+
+    @PostMapping("/delNote")
+    public RestOut<String> delNote(@RequestBody NoteIndex note) {
+        log.info("delNote: {}", note);
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        note.setUserId(uid);
+        if (note.getId() == null) {
+            throw new BusinessException(CommonErrorCode.E_203001);
+        }
+
+        noteIndexService.delNote(note.getId());
+        return RestOut.succeed("ok");
+    }
+
+
+
+    @PostMapping("/findBy")
+    public RestOut<List<NoteIndex>> findBy(@RequestBody NoteIndexQuery query) {
+        log.info("findBy: {}", query);
+        if (query == null) {
+            throw new BusinessException(CommonErrorCode.E_100101);
+        }
+        List<NoteIndex> resList = noteIndexService.findBy(query);
+
+        log.info("findBy Result: 共{}条", resList.size());
+        return RestOut.success(resList);
     }
 
 }

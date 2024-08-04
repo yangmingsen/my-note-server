@@ -8,7 +8,7 @@ public abstract class Constants {
     public final static String MONGO = "mongo";
     public final static String MYSQL = "mysql";
     public final static String BASE_URL = "http://api.note.yms.top/note/file/view?id=";
-    public final static String MONGO_FILE_SITE = "crm.custdocfiles.files";
+    public final static String MONGO_FILE_SITE = "note.file";
 
 
 

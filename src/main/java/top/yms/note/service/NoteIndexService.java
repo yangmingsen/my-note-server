@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import top.yms.note.entity.AntTreeNode;
+import top.yms.note.enums.NoteTypeEnum;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.comm.Constants;
 import top.yms.note.comm.FileTypeEnum;
@@ -16,10 +18,10 @@ import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.NoteIndexUpdateLog;
 import top.yms.note.entity.NoteTree;
-import top.yms.note.fun.FunTest;
 import top.yms.note.mapper.NoteIndexMapper;
 import top.yms.note.mapper.NoteIndexUpdateLogMapper;
 import top.yms.note.utils.IdWorker;
+import top.yms.note.utils.LocalThreadUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -62,6 +64,17 @@ public class NoteIndexService {
         return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().parentId(parentId).uid(uid).get().example());
     }
 
+    public List<NoteIndex> findBackParentDir(Long id) {
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        NoteIndex note = noteIndexMapper.selectByPrimaryKey(id);
+
+        return findSubBy(note.getParentId(), uid);
+    }
+
+    public NoteIndex findOne(Long id) {
+        return noteIndexMapper.selectByPrimaryKey(id);
+    }
+
     /**
      * 查找目录树
      * @param uid
@@ -83,6 +96,7 @@ public class NoteIndexService {
             noteTreeMap.put(tmpNoteTree.getId(), tmpNoteTree);
         }
 
+        //各自找各自的父节点
         List<NoteTree> resList = new LinkedList<>();
         for(Map.Entry<Long, NoteTree> entry : noteTreeMap.entrySet()) {
             NoteTree value = entry.getValue();
@@ -92,11 +106,31 @@ public class NoteIndexService {
             if (parentNoteTree != null) {
                 parentNoteTree.getChildren().add(value);
             } else {
+                //说明当前节点已经是顶层节点
                 resList.add(value);
             }
         }
 
         return resList;
+    }
+
+    /**
+     * NoteTree 转 AntTree.
+     * 由于之前使用的是element-ui的tree组件, 现在改为使用antd-ui的tree组件,
+     *  需要转换一下名称
+     * @param noteTree
+     * @return
+     */
+    public AntTreeNode transferToAntTree(NoteTree noteTree) {
+        if (noteTree == null) return null;
+        List<AntTreeNode> antTreeNodeList = new LinkedList<>();
+        if (noteTree.getChildren() != null) {
+            for (NoteTree nTree : noteTree.getChildren()) {
+                antTreeNodeList.add(transferToAntTree(nTree));
+            }
+        }
+
+        return new AntTreeNode(noteTree.getLabel(), noteTree.getId().toString(), antTreeNodeList);
     }
 
 
@@ -156,6 +190,27 @@ public class NoteIndexService {
         noteIndexLogMapper.insert(logData);
     }
 
+
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class, timeout = 10)
+    public void delNote(Long id) {
+        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        if (NoteTypeEnum.File == NoteTypeEnum.apply(noteIndex.getIsile())) {
+            NoteIndex up = new NoteIndex();
+            up.setId(id);
+            up.setDel("1");
+
+            NoteIndexUpdateLog addLog = new NoteIndexUpdateLog();
+            addLog.setIndexId(id);
+            addLog.setType(NoteOpType.DELETE);
+            addLog.setCreateTime(new Date());
+
+            noteIndexMapper.updateByPrimaryKeySelective(up);
+            noteIndexLogMapper.insert(addLog);
+        } else {
+            delDir(id);
+        }
+    }
+
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
     public void delDir(Long parentId) {
         Queue<Long> queue = new LinkedList<>();
@@ -163,7 +218,7 @@ public class NoteIndexService {
         List<NoteIndexUpdateLog> addList = new LinkedList<>();
         queue.add(parentId);
 
-        //BFS Search
+        //BFS Search delete
         while (!queue.isEmpty()) {
             Long id = queue.poll();
             List<NoteIndex> noteList = noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().parentId(id).get().example());
@@ -183,5 +238,9 @@ public class NoteIndexService {
         noteIndexLogMapper.insertBatch(addList);
         log.info("delDir: 删除成功, 共计 {} 条数据", delList.size());
 
+    }
+
+    public List<NoteIndex> findBy(NoteIndexQuery query) {
+        return Optional.ofNullable(noteIndexMapper.selectByExample(query.example())).orElse(Collections.emptyList());
     }
 }

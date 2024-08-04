@@ -44,7 +44,7 @@ logging:
 swagger:
   enable: true
 
-debug: false
+#debug: true
 
 
 mybatis:
@@ -52,10 +52,11 @@ mybatis:
 
 cors:
   allowed-hosts: 127.0.0.1,localhost
-  allowed-ports: 5173
+  allowed-ports: 5173,63342
   allowed-method: OPTIONS,HEAD,GET,POST,PUT,DELETE,PATCH
 
 sys:
   session-expire-time: 30m
-  mas-interceptor: true
+  note-interceptor: true
   sql-show: true
+  enable-service-cache: false

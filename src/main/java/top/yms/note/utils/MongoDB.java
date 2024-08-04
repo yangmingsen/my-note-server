@@ -56,7 +56,7 @@ public class MongoDB {
      * @param collectionName    集合名称
      */
     public static String saveDocument(String doc, String collectionName) throws Exception {
-        lg.info("新增Document：{}", collectionName);
+        lg.debug("新增Document：{}", collectionName);
 
         BasicDBObject obj = new BasicDBObject();
         obj.put("doc", doc);
@@ -75,7 +75,7 @@ public class MongoDB {
      * @param collectionName  集合名称
      */
     public static void updateDocument(String id, String doc, String collectionName) throws Exception {
-        lg.info("修改Document：{}[{}]", id, collectionName);
+        lg.debug("修改Document：{}[{}]", id, collectionName);
 
         MongoTemplate mgt = (MongoTemplate) SpringContext.getBean("documentTemplate");
         mgt.updateFirst(new Query(Criteria.where("_id").is(id)), Update.update("doc", doc), collectionName);
@@ -88,7 +88,7 @@ public class MongoDB {
      * @param collectionName  集合名称
      */
     public static String loadDocument(String id, String collectionName) throws Exception {
-        lg.info("加载Document：{}[{}]", id, collectionName);
+        lg.debug("加载Document：{}[{}]", id, collectionName);
         MongoTemplate mgt = (MongoTemplate) SpringContext.getBean("documentTemplate");
         BasicDBObject obj = mgt.findOne(new Query(Criteria.where("_id").is(id)), BasicDBObject.class, collectionName);
 
@@ -109,7 +109,7 @@ public class MongoDB {
      */
     public static void deleteDocument(String id, String collectionName) throws Exception {
         // TODO 删除全文索引
-        lg.info("删除Document：{}[{}]", id, collectionName);
+        lg.debug("删除Document：{}[{}]", id, collectionName);
         MongoTemplate mgt = (MongoTemplate) SpringContext.getBean("documentTemplate");
         mgt.remove(new Query(Criteria.where("_id").is(id)), collectionName);
     }
@@ -289,7 +289,7 @@ public class MongoDB {
 //		try{
 //			FullTextIndex.delete(id);
 //		}catch (Exception e){
-//			lg.info("删除全文索引：{}{}", id, e.getMessage());
+//			lg.debug("删除全文索引：{}{}", id, e.getMessage());
 //		}
         // GridFsTemplate gridFs = (GridFsTemplate) SpringContext.getBean("gridFsTemplate");
         MFileInfo mfileInfo = getFileInfo(id);
@@ -417,7 +417,6 @@ public class MongoDB {
         private String bucketName = "th";
 
         public MFileInfo(String id, String date) throws Exception {
-            super();
             this.id = id;
             this.date = date;
             if (StringUtils.isNotBlank(date)) {

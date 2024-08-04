@@ -1,13 +1,15 @@
 package top.yms.note.controller;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.mongodb.gridfs.GridFSDBFile;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import top.yms.note.conpont.AnyFile;
+import top.yms.note.conpont.FileStore;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.comm.FileTypeEnum;
 import top.yms.note.comm.NoteIndexErrorCode;
@@ -16,7 +18,6 @@ import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.RestOut;
 import top.yms.note.exception.WangEditorUploadException;
 import top.yms.note.service.NoteFileService;
-import top.yms.note.utils.MongoDB;
 
 import javax.servlet.http.HttpServletResponse;
 import java.net.URLEncoder;
@@ -33,6 +34,10 @@ public class NoteFileController {
 
     @Autowired
     private NoteFileService noteFileService;
+
+    @Autowired
+    @Qualifier("mongoFileStore")
+    private FileStore fileStore;
 
     @PostMapping("/upload")
     public JSONObject uploadFileForWer(@RequestParam(value = "file") MultipartFile file) throws WangEditorUploadException {
@@ -73,7 +78,7 @@ public class NoteFileController {
             note.setType(FileTypeEnum.UNKNOWN.getValue());
         }
         note.setCreateTime(new Date());
-
+        log.info("upload Note={}", note);
         noteFileService.addNote(file, note);
 
         return RestOut.success("ok");
@@ -86,7 +91,7 @@ public class NoteFileController {
         NoteFile noteFile = noteFileService.findOne(id);
         log.info("view: noteFile:{}", noteFile);
         if (noteFile == null) return ;
-        GridFSDBFile file = MongoDB.loadFile(id);
+        AnyFile file = fileStore.loadFile(id);
         resp.setContentType(noteFile.getType());
         file.writeTo(resp.getOutputStream());
 
@@ -94,7 +99,7 @@ public class NoteFileController {
 
     @GetMapping("/download")
     public void download(@RequestParam("id") String id, HttpServletResponse resp)  throws Exception{
-        GridFSDBFile file = MongoDB.loadFile(id);
+        AnyFile file = fileStore.loadFile(id);
         resp.setContentType("application/octet-stream");
         resp.addHeader("Content-Disposition", "attachment; filename=\"" + URLEncoder.encode(file.getFilename(), "UTF-8") + "\"");
         resp.addHeader("Content-Length", "" + file.getLength());

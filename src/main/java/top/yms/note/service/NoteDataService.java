@@ -1,5 +1,6 @@
 package top.yms.note.service;
 
+import org.apache.lucene.util.RamUsageEstimator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,8 @@ public class NoteDataService {
     }
 
     public NoteData get(Long id) {
-        return noteDataMapper.selectByPrimaryKey(id);
+        NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
+        log.info("get id={}, dataSize={}", id, RamUsageEstimator.humanSizeOf(noteData));
+        return noteData;
     }
 }

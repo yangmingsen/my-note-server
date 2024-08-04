@@ -12,8 +12,6 @@ public enum CommonErrorCode implements ErrorCode {
     ////////////////////////////////////业务异常编码 //////////////////////////
     E_200201(200201, "无法找到对应数据"),
     E_200202(200202, "输入参数不能为空"),
-    E_200203(200203,"year不能为null"),
-    E_200204(200204,"year长度必须为4"),
     E_200205(200205,"查询结果大于1"),
     E_200206(200206,"查询结果为空"),
     E_200207(200207,"同步出错"),
@@ -26,6 +24,8 @@ public enum CommonErrorCode implements ErrorCode {
     E_203000(203000, "Note parentId不能为空"),
     E_203001(203001, "Note Id不能为空"),
     E_203002(203002, "wangEditor上传文件失败"),
+    E_203003(203003, "FileStore loadFile失败"),
+    E_203004(203004, "FileStore Save失败"),
 
 
     /**

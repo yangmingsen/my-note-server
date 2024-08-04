@@ -6,12 +6,14 @@ import com.mongodb.DBObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.Constants;
+import top.yms.note.conpont.FileStore;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.entity.NoteFile;
 import top.yms.note.entity.NoteIndex;
@@ -37,6 +39,10 @@ public class NoteFileService {
 
     @Autowired
     private NoteIndexService noteIndexService;
+
+    @Autowired
+    @Qualifier("mongoFileStore")
+    private FileStore fileStore;
 
 
     /**
@@ -74,7 +80,8 @@ public class NoteFileService {
         try {
             DBObject metaData = new BasicDBObject();
             metaData.put("type", Constants.MONGO_FILE_SITE);
-            String fileId = MongoDB.saveFile(file, null, metaData);
+//            String fileId = MongoDB.saveFile(file, null, metaData);
+            String fileId = fileStore.saveFile(file, new Object[]{metaData} );
             String fileName = file.getOriginalFilename();
             String fileType = file.getContentType();
             long fileSize = file.getSize();
@@ -117,7 +124,8 @@ public class NoteFileService {
     public void addNote(MultipartFile file, NoteIndex note) throws Exception{
         DBObject metaData = new BasicDBObject();
         metaData.put("type", Constants.MONGO_FILE_SITE);
-        String fileId = MongoDB.saveFile(file, null, metaData);
+//        String fileId = MongoDB.saveFile(file, null, metaData);
+        String fileId = fileStore.saveFile(file, new Object[]{metaData} );
         //先默认上传到mongo
         note.setStoreSite(Constants.MONGO);
         note.setSiteId(fileId);

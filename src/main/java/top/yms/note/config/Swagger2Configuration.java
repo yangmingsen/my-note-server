@@ -1,6 +1,6 @@
 package top.yms.note.config;
 
-
+/*
 import io.swagger.annotations.Api;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -41,7 +41,7 @@ public class Swagger2Configuration {
         return new ApiInfoBuilder()
                 .title("MyNote接口文档")
                 .description("MyNote相关接口的文档")
-                .termsOfServiceUrl("http://localhost:8080/")
+                .termsOfServiceUrl("http://localhost:9003/")
                 .version("1.0")
                 .contact(contact)
                 .build();
@@ -86,3 +86,4 @@ public class Swagger2Configuration {
 
 
 }
+*/
