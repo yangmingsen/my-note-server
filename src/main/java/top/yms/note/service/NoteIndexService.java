@@ -1,13 +1,15 @@
 package top.yms.note.service;
 
 import com.google.gson.Gson;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import top.yms.note.entity.AntTreeNode;
+import top.yms.note.dao.NoteFileQuery;
+import top.yms.note.entity.*;
 import top.yms.note.enums.NoteTypeEnum;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.comm.Constants;
@@ -15,13 +17,12 @@ import top.yms.note.comm.FileTypeEnum;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.config.NoteOpType;
 import top.yms.note.dao.NoteIndexQuery;
-import top.yms.note.entity.NoteIndex;
-import top.yms.note.entity.NoteIndexUpdateLog;
-import top.yms.note.entity.NoteTree;
+import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.mapper.NoteIndexMapper;
 import top.yms.note.mapper.NoteIndexUpdateLogMapper;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
+import top.yms.note.vo.NoteInfoVo;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,6 +41,9 @@ public class NoteIndexService {
 
     @Autowired
     private NoteIndexUpdateLogMapper noteIndexLogMapper;
+
+    @Autowired
+    private NoteFileMapper noteFileMapper;
 
     @Autowired
     private IdWorker idWorker;
@@ -242,5 +246,36 @@ public class NoteIndexService {
 
     public List<NoteIndex> findBy(NoteIndexQuery query) {
         return Optional.ofNullable(noteIndexMapper.selectByExample(query.example())).orElse(Collections.emptyList());
+    }
+
+    public void findBreadcrumb(Long id, List<NoteIndex> list) {
+        if (id == 0L) {
+            return;
+        }
+        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        Long parentId = noteIndex.getParentId();
+        if (parentId == 0) {
+            list.add(noteIndex);
+            return ;
+        }
+        findBreadcrumb(parentId, list);
+        list.add(noteIndex);
+    }
+
+
+    public NoteInfoVo getNoteAndSite(Long id) {
+        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        NoteInfoVo res = new NoteInfoVo();
+        res.setNoteIndex(noteIndex);
+        if (StringUtils.isNotBlank(noteIndex.getStoreSite())) {
+            if (Constants.MONGO.equals(noteIndex.getStoreSite())) {
+                String siteId = noteIndex.getSiteId();
+                List<NoteFile> noteFiles = noteFileMapper.selectByExample(NoteFileQuery.Builder.build().fileId(siteId).get().example());
+                if (noteFiles != null && noteFiles.size() >0) {
+                    res.setNoteFile(noteFiles.get(0));
+                }
+            }
+        }
+        return res;
     }
 }

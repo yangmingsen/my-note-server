@@ -17,6 +17,7 @@ import top.yms.note.entity.RestOut;
 import top.yms.note.service.NoteIndexService;
 import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.MenuListVo;
+import top.yms.note.vo.NoteInfoVo;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -204,6 +205,27 @@ public class NoteIndexController {
 
         log.info("findBy Result: 共{}条", resList.size());
         return RestOut.success(resList);
+    }
+
+    @GetMapping("/findBreadcrumb")
+    public RestOut<List<NoteIndex>> findBreadcrumb (@RequestParam("id") Long id) {
+        log.info("findBreadcrumb: id={}", id);
+        if (id == null) {
+            throw new BusinessException(CommonErrorCode.E_203001);
+        }
+        List<NoteIndex> res = new LinkedList<>();
+        noteIndexService.findBreadcrumb(id, res);
+        log.info("findBreadcrumb Result: 共{}条", res.size());
+        return RestOut.success(res);
+    }
+
+    @GetMapping("/getNoteAndSite")
+    public RestOut<NoteInfoVo> getNoteAndSite(@RequestParam("id") Long id) {
+        if (id == null) {
+            throw new BusinessException(CommonErrorCode.E_203001);
+        }
+        NoteInfoVo res = noteIndexService.getNoteAndSite(id);
+        return RestOut.success(res);
     }
 
 }

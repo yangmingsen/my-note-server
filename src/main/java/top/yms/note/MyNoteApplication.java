@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  */
 @EnableTransactionManagement
 @SpringBootApplication
-//@ImportResource(locations = "classpath:spring-mongo.xml")
+@ImportResource(locations = "classpath:spring-mongo.xml")
 public class MyNoteApplication {
     public static void main(String[] args) {
         ConfigurableApplicationContext applicationContext = SpringApplication.run(MyNoteApplication.class, args);

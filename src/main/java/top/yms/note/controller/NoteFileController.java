@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import top.yms.note.comm.Constants;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStore;
 import top.yms.note.exception.BusinessException;
@@ -18,6 +19,7 @@ import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.RestOut;
 import top.yms.note.exception.WangEditorUploadException;
 import top.yms.note.service.NoteFileService;
+import top.yms.note.utils.LocalThreadUtils;
 
 import javax.servlet.http.HttpServletResponse;
 import java.net.URLEncoder;
@@ -47,17 +49,14 @@ public class NoteFileController {
 
     @PostMapping("/uploadNote")
     public RestOut uploadNote(@RequestParam(value = "file") MultipartFile file,
-                              @RequestParam("parentId") Long parentId,
-                              @RequestParam("userId") Long userId) throws Exception {
+                              @RequestParam("parentId") Long parentId) throws Exception {
         if (file == null) {
             throw new BusinessException(NoteIndexErrorCode.E_203108);
         }
         if (parentId== null) {
             throw new BusinessException(NoteIndexErrorCode.E_203105);
         }
-        if (userId == null) {
-            throw new BusinessException(NoteIndexErrorCode.E_203107);
-        }
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         String fileName = file.getOriginalFilename();
         if (StringUtils.isBlank(fileName)) {
             throw new BusinessException(NoteIndexErrorCode.E_203109);
@@ -65,14 +64,14 @@ public class NoteFileController {
 
         NoteIndex note = new NoteIndex();
         note.setParentId(parentId);
-        note.setUserId(userId);
+        note.setUserId(uid);
         note.setName(fileName);
         note.setIsile("1");
         int dot = fileName.lastIndexOf('.');
         if (dot > 0) {
             int len = fileName.length();
             //获取文件后缀
-            String fileType = fileName.substring(dot + 1, len);
+            String fileType = fileName.substring(dot + 1, len).toLowerCase();
             note.setType(fileType);
         } else {
             note.setType(FileTypeEnum.UNKNOWN.getValue());
@@ -92,7 +91,7 @@ public class NoteFileController {
         log.info("view: noteFile:{}", noteFile);
         if (noteFile == null) return ;
         AnyFile file = fileStore.loadFile(id);
-        resp.setContentType(noteFile.getType());
+        resp.setContentType(file.getContentType());
         file.writeTo(resp.getOutputStream());
 
     }

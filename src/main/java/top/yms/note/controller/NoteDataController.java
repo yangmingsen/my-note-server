@@ -4,12 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import top.yms.note.comm.Constants;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.RestOut;
 import top.yms.note.service.NoteDataService;
+import top.yms.note.utils.LocalThreadUtils;
 
 /**
  * Created by yangmingsen on 2024/4/6.
@@ -25,6 +27,8 @@ public class NoteDataController {
 
     @PostMapping("/addAndUpdate")
     public RestOut<String> addAndUpdate(@RequestBody NoteData noteData) {
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        noteData.setUserId(uid);
         log.info("addAndUpdate: noteData={}", noteData);
         if (noteData == null) {
             throw new BusinessException(CommonErrorCode.E_100101);
