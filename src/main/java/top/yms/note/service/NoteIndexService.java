@@ -8,15 +8,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import top.yms.note.conpont.FileStore;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.entity.*;
 import top.yms.note.enums.NoteTypeEnum;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.comm.Constants;
-import top.yms.note.comm.FileTypeEnum;
+import top.yms.note.enums.FileTypeEnum;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.config.NoteOpType;
 import top.yms.note.dao.NoteIndexQuery;
+import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.mapper.NoteIndexMapper;
 import top.yms.note.mapper.NoteIndexUpdateLogMapper;
@@ -44,6 +46,12 @@ public class NoteIndexService {
 
     @Autowired
     private NoteFileMapper noteFileMapper;
+
+    @Autowired
+    private NoteDataMapper noteDataMapper;
+
+    @Autowired
+    private FileStore fileStoreService;
 
     @Autowired
     private IdWorker idWorker;
@@ -111,7 +119,8 @@ public class NoteIndexService {
                 parentNoteTree.getChildren().add(value);
             } else {
                 //说明当前节点已经是顶层节点
-                resList.add(value);
+                if (value.getParentId() == 0L)
+                    resList.add(value);
             }
         }
 
@@ -146,11 +155,16 @@ public class NoteIndexService {
             throw new BusinessException(NoteIndexErrorCode.E_203110);
         }
 
-        long genId = idWorker.nextId();
-        note.setId(genId);
+        long genId;
+        if (note.getId() == null) {
+            genId = idWorker.nextId();
+            note.setId(genId);
+        } else {
+            genId = note.getId();
+        }
 
         String noteType = note.getType();
-        if (FileTypeEnum.WER.compare(noteType)) {
+        if (FileTypeEnum.WER.compare(noteType) || FileTypeEnum.MARKDOWN.compare(noteType)) {
             note.setStoreSite(Constants.MYSQL);
             note.setSiteId("");
         }
@@ -196,12 +210,74 @@ public class NoteIndexService {
 
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class, timeout = 10)
+    public void destroyNote(Long id) {
+        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        if (noteIndex == null) {
+            log.error("destroyNote id={}, 未找到索引信息", id);
+            return ;
+        }
+
+        if (NoteTypeEnum.File == NoteTypeEnum.apply(noteIndex.getIsile())) {
+            //删除t_note_index
+            noteIndexMapper.deleteByPrimaryKey(id);
+            //删除t_note_data
+            if (Constants.MYSQL.equals(noteIndex.getStoreSite())) {
+                noteDataMapper.deleteByPrimaryKey(id);
+            }
+            //删除t_note_file
+            if (Constants.MONGO.equals(noteIndex.getStoreSite())) {
+                String siteId = noteIndex.getSiteId();
+                noteFileMapper.deleteByFileId(siteId);
+                fileStoreService.delFile(siteId);
+            }
+
+            NoteIndexUpdateLog addLog = new NoteIndexUpdateLog();
+            addLog.setIndexId(id);
+            addLog.setType(NoteOpType.Destroy);
+            addLog.setCreateTime(new Date());
+            noteIndexLogMapper.insert(addLog);
+        }
+
+        if (NoteTypeEnum.Directory == NoteTypeEnum.apply(noteIndex.getIsile())) {
+            List<NoteIndex> noteIndexList = bfsSearchTree(id);
+            List<NoteIndexUpdateLog> addLogList = new LinkedList<>();
+            for (NoteIndex note : noteIndexList) {
+                noteIndexMapper.deleteByPrimaryKey(note.getId());
+                if (NoteTypeEnum.File == NoteTypeEnum.apply(note.getIsile())) {
+                    //删除t_note_data
+                    if (Constants.MYSQL.equals(note.getStoreSite())) {
+                        noteDataMapper.deleteByPrimaryKey(note.getId());
+                    }
+                    //删除t_note_file
+                    if (Constants.MONGO.equals(note.getStoreSite())) {
+                        String siteId = note.getSiteId();
+                        noteFileMapper.deleteByFileId(siteId);
+                        fileStoreService.delFile(siteId);
+                    }
+                }
+                //日志
+                NoteIndexUpdateLog addLog = new NoteIndexUpdateLog();
+                addLog.setIndexId(note.getId());
+                addLog.setType(NoteOpType.Destroy);
+                addLog.setCreateTime(new Date());
+                addLogList.add(addLog);
+            }
+            noteIndexLogMapper.insertBatch(addLogList);
+            log.info("删除目录[{}]成功, 共[{}]条数据", noteIndex.getName(), addLogList.size());
+        }
+
+
+    }
+
+
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class, timeout = 10)
     public void delNote(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
-        if (NoteTypeEnum.File == NoteTypeEnum.apply(noteIndex.getIsile())) {
+        if (noteIndex != null) {
             NoteIndex up = new NoteIndex();
             up.setId(id);
             up.setDel("1");
+            up.setUpdateTime(new Date());
 
             NoteIndexUpdateLog addLog = new NoteIndexUpdateLog();
             addLog.setIndexId(id);
@@ -210,10 +286,26 @@ public class NoteIndexService {
 
             noteIndexMapper.updateByPrimaryKeySelective(up);
             noteIndexLogMapper.insert(addLog);
-        } else {
-            delDir(id);
         }
     }
+
+    public List<NoteIndex> bfsSearchTree(Long parentId) {
+        Queue<Long> queue = new LinkedList<>();
+        List<NoteIndex> resList = new LinkedList<>();
+        resList.add(noteIndexMapper.selectByPrimaryKey(parentId));
+        queue.add(parentId);
+        while (!queue.isEmpty()) {
+            Long id = queue.poll();
+            List<NoteIndex> noteList = noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().parentId(id).get().example());
+            if (noteList.size() > 0) {
+                queue.addAll(noteList.stream().map(NoteIndex::getId).collect(Collectors.toList()));
+                resList.addAll(noteList);
+            }
+        }
+
+        return resList;
+    }
+
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
     public void delDir(Long parentId) {
@@ -277,5 +369,51 @@ public class NoteIndexService {
             }
         }
         return res;
+    }
+
+
+    public List<NoteIndex> getRecentFiles() {
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).del(false).get().example()).stream().sorted(
+                (o1, o2) -> {
+                    Date d1 = o1.getUpdateTime();
+                    if (d1 == null) {
+                        d1 = o1.getCreateTime();
+                    }
+                    Date d2 = o2.getUpdateTime();
+                    if (d2 == null) {
+                        d2 = o2.getCreateTime();
+                    }
+                    return d2.compareTo(d1);
+                }
+        ).limit(10).collect(Collectors.toList());
+    }
+
+    public List<NoteIndex> getDeletedFiles() {
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).del(true).get().example()).stream().sorted(
+                (o1, o2) -> {
+                    Date d1 = o1.getUpdateTime();
+                    if (d1 == null) {
+                        d1 = o1.getCreateTime();
+                    }
+                    Date d2 = o2.getUpdateTime();
+                    if (d2 == null) {
+                        d2 = o2.getCreateTime();
+                    }
+                    return d2.compareTo(d1);
+                }
+        ).collect(Collectors.toList());
+    }
+
+
+    public int allDestroy() {
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        return noteIndexMapper.allDestroy(uid);
+    }
+
+    public int allRecover() {
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        return noteIndexMapper.allRecover(uid);
     }
 }

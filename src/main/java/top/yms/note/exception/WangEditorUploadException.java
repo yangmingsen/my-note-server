@@ -9,7 +9,7 @@ public class WangEditorUploadException extends RuntimeException{
     private ErrorCode errorCode;
 
     public WangEditorUploadException(ErrorCode errorCode) {
-        super();
+        super(errorCode.getDesc());
         this.errorCode = errorCode;
     }
     public WangEditorUploadException() {

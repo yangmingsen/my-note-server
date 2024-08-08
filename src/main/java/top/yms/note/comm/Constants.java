@@ -10,6 +10,9 @@ public abstract class Constants {
     public final static String BASE_URL = "http://api.note.yms.top/note/file/view?id=";
     public final static String MONGO_FILE_SITE = "note.file";
 
+    public final static String markdownSuffix = "md";
+    public final static String defaultSuffix = "wer";
+
 
 
 }

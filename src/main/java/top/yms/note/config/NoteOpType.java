@@ -3,7 +3,8 @@ package top.yms.note.config;
 public enum NoteOpType {
     ADD("add"),
     UPDATE("upd"),
-    DELETE("del")
+    DELETE("del"),
+    Destroy("destroy")
     ;
     private final String name;
 

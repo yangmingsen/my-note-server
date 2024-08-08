@@ -15,13 +15,18 @@ import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.Constants;
 import top.yms.note.conpont.FileStore;
 import top.yms.note.dao.NoteFileQuery;
+import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteFile;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.exception.WangEditorUploadException;
 import top.yms.note.mapper.NoteFileMapper;
+import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.utils.MongoDB;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +44,12 @@ public class NoteFileService {
 
     @Autowired
     private NoteIndexService noteIndexService;
+
+    @Autowired
+    private IdWorker idWorker;
+
+    @Autowired
+    private NoteDataService noteDataService;
 
     @Autowired
     @Qualifier("mongoFileStore")
@@ -120,8 +131,37 @@ public class NoteFileService {
         return null;
     }
 
+
+    private void handleMarkdown(MultipartFile file, NoteIndex note) throws Exception {
+        long genId = idWorker.nextId();
+        note.setStoreSite(Constants.MYSQL);
+        note.setId(genId);
+        //存储到t_note_index
+        noteIndexService.add(note);
+
+        StringBuilder sb = new StringBuilder();
+        byte [] buf = new byte[1024];
+        int len;
+        InputStream inputStream = file.getInputStream();
+        while ((len = inputStream.read(buf)) > 0) {
+            sb.append(new String(buf, 0, len));
+        }
+        NoteData noteData = new NoteData();
+        noteData.setId(genId);
+        noteData.setUserId(note.getUserId());
+        noteData.setContent(sb.toString());
+
+        noteDataService.addAndUpdate(noteData);
+
+    }
+
+
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
     public void addNote(MultipartFile file, NoteIndex note) throws Exception{
+        if (Constants.markdownSuffix.equals(note.getType())) {
+            handleMarkdown(file, note);
+            return;
+        }
         DBObject metaData = new BasicDBObject();
         metaData.put("type", Constants.MONGO_FILE_SITE);
 //        String fileId = MongoDB.saveFile(file, null, metaData);

@@ -2,8 +2,10 @@ package top.yms.note.mapper;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.NoteIndexExample;
 
@@ -34,4 +36,10 @@ public interface NoteIndexMapper {
     int delByIds(@Param("ids") long [] ids);
 
     int delByListIds(@Param("ids") List<Long> ids);
+
+    @Delete("delete from t_note_index where f_user_id = #{uid, jdbcType=BIGINT} and f_del=1")
+    int allDestroy(@Param("uid") Long uid);
+
+    @Update("update t_note_index set f_del=0 where f_user_id = #{uid, jdbcType=BIGINT}")
+    int allRecover(@Param("uid") Long uid);
 }

@@ -2,6 +2,7 @@ package top.yms.note.mapper;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import top.yms.note.entity.NoteFile;
@@ -30,4 +31,7 @@ public interface NoteFileMapper {
     int updateByPrimaryKeySelective(NoteFile record);
 
     int updateByPrimaryKey(NoteFile record);
+
+    @Delete("delete from t_note_file where f_file_id=#{fileId, jdbcType=VARCHAR}")
+    int deleteByFileId(@Param("fileId") String fileId);
 }

@@ -4,6 +4,7 @@ package top.yms.note.conpont;
 import com.mongodb.gridfs.GridFSDBFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
@@ -35,5 +36,10 @@ public class MongFile449 extends AnyFile {
     @Override
     public String getFilename() {
         return gridFSDBFile.getFilename();
+    }
+
+    @Override
+    public InputStream getInputStream() {
+        return gridFSDBFile.getInputStream();
     }
 }

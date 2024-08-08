@@ -1,9 +1,9 @@
-package top.yms.note.comm;
+package top.yms.note.enums;
 
 public enum FileTypeEnum {
     WER(100,"wer", "默认Note类型"),
     TXT(101,"txt", "文本文件"),
-    MARKDOWN(102,"markdown", "markdown文件"),
+    MARKDOWN(102,"md", "markdown文件"),
     PDF(103,"pdf", "pdf"),
 
     UNKNOWN(199,"unknown", "未知文件类型") ;
@@ -32,5 +32,14 @@ public enum FileTypeEnum {
 
     public boolean compare(String str) {
         return getValue().equals(str);
+    }
+    public static FileTypeEnum apply(String value) {
+        if (value == null) return null;
+        for (FileTypeEnum fte : FileTypeEnum.values()) {
+            if (fte.getValue().equals(value)) {
+                return fte;
+            }
+        }
+        return null;
     }
 }

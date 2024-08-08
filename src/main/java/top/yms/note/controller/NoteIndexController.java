@@ -37,8 +37,6 @@ public class NoteIndexController {
     @Autowired
     private NoteIndexService noteIndexService;
 
-
-
     @GetMapping("/list")
     public RestOut<List<NoteIndex>> findByUid() {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
@@ -47,7 +45,6 @@ public class NoteIndexController {
         log.info("findByUid: {} , count: {}", uid, noteList.size());
         return RestOut.success(noteList);
     }
-
 
     @GetMapping("/tree")
     public RestOut findNoteTreeByUid() {
@@ -89,7 +86,6 @@ public class NoteIndexController {
 
         return RestOut.success(resList);
     }
-
 
     /**
      * 需求： 从子层返回上一层。
@@ -169,6 +165,7 @@ public class NoteIndexController {
         return RestOut.succeed("ok");
     }
 
+
     @GetMapping("/delDir")
     public RestOut<String> delDir(@RequestParam("parentId") Long parentId) {
         log.info("delDir: parentId={}", parentId);
@@ -193,7 +190,12 @@ public class NoteIndexController {
         return RestOut.succeed("ok");
     }
 
-
+    @GetMapping("/destroyNote")
+    public RestOut<String> destroyNote(@RequestParam("id") Long id) {
+        log.info("destroyNote id= {}", id);
+        noteIndexService.destroyNote(id);
+        return RestOut.succeed("ok");
+    }
 
     @PostMapping("/findBy")
     public RestOut<List<NoteIndex>> findBy(@RequestBody NoteIndexQuery query) {
@@ -228,4 +230,34 @@ public class NoteIndexController {
         return RestOut.success(res);
     }
 
+    @GetMapping("/getRecentFiles")
+    public RestOut<List<NoteIndex>> getRecentFiles() {
+        List<NoteIndex> resList = noteIndexService.getRecentFiles();
+        log.info("getRecentFiles Result: 共{}条", resList.size());
+
+        return RestOut.success(resList);
+    }
+
+    @GetMapping("/getDeletedFiles")
+    public RestOut<List<NoteIndex>> getDeletedFiles() {
+        List<NoteIndex> resList = noteIndexService.getDeletedFiles();
+        log.info("getDeletedFiles Result: 共{}条", resList.size());
+
+        return RestOut.success(resList);
+    }
+
+
+    @GetMapping("/allDestroy")
+    public RestOut allDestroy() {
+        int cnt = noteIndexService.allDestroy();
+        log.info("allDestroy: {}", cnt);
+        return RestOut.succeed("OK");
+    }
+
+    @GetMapping("/allRecover")
+    public RestOut allRecover() {
+        int cnt = noteIndexService.allRecover();
+        log.info("allRecover: {}", cnt);
+        return RestOut.succeed("OK");
+    }
 }

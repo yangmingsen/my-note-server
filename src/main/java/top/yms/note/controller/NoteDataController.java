@@ -46,4 +46,15 @@ public class NoteDataController {
         NoteData res = noteDataService.get(id);
         return RestOut.success(res);
     }
+
+
+    @GetMapping("/checkFileCanPreview")
+    public RestOut checkFileCanPreview(@RequestParam("id") Long id) {
+        boolean canPreview = noteDataService.checkFileCanPreviewByCache(id);
+        if (canPreview) {
+            return RestOut.succeed("Ok");
+        }
+        return RestOut.error("Not Support");
+    }
+
 }

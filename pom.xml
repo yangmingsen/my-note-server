@@ -11,6 +11,7 @@
     <groupId>top.yms.note</groupId>
     <artifactId>mynote</artifactId>
     <version>1.0.0</version>
+    <packaging>jar</packaging>
     <name>mynote</name>
     <description>MyNote soft</description>
     <properties>
@@ -69,6 +70,11 @@
             <artifactId>commons-lang3</artifactId>
             <version>${commons.version}</version>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>commons-codec</groupId>-->
+<!--            <artifactId>commons-codec</artifactId>-->
+<!--            <version>1.15</version>-->
+<!--        </dependency>-->
 <!--        <dependency>-->
 <!--            <groupId>io.springfox</groupId>-->
 <!--            <artifactId>springfox-swagger2</artifactId>-->
@@ -163,6 +169,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>top.yms.note.MyNoteApplication</mainClass>
+                    <includeSystemScope>true</includeSystemScope>
                 </configuration>
             </plugin>
             <plugin>

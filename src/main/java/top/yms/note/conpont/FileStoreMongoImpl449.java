@@ -43,4 +43,15 @@ public class FileStoreMongoImpl449 implements FileStore{
     public String saveFile(MultipartFile file) {
         return null;
     }
+
+    @Override
+    public boolean delFile(String id) {
+        try {
+            MongoDB.deleteFile(id);
+        } catch (Exception e) {
+            log.error("删除mongo文件失败: "+id, e);
+            return false;
+        }
+        return true;
+    }
 }

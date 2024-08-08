@@ -22,5 +22,8 @@ public interface FileStore {
     String saveFile(MultipartFile file);
 
 
+    boolean delFile(String id);
+
+
 
 }

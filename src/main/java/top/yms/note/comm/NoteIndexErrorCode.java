@@ -13,6 +13,8 @@ public enum NoteIndexErrorCode implements ErrorCode{
     E_203109(203109, "该文件拒绝接受上传"),
     E_203110(203110, "当前Note文件无父目录"),
     E_203111(203111, "重命名的名称不能为空"),
+    E_203112(203112, "非法Note内容"),
+    E_203113(203113, "当前文件内容不可预览"),
 
 
     E_203333(203333, "Note未知错误");
@@ -32,5 +34,13 @@ public enum NoteIndexErrorCode implements ErrorCode{
     @Override
     public String getDesc() {
         return desc;
+    }
+
+    @Override
+    public String toString() {
+        return "NoteIndexErrorCode{" +
+                "code=" + code +
+                ", desc='" + desc + '\'' +
+                '}';
     }
 }

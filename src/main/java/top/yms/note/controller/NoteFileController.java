@@ -12,7 +12,7 @@ import top.yms.note.comm.Constants;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStore;
 import top.yms.note.exception.BusinessException;
-import top.yms.note.comm.FileTypeEnum;
+import top.yms.note.enums.FileTypeEnum;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.entity.NoteFile;
 import top.yms.note.entity.NoteIndex;
@@ -99,17 +99,13 @@ public class NoteFileController {
     @GetMapping("/download")
     public void download(@RequestParam("id") String id, HttpServletResponse resp)  throws Exception{
         AnyFile file = fileStore.loadFile(id);
-        resp.setContentType("application/octet-stream");
+
         resp.addHeader("Content-Disposition", "attachment; filename=\"" + URLEncoder.encode(file.getFilename(), "UTF-8") + "\"");
         resp.addHeader("Content-Length", "" + file.getLength());
 
         resp.setContentType(file.getContentType());
         file.writeTo(resp.getOutputStream());
     }
-
-
-
-
 
 
 }

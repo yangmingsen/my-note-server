@@ -1,5 +1,7 @@
 package top.yms.note.entity;
 
+import java.util.Date;
+
 /**
  *
  * create by yangmingsen
@@ -18,6 +20,18 @@ public class NoteData {
      * 笔记内容
      */
     private String content;
+
+
+    /**
+     * 创建时间
+     */
+    private Date createTime;
+
+    /**
+     * 更新时间
+     */
+    private Date updateTime;
+
 
     public Long getId() {
         return id;
@@ -41,6 +55,22 @@ public class NoteData {
 
     public void setContent(String content) {
         this.content = content == null ? null : content.trim();
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
     }
 
     @Override

@@ -4,6 +4,8 @@
   <resultMap id="BaseResultMap" type="top.yms.note.entity.NoteData">
     <id column="f_id" jdbcType="BIGINT" property="id" />
     <result column="f_user_id" jdbcType="BIGINT" property="userId" />
+    <result column="f_create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="f_update_time" jdbcType="TIMESTAMP" property="updateTime" />
   </resultMap>
   <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="top.yms.note.entity.NoteData">
     <result column="f_content" jdbcType="LONGVARCHAR" property="content" />
@@ -67,7 +69,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    f_id, f_user_id
+    f_id, f_user_id, f_create_time, f_update_time
   </sql>
   <sql id="Blob_Column_List">
     f_content
@@ -121,10 +123,10 @@
     </if>
   </delete>
   <insert id="insert" parameterType="top.yms.note.entity.NoteData">
-    insert into t_note_data (f_id, f_user_id, f_content
-      )
-    values (#{id,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{content,jdbcType=LONGVARCHAR}
-      )
+    insert into t_note_data (f_id, f_user_id, f_create_time,
+                             f_update_time, f_content)
+    values (#{id,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{createTime,jdbcType=TIMESTAMP},
+            #{updateTime,jdbcType=TIMESTAMP}, #{content,jdbcType=LONGVARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="top.yms.note.entity.NoteData">
     insert into t_note_data
@@ -134,6 +136,12 @@
       </if>
       <if test="userId != null">
         f_user_id,
+      </if>
+      <if test="createTime != null">
+        f_create_time,
+      </if>
+      <if test="updateTime != null">
+        f_update_time,
       </if>
       <if test="content != null">
         f_content,
@@ -145,6 +153,12 @@
       </if>
       <if test="userId != null">
         #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="content != null">
         #{content,jdbcType=LONGVARCHAR},
@@ -166,6 +180,12 @@
       <if test="record.userId != null">
         f_user_id = #{record.userId,jdbcType=BIGINT},
       </if>
+      <if test="record.createTime != null">
+        f_create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null">
+        f_update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
       <if test="record.content != null">
         f_content = #{record.content,jdbcType=LONGVARCHAR},
       </if>
@@ -177,8 +197,10 @@
   <update id="updateByExampleWithBLOBs" parameterType="map">
     update t_note_data
     set f_id = #{record.id,jdbcType=BIGINT},
-      f_user_id = #{record.userId,jdbcType=BIGINT},
-      f_content = #{record.content,jdbcType=LONGVARCHAR}
+    f_user_id = #{record.userId,jdbcType=BIGINT},
+    f_create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    f_update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    f_content = #{record.content,jdbcType=LONGVARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -186,7 +208,9 @@
   <update id="updateByExample" parameterType="map">
     update t_note_data
     set f_id = #{record.id,jdbcType=BIGINT},
-      f_user_id = #{record.userId,jdbcType=BIGINT}
+    f_user_id = #{record.userId,jdbcType=BIGINT},
+    f_create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    f_update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -197,6 +221,12 @@
       <if test="userId != null">
         f_user_id = #{userId,jdbcType=BIGINT},
       </if>
+      <if test="createTime != null">
+        f_create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        f_update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
       <if test="content != null">
         f_content = #{content,jdbcType=LONGVARCHAR},
       </if>
@@ -206,12 +236,16 @@
   <update id="updateByPrimaryKeyWithBLOBs" parameterType="top.yms.note.entity.NoteData">
     update t_note_data
     set f_user_id = #{userId,jdbcType=BIGINT},
-      f_content = #{content,jdbcType=LONGVARCHAR}
+        f_create_time = #{createTime,jdbcType=TIMESTAMP},
+        f_update_time = #{updateTime,jdbcType=TIMESTAMP},
+        f_content = #{content,jdbcType=LONGVARCHAR}
     where f_id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="top.yms.note.entity.NoteData">
     update t_note_data
-    set f_user_id = #{userId,jdbcType=BIGINT}
+    set f_user_id = #{userId,jdbcType=BIGINT},
+        f_create_time = #{createTime,jdbcType=TIMESTAMP},
+        f_update_time = #{updateTime,jdbcType=TIMESTAMP}
     where f_id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
