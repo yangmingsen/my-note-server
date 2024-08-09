@@ -63,7 +63,8 @@ public class NoteDataService {
     }
 
     private static final String [] ILLEGAL_LIST = {
-            "<p><br></p>"
+            "<p><br></p>",
+            "<p style=\"text-align: start;\"><br></p>"
     };
     private boolean checkContent(String content) {
         if (content == null || StringUtils.isBlank(content)) {

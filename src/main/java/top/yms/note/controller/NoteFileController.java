@@ -38,7 +38,6 @@ public class NoteFileController {
     private NoteFileService noteFileService;
 
     @Autowired
-    @Qualifier("mongoFileStore")
     private FileStore fileStore;
 
     @PostMapping("/upload")

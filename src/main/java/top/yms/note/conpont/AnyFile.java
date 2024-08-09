@@ -7,20 +7,20 @@ import java.io.OutputStream;
 /**
  * Created by yangmingsen on 2024/4/13.
  */
-public abstract class AnyFile {
+public  interface AnyFile {
     /**
      * 写到输出流
      * @param out
      * @return
      * @throws IOException
      */
-    public abstract long writeTo(OutputStream out) throws IOException;
+      long writeTo(OutputStream out) throws IOException;
 
-    public abstract long getLength();
+      long getLength();
 
-    public abstract  String getContentType();
+      String getContentType();
 
-    public abstract String getFilename();
+      String getFilename();
 
-    public abstract InputStream getInputStream();
+      InputStream getInputStream();
 }

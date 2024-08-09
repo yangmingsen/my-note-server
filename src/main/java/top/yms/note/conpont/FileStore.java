@@ -13,13 +13,15 @@ public interface FileStore {
 
     /**
      * 存储文件，返回id
+     * 已过期，请使用saveFile(file)
      * @param file
      * @return
      */
+    @Deprecated
     String saveFile(MultipartFile file, Object [] objs);
 
 
-    String saveFile(MultipartFile file);
+    String saveFile(MultipartFile file) throws Exception;
 
 
     boolean delFile(String id);

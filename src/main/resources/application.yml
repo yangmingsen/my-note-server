@@ -4,6 +4,10 @@ server:
     context-path: /note
 
 spring:
+  data:
+    mongodb:
+      url: mongodb://localhost:27017
+      database: my_note
   application:
     name: my-note
   main:

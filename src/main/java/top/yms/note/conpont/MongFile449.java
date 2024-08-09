@@ -1,7 +1,9 @@
 package top.yms.note.conpont;
 
 
-import com.mongodb.gridfs.GridFSDBFile;
+
+import com.mongodb.client.gridfs.GridFSBucket;
+import com.mongodb.client.gridfs.model.GridFSFile;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,36 +12,48 @@ import java.io.OutputStream;
 /**
  * Created by yangmingsen on 2024/4/13.
  */
-public class MongFile449 extends AnyFile {
+public class MongFile449 implements AnyFile {
 
-    private GridFSDBFile gridFSDBFile;
+    GridFSFile gridFSFile;
 
-    public MongFile449(GridFSDBFile gridFSDBFile) {
-        this.gridFSDBFile = gridFSDBFile;
+    GridFSBucket gridFSBucket;
+
+
+    public MongFile449(GridFSFile gridFSFile, GridFSBucket gridFSBucket) {
+        this.gridFSFile = gridFSFile;
+        this.gridFSBucket = gridFSBucket;
     }
 
-    @Override
     public long writeTo(OutputStream out) throws IOException {
-        return gridFSDBFile.writeTo(out);
+        InputStream isp = getInputStream();
+        int len;
+        byte [] buf = new byte[1024];
+        while ((len = isp.read(buf)) > 0) {
+            out.write(buf, 0, len);
+        }
+        isp.close();
+        out.close();
+
+        return 0;
     }
 
     @Override
     public long getLength() {
-        return gridFSDBFile.getLength();
+        return gridFSFile.getLength();
     }
 
     @Override
     public String getContentType() {
-        return gridFSDBFile.getContentType();
+        return gridFSFile.getMetadata().get("_contentType").toString();
     }
 
     @Override
     public String getFilename() {
-        return gridFSDBFile.getFilename();
+        return gridFSFile.getFilename();
     }
 
     @Override
     public InputStream getInputStream() {
-        return gridFSDBFile.getInputStream();
+        return gridFSBucket.openDownloadStream(gridFSFile.getObjectId());
     }
 }

@@ -216,6 +216,9 @@ public class NoteIndexService {
             log.error("destroyNote id={}, 未找到索引信息", id);
             return ;
         }
+        if (noteIndex.getParentId() == 0L) {
+            throw new BusinessException(NoteIndexErrorCode.E_203114);
+        }
 
         if (NoteTypeEnum.File == NoteTypeEnum.apply(noteIndex.getIsile())) {
             //删除t_note_index
@@ -273,6 +276,9 @@ public class NoteIndexService {
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class, timeout = 10)
     public void delNote(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        if (noteIndex.getParentId() == 0L) {
+            throw new BusinessException(NoteIndexErrorCode.E_203114);
+        }
         if (noteIndex != null) {
             NoteIndex up = new NoteIndex();
             up.setId(id);
@@ -386,7 +392,7 @@ public class NoteIndexService {
                     }
                     return d2.compareTo(d1);
                 }
-        ).limit(10).collect(Collectors.toList());
+        ).limit(30).collect(Collectors.toList());
     }
 
     public List<NoteIndex> getDeletedFiles() {

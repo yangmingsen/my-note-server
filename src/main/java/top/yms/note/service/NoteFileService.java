@@ -6,7 +6,6 @@ import com.mongodb.DBObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,11 +21,8 @@ import top.yms.note.exception.WangEditorUploadException;
 import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
-import top.yms.note.utils.MongoDB;
 
-import java.io.BufferedReader;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +48,6 @@ public class NoteFileService {
     private NoteDataService noteDataService;
 
     @Autowired
-    @Qualifier("mongoFileStore")
     private FileStore fileStore;
 
 
@@ -91,8 +86,7 @@ public class NoteFileService {
         try {
             DBObject metaData = new BasicDBObject();
             metaData.put("type", Constants.MONGO_FILE_SITE);
-//            String fileId = MongoDB.saveFile(file, null, metaData);
-            String fileId = fileStore.saveFile(file, new Object[]{metaData} );
+            String fileId = fileStore.saveFile(file);
             String fileName = file.getOriginalFilename();
             String fileType = file.getContentType();
             long fileSize = file.getSize();
@@ -162,10 +156,7 @@ public class NoteFileService {
             handleMarkdown(file, note);
             return;
         }
-        DBObject metaData = new BasicDBObject();
-        metaData.put("type", Constants.MONGO_FILE_SITE);
-//        String fileId = MongoDB.saveFile(file, null, metaData);
-        String fileId = fileStore.saveFile(file, new Object[]{metaData} );
+        String fileId = fileStore.saveFile(file);
         //先默认上传到mongo
         note.setStoreSite(Constants.MONGO);
         note.setSiteId(fileId);
