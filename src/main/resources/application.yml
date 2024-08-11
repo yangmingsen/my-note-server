@@ -15,7 +15,7 @@ spring:
   datasource:
     username: root
     password: ymsyms
-    url: jdbc:mysql://192.168.25.1:3306/my_note_test?serverTimezone=GMT%2B8
+    url: jdbc:mysql://192.168.25.1:3306/my_note_test?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=UTF-8
     type: com.alibaba.druid.pool.DruidDataSource
     initialSize: 5
     minIdle: 1
@@ -55,8 +55,8 @@ mybatis:
   mapper-locations: classpath:top/yms/note/mapper/*.xml
 
 cors:
-  allowed-hosts: 127.0.0.1,localhost
-  allowed-ports: 5173,63342
+  allowed-hosts: 127.0.0.1,localhost,note.yms.top
+  allowed-ports: 5173
   allowed-method: OPTIONS,HEAD,GET,POST,PUT,DELETE,PATCH
 
 sys:

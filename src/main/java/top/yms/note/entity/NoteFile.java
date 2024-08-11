@@ -44,6 +44,16 @@ public class NoteFile {
     private String url;
 
     /**
+     * 访问统计
+     */
+    private Long viewCount;
+
+    /**
+     * 下载统计
+     */
+    private Long downloadCount;
+
+    /**
      * 创建时间
      */
     private Date createTime;
@@ -123,6 +133,22 @@ public class NoteFile {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Long getViewCount() {
+        return viewCount;
+    }
+
+    public void setViewCount(Long viewCount) {
+        this.viewCount = viewCount;
+    }
+
+    public Long getDownloadCount() {
+        return downloadCount;
+    }
+
+    public void setDownloadCount(Long downloadCount) {
+        this.downloadCount = downloadCount;
     }
 
     @Override

@@ -2,6 +2,8 @@ package top.yms.note.conpont;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+
 public interface FileStore {
 
     /**
@@ -22,6 +24,11 @@ public interface FileStore {
 
 
     String saveFile(MultipartFile file) throws Exception;
+
+    default String saveFile(File file) throws Exception {
+        return null;
+    }
+
 
 
     boolean delFile(String id);

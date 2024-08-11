@@ -42,4 +42,6 @@ public interface NoteIndexMapper {
 
     @Update("update t_note_index set f_del=0 where f_user_id = #{uid, jdbcType=BIGINT}")
     int allRecover(@Param("uid") Long uid);
+
+    List<NoteIndex> selectRecentUpdate(@Param("userId") Long userId);
 }

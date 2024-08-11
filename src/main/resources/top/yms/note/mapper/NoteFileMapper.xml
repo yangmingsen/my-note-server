@@ -9,8 +9,11 @@
     <result column="f_size" jdbcType="BIGINT" property="size" />
     <result column="f_user_id" jdbcType="BIGINT" property="userId" />
     <result column="f_url" jdbcType="VARCHAR" property="url" />
+    <result column="f_view_count" jdbcType="BIGINT" property="viewCount" />
     <result column="f_create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="f_update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="f_download_count" jdbcType="BIGINT" property="downloadCount" />
+
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -71,7 +74,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    f_id, f_file_id, f_name, f_type, f_size, f_user_id, f_url, f_create_time, f_update_time
+    f_id, f_file_id, f_name, f_type, f_size, f_user_id, f_url, f_view_count, f_create_time,
+    f_update_time,f_download_count
   </sql>
   <select id="selectByExample" parameterType="top.yms.note.entity.NoteFileExample" resultMap="BaseResultMap">
     select
@@ -88,7 +92,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
-    select 
+    select
     <include refid="Base_Column_List" />
     from t_note_file
     where f_id = #{id,jdbcType=BIGINT}
@@ -104,12 +108,15 @@
     </if>
   </delete>
   <insert id="insert" parameterType="top.yms.note.entity.NoteFile">
-    insert into t_note_file (f_id, f_file_id, f_name, 
-      f_type, f_size, f_user_id, f_url, 
-      f_create_time, f_update_time)
+    insert into t_note_file (f_id, f_file_id, f_name,
+                             f_type, f_size, f_user_id, f_url,
+                             f_view_count, f_create_time, f_update_time,f_download_count
+    )
     values (#{id,jdbcType=BIGINT}, #{fileId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
-      #{type,jdbcType=VARCHAR}, #{size,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{url,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+            #{type,jdbcType=VARCHAR}, #{size,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{url,jdbcType=VARCHAR},
+            #{viewCount,jdbcType=BIGINT}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
+            #{downloadCount,jdbcType=BIGINT }
+           )
   </insert>
   <insert id="insertSelective" parameterType="top.yms.note.entity.NoteFile">
     insert into t_note_file
@@ -135,11 +142,17 @@
       <if test="url != null">
         f_url,
       </if>
+      <if test="viewCount != null">
+        f_view_count,
+      </if>
       <if test="createTime != null">
         f_create_time,
       </if>
       <if test="updateTime != null">
         f_update_time,
+      </if>
+      <if test="downloadCount != null">
+        f_download_count,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -164,11 +177,17 @@
       <if test="url != null">
         #{url,jdbcType=VARCHAR},
       </if>
+      <if test="viewCount != null">
+        #{viewCount,jdbcType=BIGINT},
+      </if>
       <if test="createTime != null">
         #{createTime,jdbcType=TIMESTAMP},
       </if>
       <if test="updateTime != null">
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="downloadCount != null">
+        #{downloadCount,jdbcType=BIGINT},
       </if>
     </trim>
   </insert>
@@ -202,11 +221,17 @@
       <if test="record.url != null">
         f_url = #{record.url,jdbcType=VARCHAR},
       </if>
+      <if test="record.viewCount != null">
+        f_view_count = #{record.viewCount,jdbcType=BIGINT},
+      </if>
       <if test="record.createTime != null">
         f_create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
       <if test="record.updateTime != null">
         f_update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.downloadCount != null">
+        f_download_count = #{record.downloadCount,jdbcType=BIGINT},
       </if>
     </set>
     <if test="_parameter != null">
@@ -216,14 +241,16 @@
   <update id="updateByExample" parameterType="map">
     update t_note_file
     set f_id = #{record.id,jdbcType=BIGINT},
-      f_file_id = #{record.fileId,jdbcType=VARCHAR},
-      f_name = #{record.name,jdbcType=VARCHAR},
-      f_type = #{record.type,jdbcType=VARCHAR},
-      f_size = #{record.size,jdbcType=BIGINT},
-      f_user_id = #{record.userId,jdbcType=BIGINT},
-      f_url = #{record.url,jdbcType=VARCHAR},
-      f_create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      f_update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    f_file_id = #{record.fileId,jdbcType=VARCHAR},
+    f_name = #{record.name,jdbcType=VARCHAR},
+    f_type = #{record.type,jdbcType=VARCHAR},
+    f_size = #{record.size,jdbcType=BIGINT},
+    f_user_id = #{record.userId,jdbcType=BIGINT},
+    f_url = #{record.url,jdbcType=VARCHAR},
+    f_view_count = #{record.viewCount,jdbcType=BIGINT},
+    f_create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    f_update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    f_download_count = #{record.downloadCount,jdbcType=BIGINT}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -249,11 +276,17 @@
       <if test="url != null">
         f_url = #{url,jdbcType=VARCHAR},
       </if>
+      <if test="viewCount != null">
+        f_view_count = #{viewCount,jdbcType=BIGINT},
+      </if>
       <if test="createTime != null">
         f_create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
       <if test="updateTime != null">
         f_update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="downloadCount != null">
+        f_download_count = #{downloadCount,jdbcType=BIGINT},
       </if>
     </set>
     where f_id = #{id,jdbcType=BIGINT}
@@ -261,13 +294,15 @@
   <update id="updateByPrimaryKey" parameterType="top.yms.note.entity.NoteFile">
     update t_note_file
     set f_file_id = #{fileId,jdbcType=VARCHAR},
-      f_name = #{name,jdbcType=VARCHAR},
-      f_type = #{type,jdbcType=VARCHAR},
-      f_size = #{size,jdbcType=BIGINT},
-      f_user_id = #{userId,jdbcType=BIGINT},
-      f_url = #{url,jdbcType=VARCHAR},
-      f_create_time = #{createTime,jdbcType=TIMESTAMP},
-      f_update_time = #{updateTime,jdbcType=TIMESTAMP}
+        f_name = #{name,jdbcType=VARCHAR},
+        f_type = #{type,jdbcType=VARCHAR},
+        f_size = #{size,jdbcType=BIGINT},
+        f_user_id = #{userId,jdbcType=BIGINT},
+        f_url = #{url,jdbcType=VARCHAR},
+        f_view_count = #{viewCount,jdbcType=BIGINT},
+        f_create_time = #{createTime,jdbcType=TIMESTAMP},
+        f_update_time = #{updateTime,jdbcType=TIMESTAMP},
+        f_download_count = #{downloadCount,jdbcType=BIGINT}
     where f_id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

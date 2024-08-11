@@ -380,7 +380,8 @@ public class NoteIndexService {
 
     public List<NoteIndex> getRecentFiles() {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
-        return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).del(false).get().example()).stream().sorted(
+        return noteIndexMapper.selectRecentUpdate(uid).stream()
+                .sorted(
                 (o1, o2) -> {
                     Date d1 = o1.getUpdateTime();
                     if (d1 == null) {

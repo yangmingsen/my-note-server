@@ -18,10 +18,12 @@ import top.yms.note.entity.NoteFile;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.RestOut;
 import top.yms.note.exception.WangEditorUploadException;
+import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.service.NoteFileService;
 import top.yms.note.utils.LocalThreadUtils;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.net.URLEncoder;
 import java.util.Date;
 
@@ -39,6 +41,9 @@ public class NoteFileController {
 
     @Autowired
     private FileStore fileStore;
+
+    @Autowired
+    private NoteFileMapper noteFileMapper;
 
     @PostMapping("/upload")
     public JSONObject uploadFileForWer(@RequestParam(value = "file") MultipartFile file) throws WangEditorUploadException {
@@ -89,6 +94,13 @@ public class NoteFileController {
         NoteFile noteFile = noteFileService.findOne(id);
         log.info("view: noteFile:{}", noteFile);
         if (noteFile == null) return ;
+
+        //update viewCount
+        NoteFile upCnt = new NoteFile();
+        upCnt.setId(noteFile.getId());
+        upCnt.setViewCount(noteFile.getViewCount()+1);
+        noteFileMapper.updateByPrimaryKeySelective(upCnt);
+
         AnyFile file = fileStore.loadFile(id);
         resp.setContentType(file.getContentType());
         file.writeTo(resp.getOutputStream());
@@ -97,13 +109,33 @@ public class NoteFileController {
 
     @GetMapping("/download")
     public void download(@RequestParam("id") String id, HttpServletResponse resp)  throws Exception{
+        log.info("download: id={}", id);
+        if (StringUtils.isBlank(id)) return;
+        NoteFile noteFile = noteFileService.findOne(id);
+        log.info("download: noteFile:{}", noteFile);
+        if (noteFile == null) return ;
+        NoteFile upCnt = new NoteFile();
+        upCnt.setId(noteFile.getId());
+        upCnt.setDownloadCount(noteFile.getDownloadCount()+1);
+        noteFileMapper.updateByPrimaryKeySelective(upCnt);
+
         AnyFile file = fileStore.loadFile(id);
 
         resp.addHeader("Content-Disposition", "attachment; filename=\"" + URLEncoder.encode(file.getFilename(), "UTF-8") + "\"");
         resp.addHeader("Content-Length", "" + file.getLength());
-
         resp.setContentType(file.getContentType());
         file.writeTo(resp.getOutputStream());
+    }
+
+
+    @GetMapping("/genTree")
+    public RestOut genTree(@RequestParam("id") Integer id) throws Exception{
+        String [] para = {"生活","数学","心理","成长","公司","经济","来自手机","人体","数学","团队协作","学校"};
+        //                   0     1       2     3      4      5       6          7     8        9        10
+        Long parentId =1821940279838609210L;
+        File file = new File("E:\\tmp\\youdaoNote\\yangmingsen\\"+para[id]);
+        noteFileService.generateTree(file, parentId);
+        return RestOut.succeed("OK");
     }
 
 

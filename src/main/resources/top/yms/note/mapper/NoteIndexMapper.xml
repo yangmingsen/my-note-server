@@ -314,4 +314,22 @@
       #{id}
     </foreach>
   </update>
+
+  <select id="selectRecentUpdate" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_note_index
+    WHERE
+        (CASE
+            WHEN f_update_time IS NOT NULL THEN f_update_time
+            ELSE f_create_time
+        END) >= NOW() - INTERVAL 3 DAY  and f_isfile='1' and f_del='0' and f_user_id=#{userId,jdbcType=BIGINT}
+    ORDER BY
+        (CASE
+            WHEN f_update_time IS NOT NULL THEN f_update_time
+            ELSE f_create_time
+        END) DESC
+    LIMIT 30
+  </select>
+
 </mapper>
