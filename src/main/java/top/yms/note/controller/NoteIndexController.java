@@ -87,6 +87,11 @@ public class NoteIndexController {
         return RestOut.success(resList);
     }
 
+    @GetMapping("/findRoot")
+    public RestOut<NoteIndex> findRootNoteIndex() {
+        return RestOut.success(noteIndexService.findRoot());
+    }
+
     /**
      * 需求： 从子层返回上一层。
      * <p>使用当前层的id找到parentId, 然后根据parentId找到所有该parentId下面的子节点</p>

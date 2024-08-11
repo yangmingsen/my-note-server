@@ -18,6 +18,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.Map;
 
 /**
  * Created by yangmingsen on 2024/4/13.
@@ -58,6 +60,16 @@ public class FileStoreMongoImpl449 implements FileStore{
     }
 
     @Override
+    public String saveFile(InputStream inputStream, Map<String, Object> option) {
+        String fileName = (String)option.get("fileName");
+        String fileType = (String)option.get("fileType");
+        ObjectId fileId = gridFsTemplate.store(inputStream, fileName, fileType);
+        try { inputStream.close();} catch (Exception ignored) {}
+
+        return fileId.toString();
+    }
+
+    @Override
     public String saveFile(File file) throws Exception {
         FileInputStream fis = new FileInputStream(file);
 
@@ -73,6 +85,8 @@ public class FileStoreMongoImpl449 implements FileStore{
         }
 
         ObjectId fileId = gridFsTemplate.store(fis, file.getName(), fileType);
+        fis.close();
+
         return fileId.toString();
     }
 

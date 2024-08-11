@@ -76,6 +76,11 @@ public class NoteIndexService {
         return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().parentId(parentId).uid(uid).get().example());
     }
 
+    public NoteIndex findRoot() {
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).parentId(0L).del(false).get().example()).get(0);
+    }
+
     public List<NoteIndex> findBackParentDir(Long id) {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         NoteIndex note = noteIndexMapper.selectByPrimaryKey(id);

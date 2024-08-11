@@ -19,6 +19,7 @@ import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteFile;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.enums.FileTypeEnum;
+import top.yms.note.exception.BusinessException;
 import top.yms.note.exception.WangEditorUploadException;
 import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteFileMapper;
@@ -32,7 +33,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -343,5 +348,100 @@ public class NoteFileService {
     }
 
 
+    public JSONObject uploadFile(MultipartFile file) throws BusinessException {
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        try {
+            String fileId = fileStore.saveFile(file);
+            String fileName = file.getOriginalFilename();
+            String fileType = file.getContentType();
+            long fileSize = file.getSize();
+            String url = Constants.BASE_URL+fileId;
+            NoteFile noteFile = new NoteFile();
+            noteFile.setFileId(fileId);
+            noteFile.setName(fileName);
+            noteFile.setType(fileType);
+            noteFile.setSize(fileSize);
+            noteFile.setUserId(uid);
+            noteFile.setUrl(url);
+            noteFile.setCreateTime(new Date());
+            noteFileMapper.insertSelective(noteFile);
 
+            JSONObject resJson = new JSONObject();
+            resJson.put("url", url);
+            resJson.put("alt", fileName);
+            resJson.put("href", url);
+
+            return resJson;
+        } catch (Exception e) {
+            throw new BusinessException(CommonErrorCode.E_203004);
+        }
+    }
+
+    /**
+     * 根据文本内容插入文件
+     * @param textContent
+     * @param parentId
+     * @return
+     */
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
+    public JSONObject uploadText(String textContent, Long parentId) {
+        long id = idWorker.nextId();
+        String fileName = "临时文件"+id;
+        String fileType = FileTypeEnum.TXT.getValue();
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        NoteIndex note = new NoteIndex();
+        note.setId(id);
+        note.setParentId(parentId);
+        note.setUserId(uid);
+        note.setName(fileName);
+        note.setIsile("1");
+        note.setType(fileType);
+        note.setDel("0");
+        note.setCreateTime(new Date());
+        note.setStoreSite(Constants.MONGO);
+
+        JSONObject resJson = new JSONObject();
+        Path tempFile = null;
+        try {
+            // 创建一个临时文件
+            tempFile = Files.createTempFile(id+"", ".txt");
+            Files.write(tempFile, textContent.getBytes(), StandardOpenOption.WRITE);
+            InputStream inputStream = new FileInputStream(tempFile.toFile());
+            Map<String, Object> optionMap = new HashMap<>();
+            optionMap.put("fileName", fileName);
+            optionMap.put("fileType", FileTypeEnum.TXT.getValue());
+            String fileId = fileStore.saveFile(inputStream, optionMap);
+            note.setSiteId(fileId);
+
+            //t_note_file
+            String url = Constants.BASE_URL+fileId;
+            NoteFile noteFile = new NoteFile();
+            noteFile.setFileId(fileId);
+            noteFile.setName(fileName);
+            noteFile.setType(fileType);
+            noteFile.setSize((long) textContent.getBytes().length);
+            noteFile.setUserId(uid);
+            noteFile.setUrl(url);
+            noteFile.setCreateTime(new Date());
+            noteFileMapper.insertSelective(noteFile);
+
+            inputStream.close();
+            resJson.put("url", url);
+            resJson.put("id", fileId);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            // 删除临时文件
+            if (tempFile != null && Files.exists(tempFile)) {
+                try {
+                    Files.delete(tempFile);
+                } catch (IOException e1) {
+                    log.error("删除临时文件失败", e1);
+                }
+            }
+        }
+        noteIndexMapper.insertSelective(note);
+
+        return resJson;
+    }
 }
