@@ -11,4 +11,6 @@ public interface NoteCache {
     Object delete(String id);
 
     Object update(String id, Object data);
+
+    default void clear() {}
 }

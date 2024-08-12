@@ -196,7 +196,7 @@ public class NoteFileService {
     }
 
 
-    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 20)
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 25)
     public void generateTree(File file, Long parentId) throws Exception{
         if (file.getName().equals("images")) {
             return;

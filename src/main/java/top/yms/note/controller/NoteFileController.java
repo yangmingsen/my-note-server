@@ -153,15 +153,30 @@ public class NoteFileController {
     }
 
 
-    @GetMapping("/genTree")
-    public RestOut genTree(@RequestParam("id") Integer id) throws Exception{
-        String [] para = {};
-        //                   0     1       2     3      4      5       6          7     8        9        10
-        Long parentId =1821940279838609210L;
-        File file = new File("E:\\tmp\\youdaoNote\\yangmingsen\\"+para[id]);
-        noteFileService.generateTree(file, parentId);
-        return RestOut.succeed("OK");
-    }
+//    @GetMapping("/genTree")
+//    public RestOut genTree(@RequestParam("id") Integer id) throws Exception{
+//        //String [] para = {};
+//        //                   0     1       2     3      4      5       6          7     8        9        10
+//        //Long parentId =1821940279838609210L;
+//        //File file = new File("E:\\tmp\\youdaoNote\\yangmingsen\\"+para[id]);
+//
+//
+//        //last sync 5, next to 6
+//        String [] fileNames = {
+//                "CI&CD","专业常识","业务问题","个人设计","其他","分布式","加密技术","复习原则.md","大数据",
+//                // 0        1          2         3          4      5        6           7            8
+//                "安全认证","工具","技术","技术学习原则.md","操作系统","数据库","数据结构与算法","标准","概念",
+//                //   9      10      11       12               13          14             15        16    17
+//                "算法题","编程语言","编译原理","网络","解决方案","软件工程","软件设计","项目开发"
+//                //18           19       20       21        22          23          24     25
+//        };
+//        Long parentId = 1822940969633329353L;
+//        File file = new File("E:\\tmp\\youdaoNote\\yangmingsen\\专业\\"+fileNames[id]);
+//
+//
+//        noteFileService.generateTree(file, parentId);
+//        return RestOut.succeed("OK");
+//    }
 
 
 }

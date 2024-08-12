@@ -56,11 +56,11 @@ mybatis:
 
 cors:
   allowed-hosts: 127.0.0.1,localhost,note.yms.top
-  allowed-ports: 5173
+  allowed-ports: 5173,9090
   allowed-method: OPTIONS,HEAD,GET,POST,PUT,DELETE,PATCH
 
 sys:
   session-expire-time: 30m
   note-interceptor: true
   sql-show: true
-  enable-service-cache: false
+  enable-service-cache: true

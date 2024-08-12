@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
+import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -13,15 +14,16 @@ import java.util.Arrays;
 /**
  * Created by yangmingsen on 2024/4/13.
  */
-public class NoteCglibProxy implements MethodInterceptor {
 
-    private final static Logger log = LoggerFactory.getLogger(NoteCglibProxy.class);
+public class NoteIndexCacheCglibProxy implements MethodInterceptor {
+
+    private final static Logger log = LoggerFactory.getLogger(NoteIndexCacheCglibProxy.class);
 
     private Object target;
 
     private NoteCache noteCache;
 
-    public NoteCglibProxy(Object target) {
+    public NoteIndexCacheCglibProxy(Object target) {
         this.target = target;
     }
 
@@ -49,32 +51,39 @@ public class NoteCglibProxy implements MethodInterceptor {
      */
     @Override
     public Object intercept(Object proxy, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
-        log.info("proxy={}, method={}, args={}, methodProxy={}", proxy, method, args, methodProxy);
+        //log.info("proxy={}, method={}, args={}, methodProxy={}", proxy, method, args, methodProxy);
         Object objValue = null;
         try {
             // 反射调用目标类方法
             String methodName = method.getName();
+            String cacheId = methodName;
+            if (args != null && args.length > 0) {
+                cacheId += Arrays.toString(args);
+            }
 
-            if (methodName.equals("findSubBy")) {
-                String cacheId = Arrays.toString(args);
-                log.info("cacheId={}", cacheId);
+            if (methodName.startsWith("find") || methodName.startsWith("get")) {
+                log.info("findCache: id={}", cacheId);
                 Object data = noteCache.find(cacheId);
                 if (data != null) {
                     return data;
                 }
                 objValue = method.invoke(target, args);
                 noteCache.add(cacheId, objValue);
-
                 return objValue;
+            } else if (methodName.startsWith("del") ||
+                    methodName.startsWith("update") ||
+                    methodName.startsWith("add") ||
+                    methodName.startsWith("allDe")||
+                    methodName.startsWith("allRe")
+            ) {
+                noteCache.clear();
             }
-
             objValue = method.invoke(target, args);
-
-            log.info("返回值为：{}" , objValue);
+            //log.info("返回值为：{}" , objValue);
         } catch (Exception e) {
             log.error("调用异常! " ,e);
         } finally {
-            log.info("CGlibProxy调用结束...");
+            //log.info("CGlibProxy调用结束...");
         }
         return objValue;
     }

@@ -59,12 +59,7 @@ public class NoteIndexController {
     public RestOut findAntTree() {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         log.info("antTree: {}", uid);
-        List<NoteTree> noteTreeList = noteIndexService.findNoteTreeByUid(uid);
-        List<AntTreeNode> antTreeList = new LinkedList<>();
-        for (NoteTree noteTree : noteTreeList) {
-            antTreeList.add(noteIndexService.transferToAntTree(noteTree));
-        }
-
+        List<AntTreeNode> antTreeList = noteIndexService.findAntTreeNode(uid);
         log.info("antTree: {} , count: {}", uid, antTreeList.size());
         return RestOut.success(antTreeList);
     }
@@ -77,7 +72,10 @@ public class NoteIndexController {
     @GetMapping("/sub")
     public RestOut<List<NoteIndex>> findSubBy(@RequestParam("nid") Long parentId) {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
-        if (uid == null || parentId==null) {
+        if (uid == null) {
+            log.info("findSubBy: uid is null");
+        }
+        if (parentId==null) {
             throw new BusinessException(CommonErrorCode.E_100101);
         }
         log.info("findSubBy: uid= {}, parentId={}", uid, parentId);

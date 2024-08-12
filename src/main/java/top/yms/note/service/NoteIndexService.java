@@ -40,7 +40,6 @@ public class NoteIndexService {
     @Autowired
     private NoteIndexMapper noteIndexMapper;
 
-
     @Autowired
     private NoteIndexUpdateLogMapper noteIndexLogMapper;
 
@@ -55,8 +54,6 @@ public class NoteIndexService {
 
     @Autowired
     private IdWorker idWorker;
-
-
 
     public List<NoteIndex> findByUserId(Long userid) {
         return Optional.of(findNoteList(userid, 1)).orElse(Collections.emptyList());
@@ -151,7 +148,15 @@ public class NoteIndexService {
         return new AntTreeNode(noteTree.getLabel(), noteTree.getId().toString(), antTreeNodeList);
     }
 
+    public List<AntTreeNode> findAntTreeNode(Long userId) {
+        List<NoteTree> noteTreeList = findNoteTreeByUid(userId);
+        List<AntTreeNode> antTreeList = new LinkedList<>();
+        for (NoteTree noteTree : noteTreeList) {
+            antTreeList.add(transferToAntTree(noteTree));
+        }
 
+        return antTreeList;
+    }
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
     public void add(NoteIndex note) {
@@ -212,7 +217,6 @@ public class NoteIndexService {
         logData.setContent(gsonStr);
         noteIndexLogMapper.insert(logData);
     }
-
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class, timeout = 10)
     public void destroyNote(Long id) {
@@ -277,7 +281,6 @@ public class NoteIndexService {
 
     }
 
-
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class, timeout = 10)
     public void delNote(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
@@ -316,7 +319,6 @@ public class NoteIndexService {
 
         return resList;
     }
-
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
     public void delDir(Long parentId) {
@@ -365,7 +367,6 @@ public class NoteIndexService {
         list.add(noteIndex);
     }
 
-
     public NoteInfoVo getNoteAndSite(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
         NoteInfoVo res = new NoteInfoVo();
@@ -381,7 +382,6 @@ public class NoteIndexService {
         }
         return res;
     }
-
 
     public List<NoteIndex> getRecentFiles() {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
@@ -418,12 +418,13 @@ public class NoteIndexService {
         ).collect(Collectors.toList());
     }
 
-
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
     public int allDestroy() {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         return noteIndexMapper.allDestroy(uid);
     }
 
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
     public int allRecover() {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         return noteIndexMapper.allRecover(uid);
