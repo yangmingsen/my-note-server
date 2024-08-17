@@ -3,6 +3,7 @@ package top.yms.note;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import top.yms.note.mapper.NoteIndexMapper;
@@ -19,24 +20,12 @@ import java.util.stream.Collectors;
  */
 @EnableTransactionManagement
 @SpringBootApplication
+@ComponentScan("top.yms")
 //@ImportResource(locations = "classpath:spring-mongo.xml")
 public class MyNoteApplication {
     public static void main(String[] args) {
         ConfigurableApplicationContext applicationContext = SpringApplication.run(MyNoteApplication.class, args);
         Apps.show(applicationContext);
-//
-//        NoteIndexService noteIndexService = applicationContext.getBean(NoteIndexService.class);
-//        System.out.println(noteIndexService.mockDataFromDir());
-//
-
-//        NoteIndexMapper bean = applicationContext.getBean(NoteIndexMapper.class);
-//        long [] arr = {2,3,4,5,6};
-//        List<Long> ids = Arrays.stream(arr).boxed().collect(Collectors.toList());
-//        bean.delByListIds(ids);
-//
-//        System.exit(0);
-
-
 
     }
 }

@@ -1,8 +1,9 @@
-package top.yms.note.conpont;
+package top.yms.note.conpont.cache;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import top.yms.note.conpont.NoteCache;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by yangmingsen on 2024/4/13.
  */
 @Component
-public class DefaultNoteCacheImpl implements NoteCache{
+public class DefaultNoteCacheImpl implements NoteCache {
 
     private final static Logger log = LoggerFactory.getLogger(DefaultNoteCacheImpl.class);
 

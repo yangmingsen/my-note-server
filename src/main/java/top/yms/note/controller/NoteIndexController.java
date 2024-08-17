@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import top.yms.note.dao.NoteIndexQuery;
+import top.yms.note.dto.NoteSearchCondition;
 import top.yms.note.entity.AntTreeNode;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.comm.CommonErrorCode;
@@ -18,6 +19,7 @@ import top.yms.note.service.NoteIndexService;
 import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.MenuListVo;
 import top.yms.note.vo.NoteInfoVo;
+import top.yms.note.vo.NoteSearchVo;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -118,6 +120,18 @@ public class NoteIndexController {
         return RestOut.success(res);
     }
 
+    @PostMapping("/findNoteByCondition")
+    public RestOut<NoteSearchVo> findNoteByCondition(@RequestBody NoteSearchCondition searchCondition) {
+        log.info("findNoteByCondition: condition={}", searchCondition);
+        if(searchCondition == null) {
+            return RestOut.success(NoteSearchVo.getEmpty());
+        }
+        if (StringUtils.isBlank(searchCondition.getSearchContent())) {
+            return RestOut.success(NoteSearchVo.getEmpty());
+        }
+        return RestOut.success(noteIndexService.findNoteByCondition(searchCondition));
+    }
+
 
     @GetMapping("/menuList")
     public RestOut<MenuListVo> findMenuList(@RequestParam("nid") Long nid) {
@@ -212,6 +226,11 @@ public class NoteIndexController {
         return RestOut.success(resList);
     }
 
+    /**
+     * 传入一个父目录id
+     * @param id
+     * @return
+     */
     @GetMapping("/findBreadcrumb")
     public RestOut<List<NoteIndex>> findBreadcrumb (@RequestParam("id") Long id) {
         log.info("findBreadcrumb: id={}", id);

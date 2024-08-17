@@ -2,6 +2,7 @@ package top.yms.note.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 import top.yms.note.comm.Constants;
@@ -14,6 +15,7 @@ import java.util.Map;
 /**
  * Created by yangmingsen on 2024/4/6.
  */
+@Component
 public class NoteRequestInterceptor implements HandlerInterceptor {
     private static Logger log = LoggerFactory.getLogger(NoteRequestInterceptor.class);
     @Override

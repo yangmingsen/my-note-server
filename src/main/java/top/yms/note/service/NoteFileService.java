@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -286,8 +287,6 @@ public class NoteFileService {
     @Autowired
     private NoteDataMapper noteDataMapper;
 
-
-
     private  String replaceImageUrls(String content, File srcFile) throws Exception{
         Pattern pattern = Pattern.compile("!\\[([^\\]]*)\\]\\(([^\\)]+)\\)");
         Matcher matcher = pattern.matcher(content);
@@ -347,7 +346,6 @@ public class NoteFileService {
         return sb.toString();
     }
 
-
     public JSONObject uploadFile(MultipartFile file) throws BusinessException {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         try {
@@ -386,7 +384,7 @@ public class NoteFileService {
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
     public JSONObject uploadText(String textContent, Long parentId) {
         long id = idWorker.nextId();
-        String fileName = "临时文件"+id;
+        String fileName = "临时文本"+id;
         String fileType = FileTypeEnum.TXT.getValue();
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         NoteIndex note = new NoteIndex();
@@ -405,7 +403,7 @@ public class NoteFileService {
         try {
             // 创建一个临时文件
             tempFile = Files.createTempFile(id+"", ".txt");
-            Files.write(tempFile, textContent.getBytes(), StandardOpenOption.WRITE);
+            Files.write(tempFile, textContent.getBytes(StandardCharsets.UTF_8), StandardOpenOption.WRITE);
             InputStream inputStream = new FileInputStream(tempFile.toFile());
             Map<String, Object> optionMap = new HashMap<>();
             optionMap.put("fileName", fileName);
@@ -419,7 +417,7 @@ public class NoteFileService {
             noteFile.setFileId(fileId);
             noteFile.setName(fileName);
             noteFile.setType(fileType);
-            noteFile.setSize((long) textContent.getBytes().length);
+            noteFile.setSize((long) textContent.getBytes(StandardCharsets.UTF_8).length);
             noteFile.setUserId(uid);
             noteFile.setUrl(url);
             noteFile.setCreateTime(new Date());

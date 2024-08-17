@@ -1,35 +1,30 @@
-package top.yms.note.conpont;
-
+package top.yms.note.conpont.cache;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
-import org.springframework.stereotype.Component;
+import top.yms.note.conpont.NoteCache;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
 /**
- * Created by yangmingsen on 2024/4/13.
+ * Created by yangmingsen on 2024/8/13.
  */
+public class NoteFileCacheCglibProxy  implements MethodInterceptor, NoteCacheCglibProxy {
 
-public class NoteIndexCacheCglibProxy implements MethodInterceptor {
-
-    private final static Logger log = LoggerFactory.getLogger(NoteIndexCacheCglibProxy.class);
+    private final static Logger log = LoggerFactory.getLogger(NoteFileCacheCglibProxy.class);
 
     private Object target;
 
     private NoteCache noteCache;
 
-    public NoteIndexCacheCglibProxy(Object target) {
+    public NoteFileCacheCglibProxy(Object target) {
         this.target = target;
     }
 
-    public void setNoteCache(NoteCache noteCache) {
-        this.noteCache = noteCache;
-    }
 
     public Object getTargetProxy() {
         // Enhancer类是cglib中的一个字节码增强器，它可以方便的为你所要处理的类进行扩展
@@ -56,12 +51,11 @@ public class NoteIndexCacheCglibProxy implements MethodInterceptor {
         try {
             // 反射调用目标类方法
             String methodName = method.getName();
-            String cacheId = methodName;
-            if (args != null && args.length > 0) {
-                cacheId += Arrays.toString(args);
-            }
-
             if (methodName.startsWith("find") || methodName.startsWith("get")) {
+                String cacheId = methodName;
+                if (args != null && args.length > 0) {
+                    cacheId += Arrays.toString(args);
+                }
                 log.info("findCache: id={}", cacheId);
                 Object data = noteCache.find(cacheId);
                 if (data != null) {
@@ -70,11 +64,8 @@ public class NoteIndexCacheCglibProxy implements MethodInterceptor {
                 objValue = method.invoke(target, args);
                 noteCache.add(cacheId, objValue);
                 return objValue;
-            } else if (methodName.startsWith("del") ||
-                    methodName.startsWith("update") ||
-                    methodName.startsWith("add") ||
-                    methodName.startsWith("allDe")||
-                    methodName.startsWith("allRe")
+            } else if (methodName.startsWith("uploadText") ||
+                    methodName.startsWith("add")
             ) {
                 noteCache.clear();
             }
@@ -86,5 +77,15 @@ public class NoteIndexCacheCglibProxy implements MethodInterceptor {
             //log.info("CGlibProxy调用结束...");
         }
         return objValue;
+    }
+
+    @Override
+    public void setTarget(Object target) {
+        throw new RuntimeException("Not Support");
+    }
+
+    @Override
+    public void setCache(NoteCache noteCache) {
+        this.noteCache = noteCache;
     }
 }

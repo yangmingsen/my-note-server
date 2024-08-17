@@ -1,4 +1,4 @@
-package top.yms.note.conpont;
+package top.yms.note.conpont.cache;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +10,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
+import top.yms.note.conpont.NoteCache;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -21,7 +22,7 @@ import java.util.List;
 public class NoteServiceCacheEnHance implements BeanPostProcessor, ApplicationListener {
     private final static Logger log = LoggerFactory.getLogger(NoteServiceCacheEnHance.class);
 
-    private List<Object> list = new LinkedList<>();
+    private List<NoteCacheCglibProxy> listCache = new LinkedList<>();
 
     private boolean cached = false;
 
@@ -32,9 +33,14 @@ public class NoteServiceCacheEnHance implements BeanPostProcessor, ApplicationLi
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         if (enableCache) {
             if (beanName.equals("noteIndexService")) {
-                log.info("stared modify {}", beanName);
-                NoteIndexCacheCglibProxy noteCglibProxy = new NoteIndexCacheCglibProxy(bean);
-                list.add(noteCglibProxy);
+                log.info("started modify NoteIndexCacheCglibProxy");
+                NoteCacheCglibProxy noteCglibProxy = new NoteIndexCacheCglibProxy(bean);
+                listCache.add(noteCglibProxy);
+                return noteCglibProxy.getTargetProxy();
+            } else if  (beanName.equals("noteFileService")) {
+                log.info("start NoteFileCacheCglibProxy");
+                NoteCacheCglibProxy noteCglibProxy = new NoteFileCacheCglibProxy(bean);
+                listCache.add(noteCglibProxy);
                 return noteCglibProxy.getTargetProxy();
             }
         }
@@ -49,9 +55,9 @@ public class NoteServiceCacheEnHance implements BeanPostProcessor, ApplicationLi
         if (!cached && event.getSource() instanceof AnnotationConfigServletWebServerApplicationContext) {
             ApplicationContext context = (ApplicationContext) event.getSource();
             NoteCache cache = context.getBean(NoteCache.class);
-            for(int i=0; i<list.size(); i++) {
-                NoteIndexCacheCglibProxy proxy = (NoteIndexCacheCglibProxy) list.get(i);
-                proxy.setNoteCache(cache);
+            for(int i = 0; i< listCache.size(); i++) {
+                NoteCacheCglibProxy proxy = listCache.get(i);
+                proxy.setCache(cache);
             }
             cached = true;
         }

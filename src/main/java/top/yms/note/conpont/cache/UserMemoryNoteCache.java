@@ -1,8 +1,9 @@
-package top.yms.note.conpont;
+package top.yms.note.conpont.cache;
 
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.Constants;
+import top.yms.note.conpont.NoteCache;
 import top.yms.note.utils.LocalThreadUtils;
 
 import java.util.HashMap;
@@ -13,7 +14,7 @@ import java.util.Map;
  */
 @Primary
 @Component
-public class UserMemoryNoteCache implements NoteCache{
+public class UserMemoryNoteCache implements NoteCache {
 
     private Map<String, Map<String, Object>> cacheMap = new HashMap<>();
 

@@ -1,9 +1,11 @@
-package top.yms.note.conpont;
+package top.yms.note.conpont.store;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.CommonErrorCode;
+import top.yms.note.conpont.AnyFile;
+import top.yms.note.conpont.FileStore;
 import top.yms.note.enums.FileTypeEnum;
 import top.yms.note.exception.BusinessException;
 
@@ -25,7 +27,7 @@ import java.util.Map;
  * Created by yangmingsen on 2024/4/13.
  */
 @Component("mongoFileStore449")
-public class FileStoreMongoImpl449 implements FileStore{
+public class FileStoreMongoImpl449 implements FileStore {
 
     private final static Logger log = LoggerFactory.getLogger(FileStoreMongoImpl449.class);
 

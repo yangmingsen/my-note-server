@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.conpont.FileStore;
 import top.yms.note.dao.NoteFileQuery;
+import top.yms.note.dto.NoteSearchCondition;
 import top.yms.note.entity.*;
 import top.yms.note.enums.NoteTypeEnum;
 import top.yms.note.exception.BusinessException;
@@ -24,7 +25,10 @@ import top.yms.note.mapper.NoteIndexMapper;
 import top.yms.note.mapper.NoteIndexUpdateLogMapper;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
+import top.yms.note.vo.NoteIndexSearchResult;
 import top.yms.note.vo.NoteInfoVo;
+import top.yms.note.vo.NoteSearchVo;
+import top.yms.note.vo.SearchResult;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -54,6 +58,9 @@ public class NoteIndexService {
 
     @Autowired
     private IdWorker idWorker;
+
+    @Autowired
+    private NoteSearchLogService noteSearchLogService;
 
     public List<NoteIndex> findByUserId(Long userid) {
         return Optional.of(findNoteList(userid, 1)).orElse(Collections.emptyList());
@@ -87,6 +94,35 @@ public class NoteIndexService {
 
     public NoteIndex findOne(Long id) {
         return noteIndexMapper.selectByPrimaryKey(id);
+    }
+
+    public NoteSearchVo findNoteByCondition(NoteSearchCondition searchDto) {
+
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        //add search log
+        SearchLog searchLog = new SearchLog();
+        searchLog.setId(idWorker.nextId());
+        searchLog.setSearchContent(searchDto.getSearchContent());
+        searchLog.setCreateTime(new Date());
+        searchLog.setUserId(uid);
+        noteSearchLogService.add(searchLog);
+
+
+        List<SearchResult> searchResults = noteIndexMapper.searchName(searchDto.getSearchContent(), uid)
+                .stream()
+                .map(noteIndex -> {
+                    NoteIndexSearchResult searchResult = new NoteIndexSearchResult();
+                    searchResult.setResult(noteIndex.getName());
+                    searchResult.setId(noteIndex.getId());
+                    searchResult.setParentId(noteIndex.getParentId());
+                    searchResult.setIsile(noteIndex.getIsile());
+                    searchResult.setType(noteIndex.getType());
+                    return (SearchResult)searchResult;
+                })
+                .collect(Collectors.toList());
+
+
+        return new NoteSearchVo(searchResults);
     }
 
     /**

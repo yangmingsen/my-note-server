@@ -1,9 +1,10 @@
-package top.yms.note.conpont;
+package top.yms.note.conpont.store;
 
 
 
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.model.GridFSFile;
+import top.yms.note.conpont.AnyFile;
 
 import java.io.IOException;
 import java.io.InputStream;

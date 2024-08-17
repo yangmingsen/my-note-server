@@ -2,10 +2,7 @@ package top.yms.note.mapper;
 
 import java.util.List;
 
-import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.NoteIndexExample;
 
@@ -44,4 +41,8 @@ public interface NoteIndexMapper {
     int allRecover(@Param("uid") Long uid);
 
     List<NoteIndex> selectRecentUpdate(@Param("userId") Long userId);
+
+    @Select("select * from t_note_index where f_isfile='1' and f_user_id = #{userId, jdbcType=BIGINT} and f_name like concat('%',#{name, jdbcType=VARCHAR},'%')")
+    @ResultMap("BaseResultMap")
+    List<NoteIndex> searchName(@Param("name") String name, @Param("userId") Long userId);
 }
