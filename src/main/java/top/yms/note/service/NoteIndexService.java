@@ -17,12 +17,9 @@ import top.yms.note.exception.BusinessException;
 import top.yms.note.comm.Constants;
 import top.yms.note.enums.FileTypeEnum;
 import top.yms.note.comm.NoteIndexErrorCode;
-import top.yms.note.config.NoteOpType;
+import top.yms.note.enums.NoteOpTypeEnum;
 import top.yms.note.dao.NoteIndexQuery;
-import top.yms.note.mapper.NoteDataMapper;
-import top.yms.note.mapper.NoteFileMapper;
-import top.yms.note.mapper.NoteIndexMapper;
-import top.yms.note.mapper.NoteIndexUpdateLogMapper;
+import top.yms.note.mapper.*;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.NoteIndexSearchResult;
@@ -39,7 +36,7 @@ import java.util.stream.Collectors;
 @Service
 public class NoteIndexService {
 
-    private Logger log = LoggerFactory.getLogger(NoteIndexService.class);
+    private static final Logger log = LoggerFactory.getLogger(NoteIndexService.class);
 
     @Autowired
     private NoteIndexMapper noteIndexMapper;
@@ -52,6 +49,9 @@ public class NoteIndexService {
 
     @Autowired
     private NoteDataMapper noteDataMapper;
+
+    @Autowired
+    private NoteDataVersionMapper noteDataVersionMapper;
 
     @Autowired
     private FileStore fileStoreService;
@@ -194,7 +194,7 @@ public class NoteIndexService {
         return antTreeList;
     }
 
-    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void add(NoteIndex note) {
         List<NoteIndex> noteIndexList = noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().nid(note.getParentId()).get().example());
         if (noteIndexList.size() == 0) {
@@ -225,7 +225,7 @@ public class NoteIndexService {
         NoteIndexUpdateLog logData = new NoteIndexUpdateLog();
         logData.setIndexId(genId);
         logData.setCreateTime(new Date());
-        logData.setType(NoteOpType.ADD);
+        logData.setType(NoteOpTypeEnum.ADD);
         Gson gson = new Gson();
         String gsonStr = gson.toJson(note);
         logData.setContent(gsonStr);
@@ -233,7 +233,7 @@ public class NoteIndexService {
 
     }
 
-    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void update(NoteIndex node) {
         Long id = node.getId();
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
@@ -247,14 +247,14 @@ public class NoteIndexService {
         NoteIndexUpdateLog logData = new NoteIndexUpdateLog();
         logData.setIndexId(node.getId());
         logData.setCreateTime(new Date());
-        logData.setType(NoteOpType.UPDATE);
+        logData.setType(NoteOpTypeEnum.UPDATE);
         Gson gson = new Gson();
         String gsonStr = gson.toJson(node);
         logData.setContent(gsonStr);
         noteIndexLogMapper.insert(logData);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class, timeout = 10)
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 10)
     public void destroyNote(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
         if (noteIndex == null) {
@@ -271,6 +271,10 @@ public class NoteIndexService {
             //删除t_note_data
             if (Constants.MYSQL.equals(noteIndex.getStoreSite())) {
                 noteDataMapper.deleteByPrimaryKey(id);
+                noteDataVersionMapper.deleteByNoteId(id);
+                noteFileMapper.selectByNoteRef(id)
+                        .forEach(noteFile -> fileStoreService.delFile(noteFile.getFileId()));
+                noteFileMapper.deleteByNoteRef(id);
             }
             //删除t_note_file
             if (Constants.MONGO.equals(noteIndex.getStoreSite())) {
@@ -281,7 +285,7 @@ public class NoteIndexService {
 
             NoteIndexUpdateLog addLog = new NoteIndexUpdateLog();
             addLog.setIndexId(id);
-            addLog.setType(NoteOpType.Destroy);
+            addLog.setType(NoteOpTypeEnum.Destroy);
             addLog.setCreateTime(new Date());
             noteIndexLogMapper.insert(addLog);
         }
@@ -295,6 +299,10 @@ public class NoteIndexService {
                     //删除t_note_data
                     if (Constants.MYSQL.equals(note.getStoreSite())) {
                         noteDataMapper.deleteByPrimaryKey(note.getId());
+                        noteDataVersionMapper.deleteByNoteId(note.getId());
+                        noteFileMapper.selectByNoteRef(note.getId())
+                                .forEach(noteFile -> fileStoreService.delFile(noteFile.getFileId()));
+                        noteFileMapper.deleteByNoteRef(note.getId());
                     }
                     //删除t_note_file
                     if (Constants.MONGO.equals(note.getStoreSite())) {
@@ -306,37 +314,34 @@ public class NoteIndexService {
                 //日志
                 NoteIndexUpdateLog addLog = new NoteIndexUpdateLog();
                 addLog.setIndexId(note.getId());
-                addLog.setType(NoteOpType.Destroy);
+                addLog.setType(NoteOpTypeEnum.Destroy);
                 addLog.setCreateTime(new Date());
                 addLogList.add(addLog);
             }
             noteIndexLogMapper.insertBatch(addLogList);
             log.info("删除目录[{}]成功, 共[{}]条数据", noteIndex.getName(), addLogList.size());
         }
-
-
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class, timeout = 10)
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 10)
     public void delNote(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        if (noteIndex == null) return;
         if (noteIndex.getParentId() == 0L) {
             throw new BusinessException(NoteIndexErrorCode.E_203114);
         }
-        if (noteIndex != null) {
-            NoteIndex up = new NoteIndex();
-            up.setId(id);
-            up.setDel("1");
-            up.setUpdateTime(new Date());
+        NoteIndex up = new NoteIndex();
+        up.setId(id);
+        up.setDel("1");
+        up.setUpdateTime(new Date());
 
-            NoteIndexUpdateLog addLog = new NoteIndexUpdateLog();
-            addLog.setIndexId(id);
-            addLog.setType(NoteOpType.DELETE);
-            addLog.setCreateTime(new Date());
+        NoteIndexUpdateLog addLog = new NoteIndexUpdateLog();
+        addLog.setIndexId(id);
+        addLog.setType(NoteOpTypeEnum.DELETE);
+        addLog.setCreateTime(new Date());
 
-            noteIndexMapper.updateByPrimaryKeySelective(up);
-            noteIndexLogMapper.insert(addLog);
-        }
+        noteIndexMapper.updateByPrimaryKeySelective(up);
+        noteIndexLogMapper.insert(addLog);
     }
 
     public List<NoteIndex> bfsSearchTree(Long parentId) {
@@ -356,7 +361,7 @@ public class NoteIndexService {
         return resList;
     }
 
-    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void delDir(Long parentId) {
         Queue<Long> queue = new LinkedList<>();
         List<Long> delList = new LinkedList<>();
@@ -373,7 +378,7 @@ public class NoteIndexService {
 
             NoteIndexUpdateLog addLog = new NoteIndexUpdateLog();
             addLog.setIndexId(id);
-            addLog.setType(NoteOpType.DELETE);
+            addLog.setType(NoteOpTypeEnum.DELETE);
             addLog.setCreateTime(new Date());
 
             addList.add(addLog);
@@ -454,13 +459,17 @@ public class NoteIndexService {
         ).collect(Collectors.toList());
     }
 
-    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 15)
     public int allDestroy() {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
-        return noteIndexMapper.allDestroy(uid);
+        List<NoteIndex> destroyNoteList = noteIndexMapper.selectDestroyNotes(uid);
+        for(NoteIndex destroyNote : destroyNoteList) {
+            destroyNote(destroyNote.getId());
+        }
+        return destroyNoteList.size();
     }
 
-    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public int allRecover() {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         return noteIndexMapper.allRecover(uid);

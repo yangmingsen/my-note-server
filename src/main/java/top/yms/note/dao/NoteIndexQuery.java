@@ -33,6 +33,8 @@ public class NoteIndexQuery {
     private int filter;
 
 
+
+
     private NoteIndexExample example;
 
     public NoteIndexExample example() {
@@ -67,6 +69,9 @@ public class NoteIndexQuery {
         if (filter == 2) {
             criteria.andIsileEqualTo("0");
         }
+        if (filter == 3) {
+            criteria.andIsileEqualTo("1");
+        }
 
         return example;
     }
@@ -99,6 +104,12 @@ public class NoteIndexQuery {
             query.setDel(f);
             return this;
         }
+
+        /**
+         *  1.查找所有(含文件和目录);
+         *  2. 只查目录
+         *  3. 文件
+         */
         public Builder filter(int f) {
             query.setFilter(f);
             return this;

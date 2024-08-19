@@ -13,6 +13,8 @@ public abstract class Constants {
     public final static String markdownSuffix = "md";
     public final static String defaultSuffix = "wer";
 
+    public final static String defaultNoteCache = "defaultNoteCache";
+    public final static String userMemoryNoteCache = "userMemoryNoteCache";
 
 
 }

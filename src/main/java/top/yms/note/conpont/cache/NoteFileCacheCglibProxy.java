@@ -51,11 +51,13 @@ public class NoteFileCacheCglibProxy  implements MethodInterceptor, NoteCacheCgl
         try {
             // 反射调用目标类方法
             String methodName = method.getName();
-            if (methodName.startsWith("find") || methodName.startsWith("get")) {
-                String cacheId = methodName;
-                if (args != null && args.length > 0) {
-                    cacheId += Arrays.toString(args);
-                }
+            if(methodName.equals("findOne")) {
+                return method.invoke(target, args);
+            } else if (methodName.startsWith("find") || methodName.startsWith("get")) {
+                String cacheId = getCacheKey(proxy, method, args);
+//                if (args != null && args.length > 0) {
+//                    cacheId += Arrays.toString(args);
+//                }
                 log.info("findCache: id={}", cacheId);
                 Object data = noteCache.find(cacheId);
                 if (data != null) {
@@ -65,7 +67,7 @@ public class NoteFileCacheCglibProxy  implements MethodInterceptor, NoteCacheCgl
                 noteCache.add(cacheId, objValue);
                 return objValue;
             } else if (methodName.startsWith("uploadText") ||
-                    methodName.startsWith("add")
+                    methodName.startsWith("add") || methodName.startsWith("urlToPdf")
             ) {
                 noteCache.clear();
             }
@@ -73,8 +75,7 @@ public class NoteFileCacheCglibProxy  implements MethodInterceptor, NoteCacheCgl
             //log.info("返回值为：{}" , objValue);
         } catch (Exception e) {
             log.error("调用异常! " ,e);
-        } finally {
-            //log.info("CGlibProxy调用结束...");
+            throw new Exception(e);
         }
         return objValue;
     }

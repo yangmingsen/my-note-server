@@ -61,6 +61,11 @@ public class NoteIndex {
      */
     private String siteId;
 
+    /**
+     * 笔记大小
+     */
+    private Long size;
+
     public String getStoreSite() {
         return storeSite;
     }
@@ -149,6 +154,15 @@ public class NoteIndex {
         this.updateTime = updateTime;
     }
 
+
+    public Long getSize() {
+        return size;
+    }
+
+    public void setSize(Long size) {
+        this.size = size;
+    }
+
     @Override
     public String toString() {
         return "NoteIndex{" +
@@ -159,6 +173,7 @@ public class NoteIndex {
                 ", isile='" + isile + '\'' +
                 ", type='" + type + '\'' +
                 ", del='" + del + '\'' +
+                ", size='" + size + '\'' +
                 ", createTime=" + createTime +
                 ", updateTime=" + updateTime +
                 '}';

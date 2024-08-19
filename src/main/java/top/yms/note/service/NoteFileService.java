@@ -7,9 +7,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.Constants;
@@ -50,7 +54,7 @@ import java.util.regex.Pattern;
 @Service
 public class NoteFileService {
 
-    private static Logger log = LoggerFactory.getLogger(NoteFileService.class);
+    private static final Logger log = LoggerFactory.getLogger(NoteFileService.class);
 
     @Autowired
     private NoteFileMapper noteFileMapper;
@@ -69,6 +73,9 @@ public class NoteFileService {
 
     @Autowired
     private FileStore fileStore;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
 
     /**
@@ -95,8 +102,8 @@ public class NoteFileService {
      * @param file
      * @return
      */
-    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
-    public JSONObject uploadFileForWer(MultipartFile file) throws WangEditorUploadException {
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
+    public JSONObject uploadFileForWer(MultipartFile file, Long noteId) throws WangEditorUploadException {
         JSONObject res = new JSONObject();
 
         Map<String, Object> reqInfo = LocalThreadUtils.get();
@@ -117,6 +124,7 @@ public class NoteFileService {
             noteFile.setSize(fileSize);
             noteFile.setUserId(userId);
             noteFile.setUrl(url);
+            noteFile.setNoteRef(noteId);
             noteFile.setCreateTime(new Date());
             noteFileMapper.insertSelective(noteFile);
 
@@ -168,7 +176,7 @@ public class NoteFileService {
     }
 
 
-    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void addNote(MultipartFile file, NoteIndex note) throws Exception{
         if (Constants.markdownSuffix.equals(note.getType())) {
             handleMarkdown(file, note);
@@ -197,7 +205,13 @@ public class NoteFileService {
     }
 
 
-    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 25)
+    /**
+     * 从本地文件导入
+     * @param file
+     * @param parentId
+     * @throws Throwable
+     */
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 25)
     public void generateTree(File file, Long parentId) throws Exception{
         if (file.getName().equals("images")) {
             return;
@@ -252,6 +266,9 @@ public class NoteFileService {
                 noteData.setContent(contentStr);
                 noteData.setCreateTime(new Date());
 
+                //设置内容大小
+                noteIndex.setSize((long)contentStr.getBytes(StandardCharsets.UTF_8).length);
+
                 noteDataMapper.insertSelective(noteData);
 
             } else {
@@ -259,6 +276,8 @@ public class NoteFileService {
                 //先默认上传到mongo
                 noteIndex.setStoreSite(Constants.MONGO);
                 noteIndex.setSiteId(fileId);
+                //设置大小
+                noteIndex.setSize(file.length());
 
                 String url = Constants.BASE_URL+fileId;
                 //store to t_note_file
@@ -346,7 +365,7 @@ public class NoteFileService {
         return sb.toString();
     }
 
-    public JSONObject uploadFile(MultipartFile file) throws BusinessException {
+    public JSONObject uploadFile(MultipartFile file, Long noteId) throws BusinessException {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         try {
             String fileId = fileStore.saveFile(file);
@@ -361,6 +380,7 @@ public class NoteFileService {
             noteFile.setSize(fileSize);
             noteFile.setUserId(uid);
             noteFile.setUrl(url);
+            noteFile.setNoteRef(noteId);
             noteFile.setCreateTime(new Date());
             noteFileMapper.insertSelective(noteFile);
 
@@ -381,7 +401,7 @@ public class NoteFileService {
      * @param parentId
      * @return
      */
-    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public JSONObject uploadText(String textContent, Long parentId) {
         long id = idWorker.nextId();
         String fileName = "临时文本"+id;
@@ -396,6 +416,7 @@ public class NoteFileService {
         note.setType(fileType);
         note.setDel("0");
         note.setCreateTime(new Date());
+        note.setSize((long)textContent.getBytes(StandardCharsets.UTF_8).length);
         note.setStoreSite(Constants.MONGO);
 
         JSONObject resJson = new JSONObject();
@@ -421,6 +442,7 @@ public class NoteFileService {
             noteFile.setUserId(uid);
             noteFile.setUrl(url);
             noteFile.setCreateTime(new Date());
+            noteFile.setNoteRef(id);
             noteFileMapper.insertSelective(noteFile);
 
             inputStream.close();
@@ -441,5 +463,75 @@ public class NoteFileService {
         noteIndexMapper.insertSelective(note);
 
         return resJson;
+    }
+
+
+
+
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 30)
+    public void urlToPdf(String htmlUrl, Long parentId) {
+        String toPdfServiceUrl = "http://localhost:9004/html2pdf/2pdf/fromUrl?url="+htmlUrl;
+        ResponseEntity<byte[]> response = restTemplate.exchange(toPdfServiceUrl, HttpMethod.GET, null, byte[].class);
+        byte[] body = response.getBody();
+        if (body == null) {
+            throw new BusinessException(CommonErrorCode.E_203006);
+        }
+
+        long id = idWorker.nextId();
+        String fileName = "url转Pdf_"+id;
+        String fileType = FileTypeEnum.PDF.getValue();
+        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        NoteIndex note = new NoteIndex();
+        note.setId(id);
+        note.setParentId(parentId);
+        note.setUserId(uid);
+        note.setName(fileName);
+        note.setIsile("1");
+        note.setType(fileType);
+        note.setDel("0");
+        note.setCreateTime(new Date());
+        note.setSize((long)body.length);
+        note.setStoreSite(Constants.MONGO);
+
+        Path tempFile = null;
+        try {
+            // 创建一个临时文件
+            tempFile = Files.createTempFile(id+"", ".pdf");
+            Files.write(tempFile, body, StandardOpenOption.WRITE);
+            InputStream inputStream = new FileInputStream(tempFile.toFile());
+            Map<String, Object> optionMap = new HashMap<>();
+            optionMap.put("fileName", fileName);
+            optionMap.put("fileType", FileTypeEnum.PDF.getValue());
+            String fileId = fileStore.saveFile(inputStream, optionMap);
+            note.setSiteId(fileId);
+
+            //t_note_file
+            String url = Constants.BASE_URL+fileId;
+            NoteFile noteFile = new NoteFile();
+            noteFile.setFileId(fileId);
+            noteFile.setName(fileName);
+            noteFile.setType(fileType);
+            noteFile.setSize((long) body.length);
+            noteFile.setUserId(uid);
+            noteFile.setUrl(url);
+            noteFile.setCreateTime(new Date());
+            noteFile.setNoteRef(id);
+            noteFileMapper.insertSelective(noteFile);
+
+            inputStream.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            // 删除临时文件
+            if (tempFile != null && Files.exists(tempFile)) {
+                try {
+                    Files.delete(tempFile);
+                } catch (IOException e1) {
+                    log.error("删除临时文件失败", e1);
+                }
+            }
+        }
+
+        noteIndexMapper.insertSelective(note);
     }
 }

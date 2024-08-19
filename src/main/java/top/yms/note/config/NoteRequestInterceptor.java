@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * Created by yangmingsen on 2024/4/6.
  */
-@Component
+//@Component
 public class NoteRequestInterceptor implements HandlerInterceptor {
     private static Logger log = LoggerFactory.getLogger(NoteRequestInterceptor.class);
     @Override

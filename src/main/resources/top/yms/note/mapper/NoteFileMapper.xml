@@ -13,6 +13,7 @@
     <result column="f_create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="f_update_time" jdbcType="TIMESTAMP" property="updateTime" />
     <result column="f_download_count" jdbcType="BIGINT" property="downloadCount" />
+    <result column="f_note_ref" jdbcType="BIGINT" property="noteRef" />
 
   </resultMap>
   <sql id="Example_Where_Clause">
@@ -75,7 +76,7 @@
   </sql>
   <sql id="Base_Column_List">
     f_id, f_file_id, f_name, f_type, f_size, f_user_id, f_url, f_view_count, f_create_time,
-    f_update_time,f_download_count
+    f_update_time,f_download_count, f_note_ref
   </sql>
   <select id="selectByExample" parameterType="top.yms.note.entity.NoteFileExample" resultMap="BaseResultMap">
     select
@@ -154,6 +155,10 @@
       <if test="downloadCount != null">
         f_download_count,
       </if>
+      <if test="noteRef != null">
+        f_note_ref,
+      </if>
+
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="id != null">
@@ -188,6 +193,9 @@
       </if>
       <if test="downloadCount != null">
         #{downloadCount,jdbcType=BIGINT},
+      </if>
+      <if test="noteRef != null">
+        #{noteRef,jdbcType=BIGINT},
       </if>
     </trim>
   </insert>
@@ -232,6 +240,9 @@
       </if>
       <if test="record.downloadCount != null">
         f_download_count = #{record.downloadCount,jdbcType=BIGINT},
+      </if>
+      <if test="record.noteRef != null">
+        f_note_ref = #{record.noteRef,jdbcType=BIGINT},
       </if>
     </set>
     <if test="_parameter != null">
@@ -287,6 +298,9 @@
       </if>
       <if test="downloadCount != null">
         f_download_count = #{downloadCount,jdbcType=BIGINT},
+      </if>
+      <if test="noteRef != null">
+        f_note_ref = #{noteRef,jdbcType=BIGINT},
       </if>
     </set>
     where f_id = #{id,jdbcType=BIGINT}

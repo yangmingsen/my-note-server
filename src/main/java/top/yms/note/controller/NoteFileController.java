@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.Constants;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStore;
@@ -46,14 +47,31 @@ public class NoteFileController {
     @Autowired
     private NoteFileMapper noteFileMapper;
 
+    /**
+     * 目前用于wangeditor的图片上传
+     * @param file
+     * @param id noteid
+     * @return
+     * @throws WangEditorUploadException
+     */
     @PostMapping("/upload")
-    public JSONObject uploadFileForWer(@RequestParam(value = "file") MultipartFile file) throws WangEditorUploadException {
-        return noteFileService.uploadFileForWer(file);
+    public JSONObject uploadFileForWer(@RequestParam(value = "file") MultipartFile file,
+                                       @RequestParam("id") Long id) throws WangEditorUploadException {
+        log.info("uploadFileForWer: id={}", id);
+        return noteFileService.uploadFileForWer(file, id);
     }
 
+    /**
+     * 目前用于markdown图片上传
+     * @param file
+     * @param id noteid
+     * @return
+     * @throws BusinessException
+     */
     @PostMapping("/uploadV2")
-    public RestOut<JSONObject> uploadFile(@RequestParam("file") MultipartFile file) throws BusinessException {
-        JSONObject res = noteFileService.uploadFile(file);
+    public RestOut<JSONObject> uploadFile(@RequestParam("file") MultipartFile file,
+                                          @RequestParam("id") Long id) throws BusinessException {
+        JSONObject res = noteFileService.uploadFile(file, id);
         return RestOut.success(res);
     }
 
@@ -95,6 +113,7 @@ public class NoteFileController {
         note.setParentId(parentId);
         note.setUserId(uid);
         note.setName(fileName);
+        note.setSize(file.getSize());
         note.setIsile("1");
         int dot = fileName.lastIndexOf('.');
         if (dot > 0) {
@@ -150,6 +169,21 @@ public class NoteFileController {
         resp.addHeader("Content-Length", "" + file.getLength());
         resp.setContentType(file.getContentType());
         file.writeTo(resp.getOutputStream());
+    }
+
+
+    @GetMapping("/url2pdf")
+    public RestOut urlToPdf(@RequestParam("url") String url, @RequestParam("parentId") Long parentId) {
+        log.info("urlToPdf: url={}", url);
+        if (StringUtils.isBlank(url)) {
+            throw new BusinessException(NoteIndexErrorCode.E_203116);
+        }
+        if (!url.startsWith("http")) {
+            throw new BusinessException(CommonErrorCode.E_203005);
+        }
+
+        noteFileService.urlToPdf(url, parentId);
+        return RestOut.succeed("ok");
     }
 
 

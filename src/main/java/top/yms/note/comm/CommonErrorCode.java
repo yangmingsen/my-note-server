@@ -26,6 +26,9 @@ public enum CommonErrorCode implements ErrorCode {
     E_203002(203002, "wangEditor上传文件失败"),
     E_203003(203003, "FileStore loadFile失败"),
     E_203004(203004, "FileStore Save失败"),
+    E_203005(203005, "url2pdf参数错误"),
+    E_203006(203006, "获取pdf响应异常"),
+    E_203007(203007, "非法auth对象"),
 
 
     /**

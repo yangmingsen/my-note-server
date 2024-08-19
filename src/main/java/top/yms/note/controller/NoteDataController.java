@@ -41,9 +41,9 @@ public class NoteDataController {
     }
 
     @GetMapping("/get")
-    public RestOut get(@RequestParam("id") Long id) {
+    public RestOut findOne(@RequestParam("id") Long id) {
         log.info("get: id={}", id);
-        NoteData res = noteDataService.get(id);
+        NoteData res = noteDataService.findOne(id);
         return RestOut.success(res);
     }
 
@@ -56,5 +56,12 @@ public class NoteDataController {
         }
         return RestOut.error("Not Support");
     }
+
+
+//    @GetMapping("/syncSize")
+//    public RestOut syncSize() {
+//        noteDataService.syncDataSize();
+//        return RestOut.succeed("Ok");
+//    }
 
 }

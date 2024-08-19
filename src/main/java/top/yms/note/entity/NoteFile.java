@@ -63,6 +63,16 @@ public class NoteFile {
      */
     private Date updateTime;
 
+    private Long noteRef;
+
+    public Long getNoteRef() {
+        return noteRef;
+    }
+
+    public void setNoteRef(Long noteRef) {
+        this.noteRef = noteRef;
+    }
+
     public Long getId() {
         return id;
     }

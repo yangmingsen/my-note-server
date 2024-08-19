@@ -51,17 +51,14 @@ public class NoteIndexCacheCglibProxy implements MethodInterceptor, NoteCacheCgl
      */
     @Override
     public Object intercept(Object proxy, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
-        //log.info("proxy={}, method={}, args={}, methodProxy={}", proxy, method, args, methodProxy);
+//        log.info("proxy={}, method={}, args={}, methodProxy={}", proxy, method, args, methodProxy);
+
         Object objValue = null;
         try {
             // 反射调用目标类方法
             String methodName = method.getName();
-            String cacheId = methodName;
-            if (args != null && args.length > 0) {
-                cacheId += Arrays.toString(args);
-            }
-
             if (methodName.startsWith("find") || methodName.startsWith("get")) {
+                String cacheId = getCacheKey(proxy, method, args);
                 log.info("findCache: id={}", cacheId);
                 Object data = noteCache.find(cacheId);
                 if (data != null) {
@@ -70,23 +67,29 @@ public class NoteIndexCacheCglibProxy implements MethodInterceptor, NoteCacheCgl
                 objValue = method.invoke(target, args);
                 noteCache.add(cacheId, objValue);
                 return objValue;
-            } else if (methodName.startsWith("del") ||
-                    methodName.startsWith("update") ||
-                    methodName.startsWith("add") ||
-                    methodName.startsWith("allDe")||
-                    methodName.startsWith("allRe")
-            ) {
+            } else if (updateMehtondCheck(methodName)) {
                 noteCache.clear();
             }
             objValue = method.invoke(target, args);
             //log.info("返回值为：{}" , objValue);
         } catch (Exception e) {
             log.error("调用异常! " ,e);
-        } finally {
-            //log.info("CGlibProxy调用结束...");
+            throw new Exception(e);
         }
+
         return objValue;
     }
+
+    static final String [] updateMethods = {"del", "update", "add", "allDe", "destroy","allRe"};
+    private boolean updateMehtondCheck(String methodName) {
+        for(String metName : updateMethods) {
+            if (methodName.startsWith(metName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     @Override
     public void setTarget(Object target) {

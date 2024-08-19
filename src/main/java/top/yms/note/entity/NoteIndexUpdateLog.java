@@ -1,6 +1,6 @@
 package top.yms.note.entity;
 
-import top.yms.note.config.NoteOpType;
+import top.yms.note.enums.NoteOpTypeEnum;
 
 import java.util.Date;
 
@@ -52,7 +52,7 @@ public class NoteIndexUpdateLog {
         return type;
     }
 
-    public void setType(NoteOpType type) {
+    public void setType(NoteOpTypeEnum type) {
         this.type = type == null ? null : type.getName().trim();
     }
 

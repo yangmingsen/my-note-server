@@ -1,6 +1,6 @@
-package top.yms.note.config;
+package top.yms.note.enums;
 
-public enum NoteOpType {
+public enum NoteOpTypeEnum {
     ADD("add"),
     UPDATE("upd"),
     DELETE("del"),
@@ -8,7 +8,7 @@ public enum NoteOpType {
     ;
     private final String name;
 
-    private NoteOpType(String name) {
+    private NoteOpTypeEnum(String name) {
         this.name = name;
     }
 

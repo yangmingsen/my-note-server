@@ -171,6 +171,13 @@ public class NoteFileExample {
             return (Criteria) this;
         }
 
+
+        public Criteria andNoteRefEqualTo(Long value) {
+            addCriterion("f_note_ref =", value, "noteRef");
+            return (Criteria) this;
+        }
+
+
         public Criteria andFileIdIsNull() {
             addCriterion("f_file_id is null");
             return (Criteria) this;

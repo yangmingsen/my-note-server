@@ -1,10 +1,15 @@
 package top.yms.note.mapper;
 
 import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.ResultMap;
+import org.apache.ibatis.annotations.Select;
 import top.yms.note.entity.NoteUser;
 import top.yms.note.entity.NoteUserExample;
 
+@Mapper
 public interface NoteUserMapper {
     long countByExample(NoteUserExample example);
 
@@ -27,4 +32,8 @@ public interface NoteUserMapper {
     int updateByPrimaryKeySelective(NoteUser record);
 
     int updateByPrimaryKey(NoteUser record);
+
+    @Select("select * from t_note_user where f_username=#{username, jdbcType=VARCHAR}")
+    @ResultMap("BaseResultMap")
+    NoteUser selectByUserName(@Param("username") String username);
 }

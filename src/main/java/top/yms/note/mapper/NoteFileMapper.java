@@ -2,9 +2,7 @@ package top.yms.note.mapper;
 
 import java.util.List;
 
-import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.*;
 import top.yms.note.entity.NoteFile;
 import top.yms.note.entity.NoteFileExample;
 
@@ -34,4 +32,12 @@ public interface NoteFileMapper {
 
     @Delete("delete from t_note_file where f_file_id=#{fileId, jdbcType=VARCHAR}")
     int deleteByFileId(@Param("fileId") String fileId);
+
+
+    @Delete("delete from t_note_file where f_note_ref=#{noteRef, jdbcType=BIGINT}")
+    int deleteByNoteRef(@Param("noteRef") Long noteRef);
+
+    @Select("select * from t_note_file where f_note_ref=#{noteRef, jdbcType=BIGINT}")
+    @ResultMap("BaseResultMap")
+    List<NoteFile> selectByNoteRef(@Param("noteRef") Long noteRef);
 }

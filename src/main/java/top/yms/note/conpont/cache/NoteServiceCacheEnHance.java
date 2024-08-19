@@ -33,15 +33,20 @@ public class NoteServiceCacheEnHance implements BeanPostProcessor, ApplicationLi
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         if (enableCache) {
             if (beanName.equals("noteIndexService")) {
-                log.info("started modify NoteIndexCacheCglibProxy");
+                log.info("started NoteIndexCacheCglibProxy");
                 NoteCacheCglibProxy noteCglibProxy = new NoteIndexCacheCglibProxy(bean);
                 listCache.add(noteCglibProxy);
                 return noteCglibProxy.getTargetProxy();
             } else if  (beanName.equals("noteFileService")) {
-                log.info("start NoteFileCacheCglibProxy");
+                log.info("started NoteFileCacheCglibProxy");
                 NoteCacheCglibProxy noteCglibProxy = new NoteFileCacheCglibProxy(bean);
                 listCache.add(noteCglibProxy);
                 return noteCglibProxy.getTargetProxy();
+            } else if (beanName.equals("noteDataService")) {
+                log.info("started NoteDataCacheCglibProxy");
+                NoteCacheCglibProxy noteCacheCglibProxy = new NoteDataCacheCglibProxy(bean);
+                listCache.add(noteCacheCglibProxy);
+                return noteCacheCglibProxy.getTargetProxy();
             }
         }
 
@@ -51,7 +56,6 @@ public class NoteServiceCacheEnHance implements BeanPostProcessor, ApplicationLi
 
     @Override
     public void onApplicationEvent(ApplicationEvent event) {
-//        log.info("event={}", event.getSource());
         if (!cached && event.getSource() instanceof AnnotationConfigServletWebServerApplicationContext) {
             ApplicationContext context = (ApplicationContext) event.getSource();
             NoteCache cache = context.getBean(NoteCache.class);

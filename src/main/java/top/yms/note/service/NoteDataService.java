@@ -1,7 +1,6 @@
 package top.yms.note.service;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.util.RamUsageEstimator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,13 +11,22 @@ import top.yms.note.comm.Constants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStore;
+import top.yms.note.dao.NoteFileQuery;
+import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.entity.NoteData;
+import top.yms.note.entity.NoteDataVersion;
+import top.yms.note.entity.NoteFile;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteDataMapper;
+import top.yms.note.mapper.NoteDataVersionMapper;
+import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.mapper.NoteIndexMapper;
+import top.yms.note.utils.LocalThreadUtils;
 
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,10 +36,13 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class NoteDataService {
 
-    private static Logger log = LoggerFactory.getLogger(NoteDataService.class);
+    private static final Logger log = LoggerFactory.getLogger(NoteDataService.class);
 
     @Autowired
     private NoteDataMapper noteDataMapper;
+
+    @Autowired
+    private NoteDataVersionMapper noteDataVersionMapper;
 
     @Autowired
     private NoteIndexMapper noteIndexMapper;
@@ -39,27 +50,37 @@ public class NoteDataService {
     @Autowired
     private FileStore fileStore;
 
-    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Exception.class, timeout = 10)
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void addAndUpdate(NoteData noteData) {
         Long id = noteData.getId();
         NoteData dbNote = noteDataMapper.findById(id);
         if (checkContent(noteData.getContent())) {
             throw new BusinessException(NoteIndexErrorCode.E_203112);
         }
+        Date opTime = new Date();
         if (dbNote == null) {
-            noteData.setCreateTime(new Date());
+            noteData.setCreateTime(opTime);
             noteDataMapper.insert(noteData);
         } else {
-            Date upTime = new Date();
-            noteData.setUpdateTime(upTime);
+            noteData.setUpdateTime(opTime);
             noteDataMapper.updateByPrimaryKeySelective(noteData);
-
-            NoteIndex noteIndex = new NoteIndex();
-            noteIndex.setId(id);
-            noteIndex.setUpdateTime(upTime);
-            noteIndexMapper.updateByPrimaryKeySelective(noteIndex);
         }
 
+        //更新index信息
+        NoteIndex noteIndex = new NoteIndex();
+        noteIndex.setId(id);
+        noteIndex.setUpdateTime(opTime);
+        noteIndex.setSize((long)noteData.getContent().getBytes(StandardCharsets.UTF_8).length);
+        noteIndexMapper.updateByPrimaryKeySelective(noteIndex);
+
+
+        //版本记录
+        NoteDataVersion dataVersion = new NoteDataVersion();
+        dataVersion.setNoteId(id);
+        dataVersion.setContent(noteData.getContent());
+        dataVersion.setUserId(noteData.getUserId());
+        dataVersion.setCreateTime(opTime);
+        noteDataVersionMapper.insertSelective(dataVersion);
     }
 
     private static final String [] ILLEGAL_LIST = {
@@ -139,7 +160,7 @@ public class NoteDataService {
         return true;
     }
 
-    public NoteData get(Long id) {
+    public NoteData findOne(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
         NoteData noteData = new NoteData();
         if (Constants.MYSQL.equals(noteIndex.getStoreSite())) {
@@ -154,22 +175,59 @@ public class NoteDataService {
 
             StringBuilder contentStr = new StringBuilder("```");
             contentStr.append(noteIndex.getType()).append("\n");
-            int bufLen = 1024;
-            byte [] buf = new byte[bufLen];
-            try (InputStream is = anyFile.getInputStream()) {
-                int rLen;
-                while ((rLen = is.read(buf)) > 0) {
-                    contentStr.append(new String(buf, 0, rLen));
+            try(InputStreamReader isr = new InputStreamReader(anyFile.getInputStream(), StandardCharsets.UTF_8)) {
+                int bufLen = 1024;
+                char [] cBuf = new char[bufLen];
+                int rLen = 0;
+                while ((rLen = isr.read(cBuf)) > 0) {
+                    contentStr.append(new String(cBuf, 0, rLen));
                 }
             }catch (Exception e) {
                 log.error("读取mongo文件内容出错", e);
             }
+
             contentStr.append("\n```");
             noteData.setId(id);
             noteData.setContent(contentStr.toString());
         }
-
-        log.info("get id={}, dataSize={}", id, RamUsageEstimator.humanSizeOf(noteData));
         return noteData;
     }
+
+
+    @Autowired
+    private NoteFileMapper noteFileMapper;
+
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 20)
+    public void syncDataSize() {
+        Long uid = LocalThreadUtils.getUserId();
+        noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).filter(3).storeSite(Constants.MYSQL).get().example())
+                .forEach(index -> {
+                    Long id = index.getId();
+                    NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
+
+                    if (noteData != null) {
+                        NoteIndex upIndex = new NoteIndex();
+                        upIndex.setId(id);
+                        upIndex.setSize((long)noteData.getContent().getBytes(StandardCharsets.UTF_8).length);
+                        noteIndexMapper.updateByPrimaryKeySelective(upIndex);
+                    }
+
+                });
+
+        noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).filter(3).storeSite(Constants.MONGO).get().example())
+                .forEach(index -> {
+                    Long id = index.getId();
+                    String fileId = index.getSiteId();
+                    NoteFile noteFile = noteFileMapper.selectByExample(NoteFileQuery.Builder.build().fileId(fileId).get().example()).get(0);
+
+                    if (noteFile != null) {
+                        NoteIndex upIndex = new NoteIndex();
+                        upIndex.setId(id);
+                        upIndex.setSize(noteFile.getSize());
+                        noteIndexMapper.updateByPrimaryKeySelective(upIndex);
+                    }
+
+                });
+    }
+
 }

@@ -37,6 +37,8 @@ public class NoteFileQuery {
      */
     private Long userId;
 
+    private Long noteRefId;
+
 
     private NoteFileExample example;
 
@@ -63,6 +65,10 @@ public class NoteFileQuery {
         }
         if (size != null) {
             criteria.andSizeEqualTo(size);
+        }
+
+        if (noteRefId != null) {
+            criteria.andNoteRefEqualTo(noteRefId);
         }
 
         return example;
@@ -105,6 +111,11 @@ public class NoteFileQuery {
             return this;
         }
 
+        public Builder noteRefId(Long noteId) {
+            query.setNoteRefId(noteId);
+            return this;
+        }
+
 
         public NoteFileQuery get() {
             return query;
@@ -112,7 +123,13 @@ public class NoteFileQuery {
     }
 
 
+    public Long getNoteRefId() {
+        return noteRefId;
+    }
 
+    public void setNoteRefId(Long noteRefId) {
+        this.noteRefId = noteRefId;
+    }
 
     public Long getId() {
         return id;

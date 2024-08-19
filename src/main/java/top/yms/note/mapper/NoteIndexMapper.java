@@ -37,6 +37,11 @@ public interface NoteIndexMapper {
     @Delete("delete from t_note_index where f_user_id = #{uid, jdbcType=BIGINT} and f_del=1")
     int allDestroy(@Param("uid") Long uid);
 
+
+    @Select("select * from t_note_index where f_user_id = #{uid, jdbcType=BIGINT} and f_del=1")
+    @ResultMap("BaseResultMap")
+    List<NoteIndex> selectDestroyNotes(@Param("uid") Long uid);
+
     @Update("update t_note_index set f_del=0 where f_user_id = #{uid, jdbcType=BIGINT}")
     int allRecover(@Param("uid") Long uid);
 

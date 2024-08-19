@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.alibaba.ttl.TransmittableThreadLocal;
+import top.yms.note.comm.Constants;
 
 /**
  * 记录线程信息
@@ -14,21 +15,29 @@ import com.alibaba.ttl.TransmittableThreadLocal;
  */
 public class LocalThreadUtils {
 
+    public static Long getUserId() {
+        return (Long)threadLocalValue.get().get(Constants.USER_ID);
+    }
+
     private static final ThreadLocal<Map<String, Object>> threadLocalValue = new TransmittableThreadLocal<>();
     //
 
-    public static final void set(Map<String, Object> values) {
+    public static void set(Map<String, Object> values) {
         threadLocalValue.set(values);
     }
 
-    public static final Map<String, Object> get() {
+    /**
+     * get设置后记得调用set进去
+     * @return
+     */
+    public static Map<String, Object> get() {
         Map<String, Object> m = threadLocalValue.get();
         if (m == null)
             m = new HashMap<>();
         return m;
     }
 
-    public static final void remove() {
+    public static void remove() {
         threadLocalValue.get().clear();
         threadLocalValue.remove();
     }
