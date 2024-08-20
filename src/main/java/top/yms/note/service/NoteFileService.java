@@ -468,7 +468,7 @@ public class NoteFileService {
 
 
 
-    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 30)
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 60)
     public void urlToPdf(String htmlUrl, Long parentId) {
         String toPdfServiceUrl = "http://localhost:9004/html2pdf/2pdf/fromUrl?url="+htmlUrl;
         ResponseEntity<byte[]> response = restTemplate.exchange(toPdfServiceUrl, HttpMethod.GET, null, byte[].class);

@@ -15,6 +15,12 @@ public abstract class Constants {
 
     public final static String defaultNoteCache = "defaultNoteCache";
     public final static String userMemoryNoteCache = "userMemoryNoteCache";
+    public final static String noteLuceneSearch = "noteLuceneSearch";
+    public final static String noteDefaultSearch = "noteDefaultSearch";
+
+    public final static String token = "token";
+
+
 
 
 }

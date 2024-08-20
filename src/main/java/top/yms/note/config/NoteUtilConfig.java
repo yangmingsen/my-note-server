@@ -22,8 +22,8 @@ public class NoteUtilConfig {
     @Bean
     public RestTemplate createRestTemplate(){
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(15*1000);//连接超时
-        factory.setReadTimeout(15*1000);//读取超时
+        factory.setConnectTimeout(60*1000);//连接超时
+        factory.setReadTimeout(60*1000);//读取超时
 
         return new RestTemplate(factory);
 

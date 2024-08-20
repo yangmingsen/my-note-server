@@ -102,7 +102,7 @@ public class NoteDataService {
 
     private static final String [] SUPPORT_View_FILE = {
             "md","txt","java","xml","go","html","css","js","ts","vue","json","c","scala","yml",
-            "cpp","py","bash",
+            "cpp","py","bash","conf","ini"
     };
 
     private final ConcurrentHashMap<Long, Boolean> canPreviewCache = new ConcurrentHashMap<>();

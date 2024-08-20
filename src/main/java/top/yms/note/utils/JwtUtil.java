@@ -10,7 +10,9 @@ import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import top.yms.note.comm.Constants;
+import top.yms.note.config.SpringContext;
+import top.yms.note.conpont.NoteCache;
 
 
 /**
@@ -21,6 +23,8 @@ public class JwtUtil {
 
     private final static String SECRET_KEY = "note-secret-key";
 
+
+    private final static Long expireTime = 30* 1000 * 60L;
 
 
     // 生成JWT
@@ -34,7 +38,7 @@ public class JwtUtil {
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
+                .setExpiration(new Date(System.currentTimeMillis() + expireTime))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
     }

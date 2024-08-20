@@ -5,12 +5,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.conpont.FileStore;
+import top.yms.note.conpont.NoteSearch;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dto.NoteSearchCondition;
+import top.yms.note.dto.NoteSearchDto;
 import top.yms.note.entity.*;
 import top.yms.note.enums.NoteTypeEnum;
 import top.yms.note.exception.BusinessException;
@@ -62,6 +65,11 @@ public class NoteIndexService {
     @Autowired
     private NoteSearchLogService noteSearchLogService;
 
+
+    @Qualifier(Constants.noteLuceneSearch)
+    @Autowired
+    private NoteSearch noteSearchService;
+
     public List<NoteIndex> findByUserId(Long userid) {
         return Optional.of(findNoteList(userid, 1)).orElse(Collections.emptyList());
     }
@@ -97,32 +105,10 @@ public class NoteIndexService {
     }
 
     public NoteSearchVo findNoteByCondition(NoteSearchCondition searchDto) {
-
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
-        //add search log
-        SearchLog searchLog = new SearchLog();
-        searchLog.setId(idWorker.nextId());
-        searchLog.setSearchContent(searchDto.getSearchContent());
-        searchLog.setCreateTime(new Date());
-        searchLog.setUserId(uid);
-        noteSearchLogService.add(searchLog);
-
-
-        List<SearchResult> searchResults = noteIndexMapper.searchName(searchDto.getSearchContent(), uid)
-                .stream()
-                .map(noteIndex -> {
-                    NoteIndexSearchResult searchResult = new NoteIndexSearchResult();
-                    searchResult.setResult(noteIndex.getName());
-                    searchResult.setId(noteIndex.getId());
-                    searchResult.setParentId(noteIndex.getParentId());
-                    searchResult.setIsile(noteIndex.getIsile());
-                    searchResult.setType(noteIndex.getType());
-                    return (SearchResult)searchResult;
-                })
-                .collect(Collectors.toList());
-
-
-        return new NoteSearchVo(searchResults);
+        NoteSearchDto noteSearchDto = new NoteSearchDto();
+        noteSearchDto.setUserId(LocalThreadUtils.getUserId());
+        noteSearchDto.setKeyword(searchDto.getSearchContent());
+        return new NoteSearchVo(noteSearchService.doSearch(noteSearchDto));
     }
 
     /**
