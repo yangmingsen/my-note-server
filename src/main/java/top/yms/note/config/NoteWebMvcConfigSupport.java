@@ -23,9 +23,8 @@ public class NoteWebMvcConfigSupport extends WebMvcConfigurationSupportConfigure
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        log.info("执行添加拦截器....");
         if (noteInterceptor.equals("true")) {
-            log.info("执行添加拦截器....Ok");
+            log.info("添加Jwt拦截器....Ok");
             registry.addInterceptor(jwtInterceptor)
                     .addPathPatterns("/**")
                     .excludePathPatterns("/user/login","/file/view",

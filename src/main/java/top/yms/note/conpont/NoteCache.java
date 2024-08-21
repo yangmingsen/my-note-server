@@ -1,5 +1,8 @@
 package top.yms.note.conpont;
 
+/**
+ * 系统缓存服务
+ */
 public interface NoteCache {
 
     Object find(String id);

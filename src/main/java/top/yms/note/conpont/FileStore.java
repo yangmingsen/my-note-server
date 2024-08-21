@@ -6,6 +6,9 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.Map;
 
+/**
+ * 系统文件存储服务
+ */
 public interface FileStore {
 
     /**

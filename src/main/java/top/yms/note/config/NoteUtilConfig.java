@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
+import top.yms.note.conpont.NoteQueue;
+import top.yms.note.conpont.queue.NoteMemoryQueue;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.JwtUtil;
 
@@ -32,5 +34,11 @@ public class NoteUtilConfig {
     @Bean
     public JwtUtil jwtUtil() {
         return new JwtUtil();
+    }
+
+
+    @Bean
+    public NoteQueue noteLuceneIndexMemoryQueue() {
+        return new NoteMemoryQueue();
     }
 }

@@ -2,12 +2,22 @@ package top.yms.note.conpont.search;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.Constants;
+import top.yms.note.conpont.NoteDataIndexService;
+import top.yms.note.conpont.NoteQueue;
 import top.yms.note.conpont.NoteSearch;
+import top.yms.note.dto.NoteDataIndex;
+import top.yms.note.dto.NoteLuceneIndex;
 import top.yms.note.dto.NoteSearchDto;
+import top.yms.note.entity.NoteData;
+import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.SearchLog;
+import top.yms.note.mapper.NoteDataMapper;
+import top.yms.note.mapper.NoteIndexMapper;
 import top.yms.note.service.NoteSearchLogService;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.vo.NoteSearchResult;
@@ -34,8 +44,8 @@ import java.util.List;
  * Created by yangmingsen on 2024/8/21.
  */
 @Component(Constants.noteLuceneSearch)
-public class NoteLuceneSearch implements NoteSearch {
-    private final static Logger logger = LoggerFactory.getLogger(NoteLuceneSearch.class);
+public class NoteLuceneService implements NoteSearch, InitializingBean, NoteDataIndexService {
+    private final static Logger logger = LoggerFactory.getLogger(NoteLuceneService.class);
 
     public final static String indexPath = "E:\\tmp\\note-search-index\\";
 
@@ -44,6 +54,18 @@ public class NoteLuceneSearch implements NoteSearch {
 
     @Autowired
     IdWorker idWorker;
+
+    @Autowired
+    private NoteIndexMapper noteIndexMapper;
+
+    @Autowired
+    private NoteDataMapper noteDataMapper;
+
+    @Qualifier(Constants.noteLuceneIndexMemoryQueue)
+    @Autowired
+    private NoteQueue noteQueue;
+
+    private Thread updateIndexTask ;
 
     @Override
     public List<SearchResult> doSearch(NoteSearchDto noteSearchDto) {
@@ -135,5 +157,110 @@ public class NoteLuceneSearch implements NoteSearch {
             logger.error("搜索发生错误: ", e);
         }
         return searchResults;
+    }
+
+
+    public void update(NoteDataIndex noteDatandex) {
+        NoteLuceneIndex noteLuceneIndex = (NoteLuceneIndex)noteDatandex;
+        try {
+            Long id = noteLuceneIndex.getId();
+            Long userId = noteLuceneIndex.getUserId();
+            Long parentId = noteLuceneIndex.getParentId();
+            String title = noteLuceneIndex.getTitle();
+            String content = noteLuceneIndex.getContent();
+            String type = noteLuceneIndex.getType();
+            String isFile = noteLuceneIndex.getIsFile();
+            Date createDate = noteLuceneIndex.getCreateDate();
+
+            Directory directory = FSDirectory.open(Paths.get(indexPath));
+            IndexWriterConfig config = new IndexWriterConfig(new IKAnalyzer());
+            IndexWriter indexWriter = new IndexWriter(directory, config);
+
+            Term idTerm = new Term("id", Long.toString(id));
+            Document document = new Document();
+            document.add(new StoredField("id", id));
+            document.add(new LongPoint("userId", userId));
+            document.add(new StoredField("userId", userId));
+            document.add(new StoredField("parentId", parentId));
+            if (!StringUtils.isEmpty(title)) {
+                document.add(new TextField("title", title, Field.Store.YES));
+            }
+            if (!StringUtils.isEmpty(content)) {
+                document.add(new TextField("content", content, Field.Store.YES));
+            }
+
+            document.add(new StoredField("type", type));
+            document.add(new StoredField("isFile", isFile));
+            document.add(new LongPoint("createDate", createDate.getTime()));
+            document.add(new StoredField("createDate", createDate.getTime()));
+            //提交更改并关闭IndexWriter
+            indexWriter.updateDocument(idTerm, document);
+
+            indexWriter.commit();
+            indexWriter.close();
+            directory.close();
+            logger.info("更新完成...{}", id);
+        } catch (Exception e) {
+            logger.error("更新lucene索引失败：", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void updateIndex(Long id) {
+        try {
+            Directory directory = FSDirectory.open(Paths.get(indexPath));
+            IndexWriterConfig config = new IndexWriterConfig(new IKAnalyzer());
+            IndexWriter indexWriter = new IndexWriter(directory, config);
+
+            Term idTerm = new Term("id", Long.toString(id));
+
+            NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+            String title = noteIndex.getName();
+            if (StringUtils.isEmpty(noteIndex.getName())) {
+                title = " ";
+            }
+            Document document = new Document();
+            document.add(new StoredField("id", noteIndex.getId()));
+            document.add(new LongPoint("userId", noteIndex.getUserId()));
+            document.add(new StoredField("userId", noteIndex.getUserId()));
+            document.add(new StoredField("parentId", noteIndex.getParentId()));
+            document.add(new TextField("title", title, Field.Store.YES));
+            if (noteIndex.getStoreSite().equals("mysql")) {
+                NoteData noteData = noteDataMapper.selectByPrimaryKey(noteIndex.getId());
+                if (!StringUtils.isEmpty(noteData.getContent())) {
+                    document.add(new TextField("content", noteData.getContent(), Field.Store.YES));
+                }
+            }
+            document.add(new StoredField("type", noteIndex.getType()));
+            document.add(new StoredField("isFile", noteIndex.getIsile()));
+            document.add(new LongPoint("createDate", noteIndex.getCreateTime().getTime()));
+            document.add(new StoredField("createDate", noteIndex.getCreateTime().getTime()));
+            //提交更改并关闭IndexWriter
+            indexWriter.updateDocument(idTerm, document);
+
+            indexWriter.commit();
+            indexWriter.close();
+            directory.close();
+            logger.info("更新完成...{}", id);
+        } catch (Exception e) {
+            logger.error("updateIndex Error:", e);
+        }
+
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+//        updateIndexTask = new Thread(() -> {
+//            logger.info("启动更新lucene索引线程成功....");
+//            while (true) {
+//                try {
+//                    NoteLuceneIndex noteLuceneIndex = (NoteLuceneIndex)noteQueue.take();
+//                    updateIndex(noteLuceneIndex);
+//                } catch (Exception e) {
+//                    logger.error("更新lucene索引处理错误: ", e);
+//                }
+//            }
+//        });
+//        updateIndexTask.start();
     }
 }

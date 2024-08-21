@@ -4,15 +4,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.comm.Constants;
 import top.yms.note.comm.NoteIndexErrorCode;
-import top.yms.note.conpont.AnyFile;
-import top.yms.note.conpont.FileStore;
+import top.yms.note.conpont.*;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dao.NoteIndexQuery;
+import top.yms.note.dto.NoteLuceneIndex;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteDataVersion;
 import top.yms.note.entity.NoteFile;
@@ -50,6 +51,14 @@ public class NoteDataService {
     @Autowired
     private FileStore fileStore;
 
+//    @Autowired
+//    @Qualifier(Constants.noteLuceneIndexMemoryQueue)
+//    private NoteQueue noteQueue;
+
+    @Autowired
+    @Qualifier(Constants.noteLuceneSearch)
+    private NoteDataIndexService noteDataIndexService;
+
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void addAndUpdate(NoteData noteData) {
         Long id = noteData.getId();
@@ -73,6 +82,18 @@ public class NoteDataService {
         noteIndex.setSize((long)noteData.getContent().getBytes(StandardCharsets.UTF_8).length);
         noteIndexMapper.updateByPrimaryKeySelective(noteIndex);
 
+        //通知更新lucene索引
+        NoteIndex noteIndex1 = noteIndexMapper.selectByPrimaryKey(id);
+        NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
+        noteLuceneIndex.setId(id);
+        noteLuceneIndex.setUserId(noteIndex1.getUserId());
+        noteLuceneIndex.setParentId(noteIndex1.getParentId());
+        noteLuceneIndex.setTitle(noteIndex1.getName());
+        noteLuceneIndex.setContent(noteData.getContent());
+        noteLuceneIndex.setIsFile(noteIndex1.getIsile());
+        noteLuceneIndex.setType(noteIndex1.getType());
+        noteLuceneIndex.setCreateDate(opTime);
+        noteDataIndexService.update(noteLuceneIndex);
 
         //版本记录
         NoteDataVersion dataVersion = new NoteDataVersion();
