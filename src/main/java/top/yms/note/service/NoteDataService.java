@@ -1,23 +1,25 @@
 package top.yms.note.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.Constants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.*;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.dto.NoteLuceneIndex;
-import top.yms.note.entity.NoteData;
-import top.yms.note.entity.NoteDataVersion;
-import top.yms.note.entity.NoteFile;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.*;
+import top.yms.note.enums.FileTypeEnum;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteDataVersionMapper;
@@ -58,6 +60,74 @@ public class NoteDataService {
     @Autowired
     @Qualifier(Constants.noteLuceneSearch)
     private NoteDataIndexService noteDataIndexService;
+
+//    @Autowired
+//    private NoteMindMapRepository noteMindMapRepository;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
+    private final String noteMindMap = "note_mindmap";
+
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
+    public RestOut saveMindMapData(Long noteId, String jsonContent) {
+        ObjectId objId = null;
+        NoteIndex upNoteIndex = new NoteIndex();
+        try {
+            Document document = Document.parse(jsonContent);
+            NoteIndex noteIndex1 = noteIndexMapper.selectByPrimaryKey(noteId);
+            if (StringUtils.isBlank(noteIndex1.getSiteId())) {
+                Document saveRes = mongoTemplate.save(document, noteMindMap);
+                objId = saveRes.getObjectId("_id");
+                upNoteIndex.setSiteId(objId.toString());
+            } else {
+                ObjectId objectId = new ObjectId(noteIndex1.getSiteId());
+                document.put("_id", objectId);
+                mongoTemplate.save(document, noteMindMap);
+            }
+
+
+            Date opTime = new Date();
+            long size = jsonContent.getBytes(StandardCharsets.UTF_8).length;
+            //更新index信息
+
+            upNoteIndex.setId(noteId);
+            upNoteIndex.setUpdateTime(opTime);
+            upNoteIndex.setSize(size);
+            noteIndexMapper.updateByPrimaryKeySelective(upNoteIndex);
+
+
+            //通知更新lucene索引
+
+//            NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
+//            noteLuceneIndex.setId(noteId);
+//            noteLuceneIndex.setUserId(noteIndex1.getUserId());
+//            noteLuceneIndex.setParentId(noteIndex1.getParentId());
+//            noteLuceneIndex.setTitle(noteIndex1.getName());
+//
+//            noteLuceneIndex.setIsFile(noteIndex1.getIsile());
+//            noteLuceneIndex.setType(noteIndex1.getType());
+//            noteLuceneIndex.setCreateDate(opTime);
+//            noteDataIndexService.update(noteLuceneIndex);
+
+            //版本记录
+//            NoteDataVersion dataVersion = new NoteDataVersion();
+//            dataVersion.setNoteId(noteId);
+//            dataVersion.setContent(jsonContent);
+//            dataVersion.setUserId(LocalThreadUtils.getUserId());
+//            dataVersion.setCreateTime(opTime);
+//            noteDataVersionMapper.insertSelective(dataVersion);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (objId != null) {
+                mongoTemplate.remove(new Document("_id", objId.toString()), noteMindMap);
+            }
+            throw new BusinessException(CommonErrorCode.E_203008);
+        }
+
+        return RestOut.success("Ok");
+    }
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void addAndUpdate(NoteData noteData) {
@@ -187,6 +257,20 @@ public class NoteDataService {
         if (Constants.MYSQL.equals(noteIndex.getStoreSite())) {
             noteData = noteDataMapper.selectByPrimaryKey(id);
         } else {
+
+            if (FileTypeEnum.MINDMAP.compare(noteIndex.getType())) {
+                NoteData res = new NoteData();
+                Document resDoc = mongoTemplate.findById(noteIndex.getSiteId(), Document.class, noteMindMap);
+                if (resDoc == null) {
+                    return null;
+                }
+                res.setUserId(LocalThreadUtils.getUserId());
+                res.setId(id);
+                res.setContent(resDoc.toJson());
+
+                return res;
+            }
+
             //前提,当前文件要可预览, 目前使用markdown预览
             //因此 文本内容前后加了 " ```xxx  内容  ```` "
             if (!checkFileCanPreviewByCache(id)) {

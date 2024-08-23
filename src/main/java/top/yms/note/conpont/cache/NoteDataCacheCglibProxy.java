@@ -41,7 +41,7 @@ public class NoteDataCacheCglibProxy implements MethodInterceptor, NoteCacheCgli
                  objValue = method.invoke(target, args);
                  noteCache.add(cacheId, objValue);
                  return objValue;
-             } else if (methodName.equals("addAndUpdate")) {
+             } else if (methodName.equals("addAndUpdate") || methodName.startsWith("save")) {
                 noteCache.clear();
             }
             objValue = method.invoke(target, args);

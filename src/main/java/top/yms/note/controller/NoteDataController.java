@@ -25,6 +25,15 @@ public class NoteDataController {
     @Autowired
     private NoteDataService noteDataService;
 
+
+    @PostMapping("/mindmapSave")
+    public RestOut mindMapSave(@RequestParam("id") Long id, @RequestParam("content") String jsonContent) {
+        log.info("id = {}, content = {}", id, jsonContent);
+
+        return noteDataService.saveMindMapData(id, jsonContent);
+    }
+
+
     @PostMapping("/addAndUpdate")
     public RestOut<String> addAndUpdate(@RequestBody NoteData noteData) {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);

@@ -5,6 +5,7 @@ public enum FileTypeEnum {
     TXT(101,"txt", "文本文件"),
     MARKDOWN(102,"md", "markdown文件"),
     PDF(103,"pdf", "pdf"),
+    MINDMAP(104,"mindmap", "mindmap"),
 
     UNKNOWN(199,"unknown", "未知文件类型") ;
 

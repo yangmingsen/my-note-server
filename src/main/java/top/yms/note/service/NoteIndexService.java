@@ -199,7 +199,10 @@ public class NoteIndexService {
         if (FileTypeEnum.WER.compare(noteType) || FileTypeEnum.MARKDOWN.compare(noteType)) {
             note.setStoreSite(Constants.MYSQL);
             note.setSiteId("");
+        } else if(FileTypeEnum.MINDMAP.compare(noteType)) {
+            note.setStoreSite(Constants.MONGO);
         }
+
 
         Long parentId = note.getParentId();
         if (parentId == null) {

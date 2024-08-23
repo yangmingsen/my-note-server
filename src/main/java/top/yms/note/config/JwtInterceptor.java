@@ -1,5 +1,6 @@
 package top.yms.note.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,9 @@ public class JwtInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String token = request.getHeader("Authorization");
-        log.info("from: {}, token: {}", request.getRemoteAddr(),token);
+        if (StringUtils.isBlank(token)) {
+            log.error("token is empty");
+        }
         if (token != null && jwtUtil.validateToken(token)) {
             String userId = jwtUtil.extractUsername(token);
             NoteUser noteUser = (NoteUser)noteCache.find(userId);

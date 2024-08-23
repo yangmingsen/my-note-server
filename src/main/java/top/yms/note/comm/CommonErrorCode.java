@@ -29,6 +29,7 @@ public enum CommonErrorCode implements ErrorCode {
     E_203005(203005, "url2pdf参数错误"),
     E_203006(203006, "获取pdf响应异常"),
     E_203007(203007, "非法auth对象"),
+    E_203008(203008, "mindMap数据保存出错"),
 
 
     /**
