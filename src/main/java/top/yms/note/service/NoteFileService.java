@@ -31,10 +31,7 @@ import top.yms.note.mapper.NoteIndexMapper;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
@@ -160,19 +157,24 @@ public class NoteFileService {
         noteIndexService.add(note);
 
         StringBuilder sb = new StringBuilder();
-        byte [] buf = new byte[1024];
-        int len;
-        InputStream inputStream = file.getInputStream();
-        while ((len = inputStream.read(buf)) > 0) {
-            sb.append(new String(buf, 0, len));
+        try(InputStreamReader isr = new InputStreamReader(file.getInputStream())) {
+            int bufLen = 1024;
+            char [] cBuf = new char[bufLen];
+            int rLen;
+            while ((rLen = isr.read(cBuf)) > 0) {
+                sb.append(new String(cBuf, 0, rLen));
+            }
+        }catch (Exception e) {
+            log.error("读取mongo文件内容出错", e);
         }
+
+
         NoteData noteData = new NoteData();
         noteData.setId(genId);
         noteData.setUserId(note.getUserId());
         noteData.setContent(sb.toString());
 
         noteDataService.addAndUpdate(noteData);
-
     }
 
 
@@ -211,16 +213,17 @@ public class NoteFileService {
      * @param parentId
      * @throws Throwable
      */
-    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 25)
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 120)
     public void generateTree(File file, Long parentId) throws Exception{
         if (file.getName().equals("images")) {
             return;
         }
+        Long userId = LocalThreadUtils.getUserId();
         NoteIndex noteIndex = new NoteIndex();
         long id = idWorker.nextId();
         noteIndex.setId(id);
         noteIndex.setParentId(parentId);
-        noteIndex.setUserId(1111L);
+        noteIndex.setUserId(userId);
         boolean isFile = file.isFile();
         if (isFile) {
             noteIndex.setIsile("1");
@@ -249,20 +252,25 @@ public class NoteFileService {
             if (Constants.markdownSuffix.equals(noteIndex.getType())) {
                 noteIndex.setStoreSite(Constants.MYSQL);
                 StringBuilder sb = new StringBuilder();
-                byte [] buf = new byte[1024];
-                int len;
-                FileInputStream inputStream = new FileInputStream(file);
-                while ((len = inputStream.read(buf)) > 0) {
-                    sb.append(new String(buf, 0, len));
+
+                try(InputStreamReader isr = new InputStreamReader(new FileInputStream(file))) {
+                    int bufLen = 1024;
+                    char [] cBuf = new char[bufLen];
+                    int rLen = 0;
+                    while ((rLen = isr.read(cBuf)) > 0) {
+                        sb.append(new String(cBuf, 0, rLen));
+                    }
+                }catch (Exception e) {
+                    log.error("读取mongo文件内容出错", e);
                 }
 
                 String contentStr = sb.toString();
                 if (StringUtils.isNotBlank(contentStr))
-                    contentStr = replaceImageUrls(contentStr, file);
+                    contentStr = replaceImageUrls(contentStr, file, id);
 
                 NoteData noteData = new NoteData();
                 noteData.setId(id);
-                noteData.setUserId(1111L);
+                noteData.setUserId(userId);
                 noteData.setContent(contentStr);
                 noteData.setCreateTime(new Date());
 
@@ -286,10 +294,11 @@ public class NoteFileService {
                 noteFile.setName(noteIndex.getName());
                 noteFile.setType(noteIndex.getType());
                 noteFile.setSize(file.length());
-                noteFile.setUserId(1111L);
+                noteFile.setUserId(userId);
                 noteFile.setUrl(url);
                 noteFile.setViewCount(0L);
                 noteFile.setCreateTime(new Date());
+                noteFile.setNoteRef(id);
                 noteFileMapper.insertSelective(noteFile);
 
             }
@@ -306,7 +315,7 @@ public class NoteFileService {
     @Autowired
     private NoteDataMapper noteDataMapper;
 
-    private  String replaceImageUrls(String content, File srcFile) throws Exception{
+    private  String replaceImageUrls(String content, File srcFile, Long noteId) throws Exception{
         Pattern pattern = Pattern.compile("!\\[([^\\]]*)\\]\\(([^\\)]+)\\)");
         Matcher matcher = pattern.matcher(content);
         StringBuffer sb = new StringBuffer();
@@ -349,10 +358,11 @@ public class NoteFileService {
                 }
 
                 noteFile.setSize(targetFile.length());
-                noteFile.setUserId(1111L);
+                noteFile.setUserId(LocalThreadUtils.getUserId());
                 noteFile.setUrl(viewUrl);
                 noteFile.setViewCount(0L);
                 noteFile.setCreateTime(new Date());
+                noteFile.setNoteRef(noteId);
                 noteFileMapper.insertSelective(noteFile);
 
                 String newUrl = viewUrl;

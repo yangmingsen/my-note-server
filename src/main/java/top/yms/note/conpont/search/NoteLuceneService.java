@@ -47,7 +47,8 @@ import java.util.List;
 public class NoteLuceneService implements NoteSearch, InitializingBean, NoteDataIndexService {
     private final static Logger logger = LoggerFactory.getLogger(NoteLuceneService.class);
 
-    public final static String indexPath = "E:\\tmp\\note-search-index\\";
+//    public final static String indexPath = "E:\\tmp\\note-search-index\\";
+    public final static String indexPath = "E:\\PersonalSoft\\Server\\note\\index\\";
 
     @Autowired
     NoteSearchLogService noteSearchLogService;
@@ -159,6 +160,26 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
         return searchResults;
     }
 
+    @Override
+    public void delete(Long id) {
+        try {
+            Directory directory = FSDirectory.open(Paths.get(indexPath));
+            IndexWriterConfig config = new IndexWriterConfig(new IKAnalyzer());
+            IndexWriter indexWriter = new IndexWriter(directory, config);
+
+            Term idTerm = new Term("id", Long.toString(id));
+            indexWriter.deleteDocuments(idTerm);
+
+            indexWriter.commit();
+            indexWriter.close();
+            directory.close();
+
+        } catch (Exception e) {
+            logger.error("删除索引失败", e);
+            throw new RuntimeException(e);
+        }
+
+    }
 
     public void update(NoteDataIndex noteDatandex) {
         NoteLuceneIndex noteLuceneIndex = (NoteLuceneIndex)noteDatandex;

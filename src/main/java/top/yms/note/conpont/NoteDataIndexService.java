@@ -11,4 +11,6 @@ public interface NoteDataIndexService {
      * @param noteDataIndex
      */
     void update(NoteDataIndex noteDataIndex);
+
+    void delete(Long id);
 }

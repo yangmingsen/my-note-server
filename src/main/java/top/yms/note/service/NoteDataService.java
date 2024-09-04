@@ -53,16 +53,9 @@ public class NoteDataService {
     @Autowired
     private FileStore fileStore;
 
-//    @Autowired
-//    @Qualifier(Constants.noteLuceneIndexMemoryQueue)
-//    private NoteQueue noteQueue;
-
     @Autowired
     @Qualifier(Constants.noteLuceneSearch)
     private NoteDataIndexService noteDataIndexService;
-
-//    @Autowired
-//    private NoteMindMapRepository noteMindMapRepository;
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -95,28 +88,6 @@ public class NoteDataService {
             upNoteIndex.setUpdateTime(opTime);
             upNoteIndex.setSize(size);
             noteIndexMapper.updateByPrimaryKeySelective(upNoteIndex);
-
-
-            //通知更新lucene索引
-
-//            NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
-//            noteLuceneIndex.setId(noteId);
-//            noteLuceneIndex.setUserId(noteIndex1.getUserId());
-//            noteLuceneIndex.setParentId(noteIndex1.getParentId());
-//            noteLuceneIndex.setTitle(noteIndex1.getName());
-//
-//            noteLuceneIndex.setIsFile(noteIndex1.getIsile());
-//            noteLuceneIndex.setType(noteIndex1.getType());
-//            noteLuceneIndex.setCreateDate(opTime);
-//            noteDataIndexService.update(noteLuceneIndex);
-
-            //版本记录
-//            NoteDataVersion dataVersion = new NoteDataVersion();
-//            dataVersion.setNoteId(noteId);
-//            dataVersion.setContent(jsonContent);
-//            dataVersion.setUserId(LocalThreadUtils.getUserId());
-//            dataVersion.setCreateTime(opTime);
-//            noteDataVersionMapper.insertSelective(dataVersion);
 
         } catch (Exception e) {
             e.printStackTrace();
