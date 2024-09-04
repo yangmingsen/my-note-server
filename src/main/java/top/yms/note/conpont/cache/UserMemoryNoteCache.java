@@ -8,15 +8,17 @@ import top.yms.note.utils.LocalThreadUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Created by yangmingsen on 2024/8/12.
  */
 @Primary
-@Component("userMemoryNoteCache")
+@Component(Constants.userMemoryNoteCache)
 public class UserMemoryNoteCache implements NoteCache {
 
-    private Map<String, Map<String, Object>> cacheMap = new HashMap<>();
+    private final ConcurrentMap<String, Map<String, Object>> cacheMap = new ConcurrentHashMap<>();
 
     @Override
     public Object find(String id) {
@@ -45,11 +47,7 @@ public class UserMemoryNoteCache implements NoteCache {
 
     private String getUserId() {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
-        Map<String, Object> cache = cacheMap.get(uid.toString());
-        if (cache == null) {
-            cache = new HashMap<>();
-            cacheMap.put(uid.toString(), cache);
-        }
+        cacheMap.computeIfAbsent(uid.toString(), k -> new HashMap<>());
         return uid.toString();
     }
 

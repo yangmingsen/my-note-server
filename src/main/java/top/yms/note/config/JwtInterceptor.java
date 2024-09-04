@@ -24,7 +24,7 @@ import java.util.Map;
 @Component
 public class JwtInterceptor implements HandlerInterceptor {
 
-    private static Logger log = LoggerFactory.getLogger(JwtInterceptor.class);
+    private static final Logger log = LoggerFactory.getLogger(JwtInterceptor.class);
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -38,8 +38,10 @@ public class JwtInterceptor implements HandlerInterceptor {
         String token = request.getHeader("Authorization");
         if (StringUtils.isBlank(token)) {
             log.error("token is empty");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return false;
         }
-        if (token != null && jwtUtil.validateToken(token)) {
+        if (jwtUtil.validateToken(token)) {
             String userId = jwtUtil.extractUsername(token);
             NoteUser noteUser = (NoteUser)noteCache.find(userId);
             if (noteUser == null) {
@@ -49,7 +51,6 @@ public class JwtInterceptor implements HandlerInterceptor {
             Map<String, Object> localMap = LocalThreadUtils.get();
             localMap.put(userId, noteUser);
             localMap.put(Constants.USER_ID, noteUser.getId());
-
             LocalThreadUtils.set(localMap);
 
             return true;
