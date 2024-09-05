@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * Created by yangmingsen on 2024/4/13.
  */
-@Component
+//@Component
 public class NoteServiceCacheEnHance implements BeanPostProcessor, ApplicationListener {
     private final static Logger log = LoggerFactory.getLogger(NoteServiceCacheEnHance.class);
 

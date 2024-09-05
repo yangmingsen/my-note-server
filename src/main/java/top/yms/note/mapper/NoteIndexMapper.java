@@ -50,4 +50,8 @@ public interface NoteIndexMapper {
     @Select("select * from t_note_index where f_isfile='1' and f_user_id = #{userId, jdbcType=BIGINT} and f_name like concat('%',#{name, jdbcType=VARCHAR},'%')")
     @ResultMap("BaseResultMap")
     List<NoteIndex> searchName(@Param("name") String name, @Param("userId") Long userId);
+
+    @Select("select * from t_note_index where f_isfile='1' and f_del='0'")
+    @ResultMap("BaseResultMap")
+    List<NoteIndex> findAll();
 }

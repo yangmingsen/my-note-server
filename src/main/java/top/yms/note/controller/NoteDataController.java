@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import top.yms.note.comm.Constants;
+import top.yms.note.conpont.NoteDataIndexService;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.NoteIndexErrorCode;
@@ -24,6 +25,9 @@ public class NoteDataController {
 
     @Autowired
     private NoteDataService noteDataService;
+
+    @Autowired
+    private NoteDataIndexService noteDataIndexService;
 
 
     @PostMapping("/mindmapSave")
@@ -67,10 +71,11 @@ public class NoteDataController {
     }
 
 
-//    @GetMapping("/syncSize")
-//    public RestOut syncSize() {
-//        noteDataService.syncDataSize();
-//        return RestOut.succeed("Ok");
-//    }
+    @GetMapping("/index-rebuild")
+    public RestOut indexRebuild() {
+        noteDataIndexService.rebuildIndex();
+
+        return RestOut.succeed("Ok");
+    }
 
 }

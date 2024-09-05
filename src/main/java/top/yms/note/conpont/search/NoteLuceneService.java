@@ -35,6 +35,7 @@ import org.apache.lucene.store.FSDirectory;
 import org.springframework.util.StringUtils;
 import org.wltea.analyzer.lucene.IKAnalyzer;
 
+import java.io.File;
 import java.nio.file.Paths;
 import java.util.Date;
 import java.util.LinkedList;
@@ -47,8 +48,8 @@ import java.util.List;
 public class NoteLuceneService implements NoteSearch, InitializingBean, NoteDataIndexService {
     private final static Logger logger = LoggerFactory.getLogger(NoteLuceneService.class);
 
-//    public final static String indexPath = "E:\\tmp\\note-search-index\\";
-    public final static String indexPath = "E:\\PersonalSoft\\Server\\note\\index\\";
+    public final static String indexPath = "E:\\tmp\\note-search-index\\";
+//    public final static String indexPath = "E:\\PersonalSoft\\Server\\note\\index\\";
 
     @Autowired
     NoteSearchLogService noteSearchLogService;
@@ -176,6 +177,86 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
 
         } catch (Exception e) {
             logger.error("删除索引失败", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void delete(List<Long> ids) {
+        try {
+            Directory directory = FSDirectory.open(Paths.get(indexPath));
+            IndexWriterConfig config = new IndexWriterConfig(new IKAnalyzer());
+            IndexWriter indexWriter = new IndexWriter(directory, config);
+
+            for (Long id : ids) {
+                Term idTerm = new Term("id", Long.toString(id));
+                indexWriter.deleteDocuments(idTerm);
+            }
+
+            indexWriter.commit();
+            indexWriter.close();
+            directory.close();
+        } catch (Exception e) {
+            logger.error("删除索引失败", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void deleteDirectory(File dir) {
+        if (dir.isDirectory()) {
+            // 递归删除目录中的所有文件和子目录
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    deleteDirectory(file);
+                }
+            }
+        }
+        // 删除当前文件或空目录
+        dir.delete();
+    }
+    @Override
+    public void rebuildIndex() {
+        try {//delete old index
+            File rootDir = new File(indexPath);
+            deleteDirectory(rootDir);
+
+            Directory directory = FSDirectory.open(Paths.get(indexPath));
+            IndexWriterConfig config = new IndexWriterConfig(new IKAnalyzer());
+            IndexWriter indexWriter = new IndexWriter(directory, config);
+
+            List<NoteIndex> noteIndexList = noteIndexMapper.findAll();
+            for (NoteIndex noteIndex : noteIndexList) {
+                String title = noteIndex.getName();
+                Document document = new Document();
+                document.add(new StoredField("id", noteIndex.getId()));
+                document.add(new LongPoint("userId", noteIndex.getUserId()));
+                document.add(new StoredField("userId", noteIndex.getUserId()));
+                document.add(new StoredField("parentId", noteIndex.getParentId()));
+                if (!StringUtils.isEmpty(title)) {
+                    document.add(new TextField("title", title, Field.Store.YES));
+                }
+                if (noteIndex.getStoreSite().equals("mysql")) {
+                    NoteData noteData = noteDataMapper.selectByPrimaryKey(noteIndex.getId());
+                    if (!StringUtils.isEmpty(noteData.getContent())) {
+                        document.add(new TextField("content", noteData.getContent(), Field.Store.YES));
+                    }
+                }
+                document.add(new StoredField("type", noteIndex.getType()));
+                document.add(new StoredField("isFile", noteIndex.getIsile()));
+                document.add(new LongPoint("createDate", noteIndex.getCreateTime().getTime()));
+                document.add(new StoredField("createDate", noteIndex.getCreateTime().getTime()));
+
+                //添加文档
+                indexWriter.addDocument(document);
+            }
+
+            indexWriter.commit();
+            indexWriter.close();
+            directory.close();
+            logger.info("rebuild index success");
+        } catch (Exception e) {
+            logger.error("重新建立index失败", e);
             throw new RuntimeException(e);
         }
 

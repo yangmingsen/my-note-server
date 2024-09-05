@@ -1,17 +1,24 @@
 package top.yms.note.service;
 
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
+import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.conpont.FileStore;
+import top.yms.note.conpont.NoteDataIndexService;
 import top.yms.note.conpont.NoteSearch;
 import top.yms.note.dao.NoteFileQuery;
+import top.yms.note.dto.NoteLuceneIndex;
 import top.yms.note.dto.NoteSearchCondition;
 import top.yms.note.dto.NoteSearchDto;
 import top.yms.note.entity.*;
@@ -65,10 +72,16 @@ public class NoteIndexService {
     @Autowired
     private NoteSearchLogService noteSearchLogService;
 
+    @Autowired
+    private NoteDataIndexService noteDataIndexService;
+
 
     @Qualifier(Constants.noteLuceneSearch)
     @Autowired
     private NoteSearch noteSearchService;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     public List<NoteIndex> findByUserId(Long userid) {
         return Optional.of(findNoteList(userid, 1)).orElse(Collections.emptyList());
@@ -182,63 +195,120 @@ public class NoteIndexService {
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void add(NoteIndex note) {
-        List<NoteIndex> noteIndexList = noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().nid(note.getParentId()).get().example());
-        if (noteIndexList.size() == 0) {
-            throw new BusinessException(NoteIndexErrorCode.E_203110);
+        String mindMapMongoId = null;
+        try {
+            List<NoteIndex> noteIndexList = noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().nid(note.getParentId()).get().example());
+            if (noteIndexList.size() == 0) {
+                throw new BusinessException(NoteIndexErrorCode.E_203110);
+            }
+
+            Date opTime = new Date();
+            long genId;
+            if (note.getId() == null) {
+                genId = idWorker.nextId();
+                note.setId(genId);
+            } else {
+                genId = note.getId();
+            }
+
+            String noteType = note.getType();
+            if (FileTypeEnum.WER.compare(noteType) || FileTypeEnum.MARKDOWN.compare(noteType)) {
+                note.setStoreSite(Constants.MYSQL);
+                note.setSiteId("");
+            } else if(FileTypeEnum.MINDMAP.compare(noteType)) {
+                note.setStoreSite(Constants.MONGO);
+
+                //create default value
+
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("id", genId+"");
+                JSONArray jsonArray = new JSONArray();
+                JSONObject arJson = new JSONObject();
+                arJson.put("name", "新建标题");
+                jsonArray.add(arJson);
+                jsonObject.put("content", jsonArray);
+                log.info("defaultJsonStr: {}", jsonObject);
+                Document document = Document.parse(jsonObject.toString());
+                Document saveRes = mongoTemplate.save(document, Constants.noteMindMap);
+                ObjectId objId = saveRes.getObjectId("_id");
+
+                note.setSiteId(objId.toString());
+                mindMapMongoId = objId.toString();
+            }
+
+            Long parentId = note.getParentId();
+            if (parentId == null) {
+                note.setParentId(0L);
+            }
+            note.setCreateTime(opTime);
+            noteIndexMapper.insertSelective(note);
+
+            NoteIndexUpdateLog logData = new NoteIndexUpdateLog();
+            logData.setIndexId(genId);
+            logData.setCreateTime(opTime);
+            logData.setType(NoteOpTypeEnum.ADD);
+            Gson gson = new Gson();
+            String gsonStr = gson.toJson(note);
+            logData.setContent(gsonStr);
+            noteIndexLogMapper.insert(logData);
+
+
+            //update index service
+            if (NoteTypeEnum.File == NoteTypeEnum.apply(note.getIsile())) {
+                NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
+                noteLuceneIndex.setId(genId);
+                noteLuceneIndex.setUserId(LocalThreadUtils.getUserId());
+                noteLuceneIndex.setParentId(note.getParentId());
+                noteLuceneIndex.setTitle(note.getName());
+
+                noteLuceneIndex.setIsFile(note.getIsile());
+                noteLuceneIndex.setType(note.getType());
+                noteLuceneIndex.setCreateDate(opTime);
+                noteDataIndexService.update(noteLuceneIndex);
+            }
+
+        } catch (Exception e) {
+            log.error("add失败", e);
+            if (mindMapMongoId != null) {
+                mongoTemplate.remove(new Document("_id", mindMapMongoId), Constants.noteMindMap);
+            }
+            throw new RuntimeException(e);
         }
-
-        long genId;
-        if (note.getId() == null) {
-            genId = idWorker.nextId();
-            note.setId(genId);
-        } else {
-            genId = note.getId();
-        }
-
-        String noteType = note.getType();
-        if (FileTypeEnum.WER.compare(noteType) || FileTypeEnum.MARKDOWN.compare(noteType)) {
-            note.setStoreSite(Constants.MYSQL);
-            note.setSiteId("");
-        } else if(FileTypeEnum.MINDMAP.compare(noteType)) {
-            note.setStoreSite(Constants.MONGO);
-        }
-
-
-        Long parentId = note.getParentId();
-        if (parentId == null) {
-            note.setParentId(0L);
-        }
-        note.setCreateTime(new Date());
-        noteIndexMapper.insertSelective(note);
-
-        NoteIndexUpdateLog logData = new NoteIndexUpdateLog();
-        logData.setIndexId(genId);
-        logData.setCreateTime(new Date());
-        logData.setType(NoteOpTypeEnum.ADD);
-        Gson gson = new Gson();
-        String gsonStr = gson.toJson(note);
-        logData.setContent(gsonStr);
-        noteIndexLogMapper.insert(logData);
-
     }
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
-    public void update(NoteIndex node) {
-        Long id = node.getId();
+    public void update(NoteIndex note) {
+        Long id = note.getId();
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
         if (noteIndex == null) {
             throw new BusinessException(NoteIndexErrorCode.E_203106);
         }
 
-        node.setUpdateTime(new Date());
-        noteIndexMapper.updateByPrimaryKeySelective(node);
+        if (StringUtils.isNotBlank(note.getName())) {
+            if (!note.getName().equals(noteIndex.getName())) {
+                //update index service
+                NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
+                noteLuceneIndex.setId(id);
+                noteLuceneIndex.setUserId(LocalThreadUtils.getUserId());
+                noteLuceneIndex.setParentId(noteIndex.getParentId());
+                noteLuceneIndex.setTitle(note.getName());
+
+                noteLuceneIndex.setIsFile(noteIndex.getIsile());
+                noteLuceneIndex.setType(noteIndex.getType());
+                noteLuceneIndex.setCreateDate(new Date());
+                noteDataIndexService.update(noteLuceneIndex);
+            }
+        }
+
+        note.setUpdateTime(new Date());
+        noteIndexMapper.updateByPrimaryKeySelective(note);
 
         NoteIndexUpdateLog logData = new NoteIndexUpdateLog();
-        logData.setIndexId(node.getId());
+        logData.setIndexId(note.getId());
         logData.setCreateTime(new Date());
         logData.setType(NoteOpTypeEnum.UPDATE);
         Gson gson = new Gson();
-        String gsonStr = gson.toJson(node);
+        String gsonStr = gson.toJson(note);
         logData.setContent(gsonStr);
         noteIndexLogMapper.insert(logData);
     }
@@ -277,14 +347,19 @@ public class NoteIndexService {
             addLog.setType(NoteOpTypeEnum.Destroy);
             addLog.setCreateTime(new Date());
             noteIndexLogMapper.insert(addLog);
+
+            //删除索引
+            noteDataIndexService.delete(id);
         }
 
         if (NoteTypeEnum.Directory == NoteTypeEnum.apply(noteIndex.getIsile())) {
-            List<NoteIndex> noteIndexList = bfsSearchTree(id);
-            List<NoteIndexUpdateLog> addLogList = new LinkedList<>();
+            final List<NoteIndex> noteIndexList = bfsSearchTree(id);
+            final List<NoteIndexUpdateLog> addLogList = new LinkedList<>();
+            final List<Long> fileIds = new LinkedList<>();
             for (NoteIndex note : noteIndexList) {
                 noteIndexMapper.deleteByPrimaryKey(note.getId());
                 if (NoteTypeEnum.File == NoteTypeEnum.apply(note.getIsile())) {
+                    fileIds.add(note.getId());
                     //删除t_note_data
                     if (Constants.MYSQL.equals(note.getStoreSite())) {
                         noteDataMapper.deleteByPrimaryKey(note.getId());
@@ -308,7 +383,12 @@ public class NoteIndexService {
                 addLogList.add(addLog);
             }
             noteIndexLogMapper.insertBatch(addLogList);
+
+            //删除索引
+            noteDataIndexService.delete(fileIds);
+
             log.info("删除目录[{}]成功, 共[{}]条数据", noteIndex.getName(), addLogList.size());
+
         }
     }
 

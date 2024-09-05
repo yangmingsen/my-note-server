@@ -24,7 +24,8 @@ public class JwtUtil {
     private final static String SECRET_KEY = "note-secret-key";
 
 
-    private final static Long expireTime = 30* 1000 * 60L;
+    //12h
+    private final static Long expireTime = 12 * 60 * 60 * 1000L;
 
 
     // 生成JWT

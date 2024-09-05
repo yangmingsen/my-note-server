@@ -60,12 +60,13 @@ public class NoteDataService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    private final String noteMindMap = "note_mindmap";
+    private final String noteMindMap = Constants.noteMindMap;
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public RestOut saveMindMapData(Long noteId, String jsonContent) {
         ObjectId objId = null;
         NoteIndex upNoteIndex = new NoteIndex();
+        Document oldDoc = null;
         try {
             Document document = Document.parse(jsonContent);
             NoteIndex noteIndex1 = noteIndexMapper.selectByPrimaryKey(noteId);
@@ -74,11 +75,11 @@ public class NoteDataService {
                 objId = saveRes.getObjectId("_id");
                 upNoteIndex.setSiteId(objId.toString());
             } else {
+                oldDoc = mongoTemplate.findById(noteIndex1.getSiteId(), Document.class, noteMindMap);
                 ObjectId objectId = new ObjectId(noteIndex1.getSiteId());
                 document.put("_id", objectId);
                 mongoTemplate.save(document, noteMindMap);
             }
-
 
             Date opTime = new Date();
             long size = jsonContent.getBytes(StandardCharsets.UTF_8).length;
@@ -90,9 +91,8 @@ public class NoteDataService {
             noteIndexMapper.updateByPrimaryKeySelective(upNoteIndex);
 
         } catch (Exception e) {
-            e.printStackTrace();
-            if (objId != null) {
-                mongoTemplate.remove(new Document("_id", objId.toString()), noteMindMap);
+            if (oldDoc != null) {
+                mongoTemplate.save(oldDoc, noteMindMap);
             }
             throw new BusinessException(CommonErrorCode.E_203008);
         }
@@ -228,7 +228,6 @@ public class NoteDataService {
         if (Constants.MYSQL.equals(noteIndex.getStoreSite())) {
             noteData = noteDataMapper.selectByPrimaryKey(id);
         } else {
-
             if (FileTypeEnum.MINDMAP.compare(noteIndex.getType())) {
                 NoteData res = new NoteData();
                 Document resDoc = mongoTemplate.findById(noteIndex.getSiteId(), Document.class, noteMindMap);
