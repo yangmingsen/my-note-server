@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import top.yms.note.dao.NoteIndexQuery;
+import top.yms.note.dto.NoteListQueryDto;
 import top.yms.note.dto.NoteSearchCondition;
 import top.yms.note.entity.AntTreeNode;
 import top.yms.note.exception.BusinessException;
@@ -21,10 +22,7 @@ import top.yms.note.vo.MenuListVo;
 import top.yms.note.vo.NoteInfoVo;
 import top.yms.note.vo.NoteSearchVo;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -68,23 +66,53 @@ public class NoteIndexController {
 
     /**
      * 根据 uid和nid找 列表
-     * @param parentId
      * @return
      */
-    @GetMapping("/sub")
-    public RestOut<List<NoteIndex>> findSubBy(@RequestParam("nid") Long parentId) {
+    @PostMapping("/sub")
+    public RestOut<List<NoteIndex>> findSubBy(NoteListQueryDto noteListQueryDto) {
+        log.info("findSubBy_noteListQueryDto:{}", noteListQueryDto);
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         if (uid == null) {
             log.info("findSubBy: uid is null");
         }
-        if (parentId==null) {
+        Long parentId = noteListQueryDto.getParentId();
+        if (parentId == null) {
             throw new BusinessException(CommonErrorCode.E_100101);
         }
         log.info("findSubBy: uid= {}, parentId={}", uid, parentId);
-        List<NoteIndex> resList =  noteIndexService.findSubBy(parentId, uid);
+        List<NoteIndex> resList =  handleSortBy(noteListQueryDto, noteIndexService.findSubBy(parentId, uid));
+
         log.info("findSubBy: uid= {}, parentId={}, count:{}", uid, parentId, resList.size());
 
         return RestOut.success(resList);
+    }
+
+    private List<NoteIndex> handleSortBy(NoteListQueryDto noteListQueryDto, List<NoteIndex> list) {
+        return list.stream().sorted((o1,o2) -> {
+            if (noteListQueryDto.getSortBy() == 0) {
+                if (noteListQueryDto.getAsc() == 0) {
+                    return o2.getCreateTime().compareTo(o1.getCreateTime());
+                }
+                return o1.getCreateTime().compareTo(o2.getCreateTime());
+            } else if (noteListQueryDto.getSortBy() == 1) {
+                Date t1 = o1.getUpdateTime() != null ? o1.getUpdateTime(): o1.getCreateTime();
+                Date t2 = o2.getUpdateTime() != null ? o2.getUpdateTime(): o2.getCreateTime();
+                if (noteListQueryDto.getAsc() == 0) {
+                    return t2.compareTo(t1);
+                }
+                return t1.compareTo(t2);
+            } else if (noteListQueryDto.getSortBy() == 2) {
+                if (noteListQueryDto.getAsc() == 0) {
+                    return o2.getName().compareTo(o1.getName());
+                }
+                return o1.getName().compareTo(o2.getName());
+            } else {
+                if (noteListQueryDto.getAsc() == 0) {
+                    return o2.getSize().compareTo(o1.getSize());
+                }
+                return o1.getSize().compareTo(o2.getSize());
+            }
+        }).collect(Collectors.toList());
     }
 
     @GetMapping("/findRoot")
@@ -136,7 +164,7 @@ public class NoteIndexController {
     @GetMapping("/menuList")
     public RestOut<MenuListVo> findMenuList(@RequestParam("nid") Long nid) {
         //0->dir(menu); 1->file(content)
-        Map<String, List<NoteIndex>>  mapList = findSubBy(nid).getResult().orElse(Collections.emptyList()).stream().collect(Collectors.groupingBy(NoteIndex::getIsile));
+        Map<String, List<NoteIndex>>  mapList = Optional.ofNullable(noteIndexService.findSubBy(nid, LocalThreadUtils.getUserId())).orElse(Collections.emptyList()).stream().collect(Collectors.groupingBy(NoteIndex::getIsile));
         MenuListVo res = new MenuListVo();
         res.setMenuList(mapList.get("0"));
         res.setNoteContentMenuList(mapList.get("1"));
@@ -144,27 +172,26 @@ public class NoteIndexController {
         return RestOut.success(res);
     }
 
-
     @PostMapping("add")
-    public RestOut<String> add(@RequestBody NoteIndex node) {
+    public RestOut<NoteIndex> add(@RequestBody NoteIndex note) {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
-        node.setUserId(uid);
-        log.info("add: {}", node);
-        if (node == null) {
+        note.setUserId(uid);
+        log.info("add: {}", note);
+        if (note == null) {
             throw new BusinessException(CommonErrorCode.E_200202);
         }
-        if (StringUtils.isBlank(node.getName())) {
+        if (StringUtils.isBlank(note.getName())) {
             throw new BusinessException(NoteIndexErrorCode.E_203100);
         }
-        if (StringUtils.isBlank(node.getIsile())) {
+        if (StringUtils.isBlank(note.getIsile())) {
             throw new BusinessException(NoteIndexErrorCode.E_203102);
         }
-        if ("1".equals(node.getIsile()) && StringUtils.isBlank(node.getType())) {
+        if ("1".equals(note.getIsile()) && StringUtils.isBlank(note.getType())) {
             throw new BusinessException(NoteIndexErrorCode.E_203103);
         }
-        noteIndexService.add(node);
+        noteIndexService.add(note);
 
-        return RestOut.success("Ok");
+        return RestOut.success(note);
     }
 
     @PostMapping("/update")
@@ -252,17 +279,19 @@ public class NoteIndexController {
         return RestOut.success(res);
     }
 
-    @GetMapping("/getRecentFiles")
-    public RestOut<List<NoteIndex>> getRecentFiles() {
-        List<NoteIndex> resList = noteIndexService.getRecentFiles();
+    @PostMapping("/getRecentFiles")
+    public RestOut<List<NoteIndex>> getRecentFiles(NoteListQueryDto noteListQueryDto) {
+        log.info("getRecentFiles => {}", noteListQueryDto);
+        List<NoteIndex> resList = handleSortBy(noteListQueryDto, noteIndexService.getRecentFiles());
         log.info("getRecentFiles Result: 共{}条", resList.size());
 
         return RestOut.success(resList);
     }
 
-    @GetMapping("/getDeletedFiles")
-    public RestOut<List<NoteIndex>> getDeletedFiles() {
-        List<NoteIndex> resList = noteIndexService.getDeletedFiles();
+    @PostMapping("/getDeletedFiles")
+    public RestOut<List<NoteIndex>> getDeletedFiles(NoteListQueryDto noteListQueryDto) {
+        log.info("getDeletedFiles => {}", noteListQueryDto);
+        List<NoteIndex> resList = handleSortBy(noteListQueryDto, noteIndexService.getDeletedFiles());
         log.info("getDeletedFiles Result: 共{}条", resList.size());
 
         return RestOut.success(resList);

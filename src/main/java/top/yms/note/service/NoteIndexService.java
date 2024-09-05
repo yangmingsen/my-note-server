@@ -18,6 +18,7 @@ import top.yms.note.conpont.FileStore;
 import top.yms.note.conpont.NoteDataIndexService;
 import top.yms.note.conpont.NoteSearch;
 import top.yms.note.dao.NoteFileQuery;
+import top.yms.note.dto.NoteListQueryDto;
 import top.yms.note.dto.NoteLuceneIndex;
 import top.yms.note.dto.NoteSearchCondition;
 import top.yms.note.dto.NoteSearchDto;
@@ -496,36 +497,12 @@ public class NoteIndexService {
     public List<NoteIndex> getRecentFiles() {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         return noteIndexMapper.selectRecentUpdate(uid).stream()
-                .sorted(
-                (o1, o2) -> {
-                    Date d1 = o1.getUpdateTime();
-                    if (d1 == null) {
-                        d1 = o1.getCreateTime();
-                    }
-                    Date d2 = o2.getUpdateTime();
-                    if (d2 == null) {
-                        d2 = o2.getCreateTime();
-                    }
-                    return d2.compareTo(d1);
-                }
-        ).limit(30).collect(Collectors.toList());
+                .limit(30).collect(Collectors.toList());
     }
 
     public List<NoteIndex> getDeletedFiles() {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
-        return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).del(true).get().example()).stream().sorted(
-                (o1, o2) -> {
-                    Date d1 = o1.getUpdateTime();
-                    if (d1 == null) {
-                        d1 = o1.getCreateTime();
-                    }
-                    Date d2 = o2.getUpdateTime();
-                    if (d2 == null) {
-                        d2 = o2.getCreateTime();
-                    }
-                    return d2.compareTo(d1);
-                }
-        ).collect(Collectors.toList());
+        return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).del(true).get().example());
     }
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 15)
