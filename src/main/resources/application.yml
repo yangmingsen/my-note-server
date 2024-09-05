@@ -7,7 +7,7 @@ spring:
   data:
     mongodb:
       url: mongodb://localhost:27017
-      database: my_note
+      database: my_note_prov
   application:
     name: my-note
   main:
@@ -15,7 +15,7 @@ spring:
   datasource:
     username: root
     password: ymsyms
-    url: jdbc:mysql://192.168.25.1:3306/my_note_test?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=UTF-8
+    url: jdbc:mysql://192.168.25.1:3306/my_note_prov?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=UTF-8
     type: com.alibaba.druid.pool.DruidDataSource
     initialSize: 5
     minIdle: 1
@@ -55,7 +55,7 @@ mybatis:
   mapper-locations: classpath:top/yms/note/mapper/*.xml
 
 cors:
-  allowed-hosts: 127.0.0.1,localhost,api.notetest.yms.top
+  allowed-hosts: 127.0.0.1,localhost,api.note.yms.top
   allowed-ports: 5173,9090
   allowed-method: OPTIONS,HEAD,GET,POST,PUT,DELETE,PATCH
 

@@ -48,8 +48,8 @@ import java.util.List;
 public class NoteLuceneService implements NoteSearch, InitializingBean, NoteDataIndexService {
     private final static Logger logger = LoggerFactory.getLogger(NoteLuceneService.class);
 
-    public final static String indexPath = "E:\\tmp\\note-search-index\\";
-//    public final static String indexPath = "E:\\PersonalSoft\\Server\\note\\index\\";
+//    public final static String indexPath = "E:\\tmp\\note-search-index\\";
+    public final static String indexPath = "E:\\PersonalSoft\\Server\\note\\index\\";
 
     @Autowired
     NoteSearchLogService noteSearchLogService;
