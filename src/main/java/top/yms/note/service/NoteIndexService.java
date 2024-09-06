@@ -18,10 +18,7 @@ import top.yms.note.conpont.FileStore;
 import top.yms.note.conpont.NoteDataIndexService;
 import top.yms.note.conpont.NoteSearch;
 import top.yms.note.dao.NoteFileQuery;
-import top.yms.note.dto.NoteListQueryDto;
-import top.yms.note.dto.NoteLuceneIndex;
-import top.yms.note.dto.NoteSearchCondition;
-import top.yms.note.dto.NoteSearchDto;
+import top.yms.note.dto.*;
 import top.yms.note.entity.*;
 import top.yms.note.enums.NoteTypeEnum;
 import top.yms.note.exception.BusinessException;
@@ -519,5 +516,14 @@ public class NoteIndexService {
     public int allRecover() {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         return noteIndexMapper.allRecover(uid);
+    }
+
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
+    public void updateMove(NoteMoveDto noteMoveDto) {
+        NoteIndex upDo = new NoteIndex();
+        upDo.setId(noteMoveDto.getFromId());
+        upDo.setParentId(noteMoveDto.getToId());
+
+        noteIndexMapper.updateByPrimaryKeySelective(upDo);
     }
 }
