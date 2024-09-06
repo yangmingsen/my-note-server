@@ -18,6 +18,7 @@ public enum NoteIndexErrorCode implements ErrorCode{
     E_203114(203114, "根目录树不可删除"),
     E_203115(203115, "文本内容为空"),
     E_203116(203116, "转换pdf的url不能为空"),
+    E_203117(203117, "目标笔记不存在"),
 
 
     E_203333(203333, "Note未知错误");

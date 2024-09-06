@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.dto.NoteListQueryDto;
+import top.yms.note.dto.NoteMoveDto;
 import top.yms.note.dto.NoteSearchCondition;
 import top.yms.note.entity.AntTreeNode;
 import top.yms.note.exception.BusinessException;
@@ -310,5 +311,19 @@ public class NoteIndexController {
         int cnt = noteIndexService.allRecover();
         log.info("allRecover: {}", cnt);
         return RestOut.succeed("OK");
+    }
+
+    /**
+     * 笔记之间的移动
+     * 比如笔记A移动到目录C下
+     */
+    @PostMapping("/updateMove")
+    public RestOut updateMove(NoteMoveDto noteMoveDto) {
+        log.info("updateMove: {}", noteMoveDto);
+        if (noteMoveDto.getFromId() == null || noteMoveDto.getToId() == null) {
+            throw new BusinessException(CommonErrorCode.E_200202);
+        }
+        noteIndexService.updateMove(noteMoveDto);
+        return RestOut.succeed("ok");
     }
 }
