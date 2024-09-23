@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import top.yms.note.comm.Constants;
 import top.yms.note.conpont.NoteDataIndexService;
+import top.yms.note.dto.NoteDataDto;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.NoteIndexErrorCode;
@@ -39,7 +40,7 @@ public class NoteDataController {
 
 
     @PostMapping("/addAndUpdate")
-    public RestOut<String> addAndUpdate(@RequestBody NoteData noteData) {
+    public RestOut<String> addAndUpdate(@RequestBody NoteDataDto noteData) {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         noteData.setUserId(uid);
         log.info("addAndUpdate: noteData={}", noteData);
