@@ -154,7 +154,9 @@ public class NoteFileController {
     @GetMapping("/download")
     public void download(@RequestParam("id") String id, HttpServletResponse resp)  throws Exception{
         log.info("download: id={}", id);
-        if (StringUtils.isBlank(id)) return;
+        if (StringUtils.isBlank(id)) {
+            throw new BusinessException(CommonErrorCode.E_203001);
+        }
         NoteFile noteFile = noteFileService.findOne(id);
         log.info("download: noteFile:{}", noteFile);
         if (noteFile == null) return ;
@@ -187,7 +189,7 @@ public class NoteFileController {
     }
 
 
-    @GetMapping("/genTree")
+    //@GetMapping("/genTree")
     public RestOut genTree(@RequestParam("id") Integer id) throws Exception{
         String [] para = {
                 "Github","tmp","专业","人体","公司",

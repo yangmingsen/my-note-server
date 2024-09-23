@@ -19,6 +19,7 @@ import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.Constants;
 import top.yms.note.conpont.FileStore;
 import top.yms.note.dao.NoteFileQuery;
+import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteFile;
 import top.yms.note.entity.NoteIndex;
@@ -169,7 +170,7 @@ public class NoteFileService {
         }
 
 
-        NoteData noteData = new NoteData();
+        NoteDataDto noteData = new NoteDataDto();
         noteData.setId(genId);
         noteData.setUserId(note.getUserId());
         noteData.setContent(sb.toString());

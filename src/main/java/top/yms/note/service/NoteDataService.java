@@ -1,10 +1,12 @@
 package top.yms.note.service;
 
+import com.alibaba.fastjson2.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -17,6 +19,7 @@ import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.*;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dao.NoteIndexQuery;
+import top.yms.note.dto.NoteDataDto;
 import top.yms.note.dto.NoteLuceneIndex;
 import top.yms.note.entity.*;
 import top.yms.note.enums.FileTypeEnum;
@@ -101,48 +104,91 @@ public class NoteDataService {
     }
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
-    public void addAndUpdate(NoteData noteData) {
-        Long id = noteData.getId();
-        NoteData dbNote = noteDataMapper.findById(id);
-        if (checkContent(noteData.getContent())) {
-            throw new BusinessException(NoteIndexErrorCode.E_203112);
+    public void addAndUpdate(NoteDataDto noteDataDto) {
+        ObjectId objId = null;
+        Document oldDoc = null;
+        try {
+            NoteData noteData = new NoteData();
+            BeanUtils.copyProperties(noteDataDto, noteData);
+
+            Long id = noteData.getId();
+            NoteData dbNote = noteDataMapper.findById(id);
+            if (checkContent(noteData.getContent())) {
+                throw new BusinessException(NoteIndexErrorCode.E_203112);
+            }
+            Date opTime = new Date();
+            if (dbNote == null) {
+                noteData.setCreateTime(opTime);
+                noteDataMapper.insert(noteData);
+            } else {
+                noteData.setUpdateTime(opTime);
+                noteDataMapper.updateByPrimaryKeySelective(noteData);
+            }
+
+            NoteIndex noteIndex1 = noteIndexMapper.selectByPrimaryKey(id);
+            //更新index信息
+            NoteIndex noteIndex = new NoteIndex();
+            noteIndex.setId(id);
+            noteIndex.setUpdateTime(opTime);
+            noteIndex.setSize((long)noteData.getContent().getBytes(StandardCharsets.UTF_8).length);
+
+            if (StringUtils.isNotBlank(noteDataDto.getTextContent())) {
+                if ("wer".equals(noteDataDto.getType())) {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("id", noteDataDto.getId());
+                    jsonObject.put("textConent", noteDataDto.getTextContent());
+                    Document document = Document.parse(jsonObject.toString());
+
+                    if (StringUtils.isNotBlank(noteIndex1.getSiteId())) {
+                        oldDoc = mongoTemplate.findById(noteIndex1.getSiteId(), Document.class, Constants.noteWerTextContent);
+                        ObjectId objectId = new ObjectId(noteIndex1.getSiteId());
+                        document.put("_id", objectId);
+                        mongoTemplate.save(document,  Constants.noteWerTextContent);
+                    } else {
+                        Document saveRes = mongoTemplate.save(document, Constants.noteWerTextContent);
+                        objId = saveRes.getObjectId("_id");
+                        noteIndex.setSiteId(objId.toString());
+                    }
+                }
+
+            }
+
+            noteIndexMapper.updateByPrimaryKeySelective(noteIndex);
+
+            //通知更新lucene索引
+            NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
+            noteLuceneIndex.setId(id);
+            noteLuceneIndex.setUserId(noteIndex1.getUserId());
+            noteLuceneIndex.setParentId(noteIndex1.getParentId());
+            noteLuceneIndex.setTitle(noteIndex1.getName());
+            if (StringUtils.isNotBlank(noteDataDto.getType()) && "wer".equals(noteDataDto.getType())) {
+                noteLuceneIndex.setContent(noteDataDto.getTextContent());
+            } else {
+                noteLuceneIndex.setContent(noteData.getContent());
+            }
+            noteLuceneIndex.setIsFile(noteIndex1.getIsile());
+            noteLuceneIndex.setType(noteIndex1.getType());
+            noteLuceneIndex.setCreateDate(opTime);
+            noteDataIndexService.update(noteLuceneIndex);
+
+            //版本记录
+            NoteDataVersion dataVersion = new NoteDataVersion();
+            dataVersion.setNoteId(id);
+            dataVersion.setContent(noteData.getContent());
+            dataVersion.setUserId(noteData.getUserId());
+            dataVersion.setCreateTime(opTime);
+            noteDataVersionMapper.insertSelective(dataVersion);
+        } catch (Exception e) {
+            if (objId != null) {
+                mongoTemplate.remove(new Document("_id", objId), Constants.noteWerTextContent);
+            }
+            if (oldDoc != null) {
+                mongoTemplate.save(oldDoc, Constants.noteWerTextContent);
+            }
+            log.error("addAndUpdate异常", e);
+            throw new RuntimeException(e);
         }
-        Date opTime = new Date();
-        if (dbNote == null) {
-            noteData.setCreateTime(opTime);
-            noteDataMapper.insert(noteData);
-        } else {
-            noteData.setUpdateTime(opTime);
-            noteDataMapper.updateByPrimaryKeySelective(noteData);
-        }
 
-        //更新index信息
-        NoteIndex noteIndex = new NoteIndex();
-        noteIndex.setId(id);
-        noteIndex.setUpdateTime(opTime);
-        noteIndex.setSize((long)noteData.getContent().getBytes(StandardCharsets.UTF_8).length);
-        noteIndexMapper.updateByPrimaryKeySelective(noteIndex);
-
-        //通知更新lucene索引
-        NoteIndex noteIndex1 = noteIndexMapper.selectByPrimaryKey(id);
-        NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
-        noteLuceneIndex.setId(id);
-        noteLuceneIndex.setUserId(noteIndex1.getUserId());
-        noteLuceneIndex.setParentId(noteIndex1.getParentId());
-        noteLuceneIndex.setTitle(noteIndex1.getName());
-        noteLuceneIndex.setContent(noteData.getContent());
-        noteLuceneIndex.setIsFile(noteIndex1.getIsile());
-        noteLuceneIndex.setType(noteIndex1.getType());
-        noteLuceneIndex.setCreateDate(opTime);
-        noteDataIndexService.update(noteLuceneIndex);
-
-        //版本记录
-        NoteDataVersion dataVersion = new NoteDataVersion();
-        dataVersion.setNoteId(id);
-        dataVersion.setContent(noteData.getContent());
-        dataVersion.setUserId(noteData.getUserId());
-        dataVersion.setCreateTime(opTime);
-        noteDataVersionMapper.insertSelective(dataVersion);
     }
 
     private static final String [] ILLEGAL_LIST = {
