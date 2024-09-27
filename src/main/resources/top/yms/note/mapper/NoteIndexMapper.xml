@@ -14,6 +14,7 @@
     <result column="f_store_site" jdbcType="VARCHAR" property="storeSite" />
     <result column="f_site_id" jdbcType="VARCHAR" property="siteId" />
     <result column="f_size" jdbcType="BIGINT" property="size" />
+    <result column="f_encrypted" jdbcType="VARCHAR" property="encrypted" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -75,7 +76,7 @@
   </sql>
   <sql id="Base_Column_List">
     f_id, f_parent_id, f_user_id, f_name, f_isfile, f_type, f_del, f_create_time, f_update_time,
-        f_store_site, f_site_id, f_size
+        f_store_site, f_site_id, f_size, f_encrypted
   </sql>
   <select id="selectByExample" parameterType="top.yms.note.entity.NoteIndexExample" resultMap="BaseResultMap">
     select
@@ -110,11 +111,12 @@
   <insert id="insert" parameterType="top.yms.note.entity.NoteIndex">
     insert into t_note_index (f_id, f_parent_id, f_user_id, 
       f_name, f_isfile, f_type, f_del, 
-      f_create_time, f_update_time, f_store_site, f_site_id)
+      f_create_time, f_update_time, f_store_site, f_site_id,
+                              f_encrypted)
     values (#{id,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, 
       #{name,jdbcType=VARCHAR}, #{isile,jdbcType=CHAR}, #{type,jdbcType=VARCHAR}, #{del,jdbcType=CHAR}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{storeSite,jdbcType=VARCHAR},
-            #{siteId,jdbcType=VARCHAR})
+            #{siteId,jdbcType=VARCHAR}, #{encrypted,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="top.yms.note.entity.NoteIndex">
     insert into t_note_index
@@ -155,6 +157,9 @@
       <if test="size != null">
         f_size,
       </if>
+      <if test="encrypted != null">
+        f_encrypted,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="id != null">
@@ -192,6 +197,9 @@
       </if>
       <if test="size != null">
         #{size,jdbcType=BIGINT},
+      </if>
+      <if test="encrypted != null">
+        #{encrypted,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -240,6 +248,9 @@
       <if test="record.size != null">
         f_size = #{record.size,jdbcType=BIGINT},
       </if>
+      <if test="record.encrypted != null">
+        f_encrypted = #{record.encrypted,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -257,7 +268,8 @@
       f_create_time = #{record.createTime,jdbcType=TIMESTAMP},
       f_update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       f_store_site = #{record.storeSite,jdbcType=VARCHAR},
-     f_site_id = #{record.siteId,jdbcType=VARCHAR}
+     f_site_id = #{record.siteId,jdbcType=VARCHAR},
+    f_encrypted = #{record.encrypted,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -297,6 +309,9 @@
       </if>
       <if test="size != null">
         f_size = #{size,jdbcType=BIGINT},
+      </if>
+      <if test="encrypted != null">
+        f_encrypted = #{encrypted,jdbcType=VARCHAR},
       </if>
     </set>
     where f_id = #{id,jdbcType=BIGINT}

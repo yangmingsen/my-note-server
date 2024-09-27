@@ -126,6 +126,8 @@ public class NoteIndexExample {
             return (Criteria) this;
         }
 
+
+
         public Criteria andIdNotEqualTo(Long value) {
             addCriterion("f_id <>", value, "id");
             return (Criteria) this;
@@ -303,6 +305,11 @@ public class NoteIndexExample {
 
         public Criteria andNameEqualTo(String value) {
             addCriterion("f_name =", value, "name");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptedEqualTo(String value) {
+            addCriterion("f_encrypted =", value, "encrypted");
             return (Criteria) this;
         }
 

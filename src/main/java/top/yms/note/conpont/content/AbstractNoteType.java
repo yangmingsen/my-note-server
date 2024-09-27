@@ -12,14 +12,17 @@ import top.yms.note.dto.NoteDataDto;
 import top.yms.note.dto.NoteLuceneIndex;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteDataVersion;
+import top.yms.note.entity.NoteFile;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteDataVersionMapper;
+import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.mapper.NoteIndexMapper;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by yangmingsen on 2024/8/21.
@@ -34,6 +37,9 @@ public abstract class AbstractNoteType implements NoteType {
 
     @Autowired
     protected NoteIndexMapper noteIndexMapper;
+
+    @Autowired
+    protected NoteFileMapper noteFileMapper;
 
     @Autowired
     protected FileStore fileStore;
@@ -96,7 +102,12 @@ public abstract class AbstractNoteType implements NoteType {
         noteIndex.setId(noteData.getId());
         noteIndex.setUpdateTime(new Date());
         //更新大小
-        noteIndex.setSize((long)noteData.getContent().getBytes(StandardCharsets.UTF_8).length);
+        long noteSize = noteData.getContent().getBytes(StandardCharsets.UTF_8).length;
+        List<NoteFile> noteFiles = noteFileMapper.selectByNoteRef(noteData.getId());
+        for(NoteFile noteFile : noteFiles) {
+            noteSize+=noteFile.getSize();
+        }
+        noteIndex.setSize(noteSize);
 
         noteIndexMapper.updateByPrimaryKeySelective(noteIndex);
 

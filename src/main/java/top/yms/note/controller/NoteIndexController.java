@@ -66,7 +66,7 @@ public class NoteIndexController {
     }
 
     /**
-     * 根据 uid和nid找 列表
+     *  文件列表查询
      * @return
      */
     @PostMapping("/sub")
@@ -162,6 +162,12 @@ public class NoteIndexController {
     }
 
 
+    /**
+     * 没有用到了
+     * @param nid
+     * @return
+     */
+    @Deprecated
     @GetMapping("/menuList")
     public RestOut<MenuListVo> findMenuList(@RequestParam("nid") Long nid) {
         //0->dir(menu); 1->file(content)
@@ -326,4 +332,35 @@ public class NoteIndexController {
         noteIndexService.updateMove(noteMoveDto);
         return RestOut.succeed("ok");
     }
+
+    /**
+     * 加密笔记或文件夹验证接口
+     * @param id
+     * @param password
+     * @return
+     */
+    @PostMapping("/note-pass-auth")
+    public RestOut<NoteIndex> notePasswordAuth(@RequestParam("id") Long id, @RequestParam("password") String password) {
+        log.info("notePasswordAuth: id={}, password={}", id, password);
+        //todo 去做密码验证， 暂时先不验证，因为密码还不知道存哪里
+
+        NoteIndex noteIndex = noteIndexService.findOne(id);
+
+        return RestOut.success(noteIndex);
+    }
+
+    /**
+     * 设置当前笔记需要阅读密码
+     * @param id
+     * @return
+     */
+    @GetMapping("/encrypted-read-note")
+    public RestOut encryptedReadNote(@RequestParam("id") Long id) {
+        noteIndexService.encryptedReadNote(id);
+
+        return RestOut.succeed("ok");
+    }
+
+
+
 }
