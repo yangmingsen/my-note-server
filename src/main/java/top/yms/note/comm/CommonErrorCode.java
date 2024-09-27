@@ -18,6 +18,7 @@ public enum CommonErrorCode implements ErrorCode {
     E_200208(200208,"导出异常"),
     E_200209(200209,"导入异常"),
     E_200210(200210,"未登录"),
+    E_200211(200210,"当前方法未实现"),
 
 
 

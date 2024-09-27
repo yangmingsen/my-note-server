@@ -3,7 +3,8 @@ package top.yms.note.config;
 /**
  * Created by yangmingsen on 2024/8/9.
  */
-import com.mongodb.MongoClient;
+//import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
