@@ -10,6 +10,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import top.yms.note.conpont.NoteStoreService;
+import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.mapper.NoteIndexMapper;
@@ -44,13 +45,15 @@ public class DefaultNoteStoreServiceImpl implements NoteStoreService, Applicatio
 
     @Override
     public void save(Object note) {
-        if (note instanceof NoteData) {
-            NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(((NoteData) note).getId());
-            for(NoteType noteType : noteContentTypeList) {
-                if (noteType.support(noteIndex.getType())) {
-                    noteType.save(note);
-                    break;
-                }
+        Long id = null;
+        if (note instanceof NoteDataDto) {
+            id = ((NoteDataDto) note).getId();
+        }
+        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        for(NoteType noteType : noteContentTypeList) {
+            if (noteType.support(noteIndex.getType())) {
+                noteType.save(note);
+                break;
             }
         }
 

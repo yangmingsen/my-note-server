@@ -175,7 +175,8 @@ public class NoteFileService {
         noteData.setUserId(note.getUserId());
         noteData.setContent(sb.toString());
 
-        noteDataService.addAndUpdate(noteData);
+//        noteDataService.addAndUpdate(noteData);
+        noteDataService.save(noteData);
     }
 
 
@@ -204,6 +205,7 @@ public class NoteFileService {
         noteFile.setUrl(url);
         noteFile.setViewCount(0L);
         noteFile.setCreateTime(new Date());
+        noteFile.setNoteRef(note.getId());
         noteFileMapper.insertSelective(noteFile);
     }
 

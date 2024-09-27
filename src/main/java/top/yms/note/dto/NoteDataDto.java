@@ -14,6 +14,9 @@ public class NoteDataDto {
 
     private String textContent;
 
+    /**
+     * 类型：wer,md,mindmap
+     */
     private String type;
 
     public Long getUserId() {

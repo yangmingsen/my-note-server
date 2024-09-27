@@ -17,6 +17,7 @@ import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.Constants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.*;
+import top.yms.note.conpont.content.NotePreview;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.dto.NoteDataDto;
@@ -63,8 +64,20 @@ public class NoteDataService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Autowired
+    private NoteStoreService noteStoreService;
+
+
+
     private final String noteMindMap = Constants.noteMindMap;
 
+    /**
+     * 过期与20240927，请使用 NoteStoreService#save
+     * @param noteId
+     * @param jsonContent
+     * @return
+     */
+    @Deprecated
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public RestOut saveMindMapData(Long noteId, String jsonContent) {
         ObjectId objId = null;
@@ -103,6 +116,20 @@ public class NoteDataService {
         return RestOut.success("Ok");
     }
 
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
+    public void save(NoteDataDto noteDataDto) {
+        noteStoreService.save(noteDataDto);
+    }
+
+    public NoteData findNoteData(Long id) {
+        return (NoteData)noteStoreService.findOne(id);
+    }
+
+    /**
+     * 过期于20240927, 请使用 NoteStoreService#save
+     * @param noteDataDto
+     */
+    @Deprecated
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void addAndUpdate(NoteDataDto noteDataDto) {
         ObjectId objId = null;
@@ -214,6 +241,13 @@ public class NoteDataService {
     };
 
     private final ConcurrentHashMap<Long, Boolean> canPreviewCache = new ConcurrentHashMap<>();
+
+    /**
+     * 集成到了PreviewNoteType, 见NotePreview接口
+     * @param id
+     * @return
+     */
+    @Deprecated
     public boolean checkFileCanPreviewByCache(Long id) {
         Boolean canPreview = canPreviewCache.get(id);
         if ( canPreview != null) {
@@ -268,6 +302,12 @@ public class NoteDataService {
         return true;
     }
 
+    /**
+     * 过期与20240927, 请使用 NoteStoreService#findOne
+     * @param id
+     * @return
+     */
+    @Deprecated
     public NoteData findOne(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
         NoteData noteData = new NoteData();

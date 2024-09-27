@@ -66,6 +66,19 @@ public class NoteIndex {
      */
     private Long size;
 
+    /**
+     * 是否加密访问 0 不需要, 1需要
+     */
+    private String encrypted;
+
+    public String getEncrypted() {
+        return encrypted;
+    }
+
+    public void setEncrypted(String encrypted) {
+        this.encrypted = encrypted;
+    }
+
     public String getStoreSite() {
         return storeSite;
     }

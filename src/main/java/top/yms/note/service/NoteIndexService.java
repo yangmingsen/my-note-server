@@ -95,6 +95,12 @@ public class NoteIndexService {
         return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).filter(filter).get().example());
     }
 
+    /**
+     * 查询noteIndex列表
+     * @param parentId
+     * @param uid
+     * @return
+     */
     public List<NoteIndex> findSubBy(Long parentId, Long uid) {
         return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().parentId(parentId).uid(uid).get().example());
     }
@@ -525,5 +531,14 @@ public class NoteIndexService {
         upDo.setParentId(noteMoveDto.getToId());
 
         noteIndexMapper.updateByPrimaryKeySelective(upDo);
+    }
+
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
+    public void encryptedReadNote(Long id) {
+        NoteIndex upDao = new NoteIndex();
+        upDao.setEncrypted("1");
+        upDao.setId(id);
+
+        noteIndexMapper.updateByPrimaryKeySelective(upDao);
     }
 }

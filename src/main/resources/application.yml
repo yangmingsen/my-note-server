@@ -37,13 +37,13 @@ spring:
       max-file-size: 50MB
       max-request-size: 50MB
 
-logging:
-  path:
-  file: note-log.log
-  level:
-    top:
-      yms:
-        note: info
+#logging:
+#  path:
+#  file: note-log.log
+#  level:
+#    top:
+#      yms:
+#        note: info
 
 swagger:
   enable: true
@@ -62,5 +62,5 @@ cors:
 sys:
   session-expire-time: 30m
   note-interceptor: true
-  sql-show: true
-  enable-service-cache: true
+  sql-show: false
+  enable-service-cache: false

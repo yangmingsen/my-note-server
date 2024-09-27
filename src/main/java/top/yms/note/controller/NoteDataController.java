@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import top.yms.note.comm.Constants;
 import top.yms.note.conpont.NoteDataIndexService;
+import top.yms.note.conpont.content.NotePreview;
 import top.yms.note.dto.NoteDataDto;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.comm.CommonErrorCode;
@@ -22,7 +23,7 @@ import top.yms.note.utils.LocalThreadUtils;
 @RequestMapping("/note-data")
 public class NoteDataController {
 
-    private static Logger log = LoggerFactory.getLogger(NoteDataController.class);
+    private static final Logger log = LoggerFactory.getLogger(NoteDataController.class);
 
     @Autowired
     private NoteDataService noteDataService;
@@ -30,12 +31,20 @@ public class NoteDataController {
     @Autowired
     private NoteDataIndexService noteDataIndexService;
 
+    @Autowired
+    private NotePreview notePreview;
+
 
     @PostMapping("/mindmapSave")
     public RestOut mindMapSave(@RequestParam("id") Long id, @RequestParam("content") String jsonContent) {
         log.info("id = {}, content = {}", id, jsonContent);
+        NoteDataDto noteDataDto = new NoteDataDto();
+        noteDataDto.setId(id);
+        noteDataDto.setContent(jsonContent);
 
-        return noteDataService.saveMindMapData(id, jsonContent);
+        noteDataService.save(noteDataDto);
+        return RestOut.success("Ok");
+//        return noteDataService.saveMindMapData(id, jsonContent);
     }
 
 
@@ -50,21 +59,24 @@ public class NoteDataController {
         if (noteData.getId() == null) {
             throw new BusinessException(NoteIndexErrorCode.E_203104);
         }
-        noteDataService.addAndUpdate(noteData);
+        noteDataService.save(noteData);
+//        noteDataService.addAndUpdate(noteData);
         return RestOut.succeed("ok");
     }
 
     @GetMapping("/get")
     public RestOut findOne(@RequestParam("id") Long id) {
         log.info("get: id={}", id);
-        NoteData res = noteDataService.findOne(id);
+        NoteData res = noteDataService.findNoteData(id);
+//        NoteData res = noteDataService.findOne(id);
         return RestOut.success(res);
     }
 
 
     @GetMapping("/checkFileCanPreview")
     public RestOut checkFileCanPreview(@RequestParam("id") Long id) {
-        boolean canPreview = noteDataService.checkFileCanPreviewByCache(id);
+        boolean canPreview = notePreview.canPreview(id);
+//        boolean canPreview = noteDataService.checkFileCanPreviewByCache(id);
         if (canPreview) {
             return RestOut.succeed("Ok");
         }
