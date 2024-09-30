@@ -9,14 +9,11 @@ import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.dto.NoteListQueryDto;
 import top.yms.note.dto.NoteMoveDto;
 import top.yms.note.dto.NoteSearchCondition;
-import top.yms.note.entity.AntTreeNode;
+import top.yms.note.entity.*;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.Constants;
 import top.yms.note.comm.NoteIndexErrorCode;
-import top.yms.note.entity.NoteIndex;
-import top.yms.note.entity.NoteTree;
-import top.yms.note.entity.RestOut;
 import top.yms.note.service.NoteIndexService;
 import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.MenuListVo;
@@ -343,10 +340,18 @@ public class NoteIndexController {
     public RestOut<NoteIndex> notePasswordAuth(@RequestParam("id") Long id, @RequestParam("password") String password) {
         log.info("notePasswordAuth: id={}, password={}", id, password);
         //todo 去做密码验证， 暂时先不验证，因为密码还不知道存哪里
+        if (StringUtils.isBlank(password) || id == null) {
+            throw new BusinessException(CommonErrorCode.E_200202);
+        }
+        Long userId = LocalThreadUtils.getUserId();
+        NoteUser noteUser = (NoteUser) LocalThreadUtils.get().get(userId.toString());
+        if (password.equals(noteUser.getPassword())) {
+            NoteIndex noteIndex = noteIndexService.findOne(id);
+            return RestOut.success(noteIndex);
+        } else {
+            return RestOut.failed("密码错误");
+        }
 
-        NoteIndex noteIndex = noteIndexService.findOne(id);
-
-        return RestOut.success(noteIndex);
     }
 
     /**
