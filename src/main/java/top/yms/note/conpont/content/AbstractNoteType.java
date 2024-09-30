@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Created by yangmingsen on 2024/8/21.
  */
-public abstract class AbstractNoteType implements NoteType {
+public abstract class AbstractNoteType implements NoteType, NoteExport {
 
     @Autowired
     protected NoteDataMapper noteDataMapper;

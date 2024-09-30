@@ -1,5 +1,6 @@
 package top.yms.note.controller;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +38,11 @@ public class NoteDataController {
 
     @PostMapping("/mindmapSave")
     public RestOut mindMapSave(@RequestParam("id") Long id, @RequestParam("content") String jsonContent) {
-        log.info("id = {}, content = {}", id, jsonContent);
+        if (id == null || StringUtils.isBlank(jsonContent)) {
+            throw new BusinessException(CommonErrorCode.E_200202);
+        }
+
+//        log.info("id = {}, content = {}", id, jsonContent);
         NoteDataDto noteDataDto = new NoteDataDto();
         noteDataDto.setId(id);
         noteDataDto.setContent(jsonContent);
@@ -52,7 +57,7 @@ public class NoteDataController {
     public RestOut<String> addAndUpdate(@RequestBody NoteDataDto noteData) {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         noteData.setUserId(uid);
-        log.info("addAndUpdate: noteData={}", noteData);
+//        log.info("addAndUpdate: noteData={}", noteData);
         if (noteData == null) {
             throw new BusinessException(CommonErrorCode.E_100101);
         }
@@ -66,7 +71,9 @@ public class NoteDataController {
 
     @GetMapping("/get")
     public RestOut findOne(@RequestParam("id") Long id) {
-        log.info("get: id={}", id);
+        if (id == null) {
+            throw new BusinessException(CommonErrorCode.E_200202);
+        }
         NoteData res = noteDataService.findNoteData(id);
 //        NoteData res = noteDataService.findOne(id);
         return RestOut.success(res);
