@@ -21,7 +21,7 @@ public class DefaultNoteCacheImpl implements NoteCache {
 
     @Override
     public Object find(String id) {
-        log.info("find id={}", id);
+//        log.info("find id={}", id);
         return cacheMap.get(id);
     }
 

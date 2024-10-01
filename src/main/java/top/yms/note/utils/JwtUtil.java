@@ -24,8 +24,8 @@ public class JwtUtil {
     private final static String SECRET_KEY = "note-secret-key";
 
 
-    //12h
-    private final static Long expireTime = 12 * 60 * 60 * 1000L;
+    //6h
+    private final static Long expireTime = 6 * 60 * 60 * 1000L;
 
 
     // 生成JWT
@@ -67,6 +67,10 @@ public class JwtUtil {
     }
 
     public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    public String extractUserId(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 

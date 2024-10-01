@@ -121,6 +121,7 @@ public class NoteDataService {
         noteStoreService.save(noteDataDto);
     }
 
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public NoteData findNoteData(Long id) {
         return (NoteData)noteStoreService.findOne(id);
     }

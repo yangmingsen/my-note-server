@@ -28,7 +28,7 @@ public class PreviewNoteType extends AbstractNoteType implements NotePreview{
 
     private static final String [] SUPPORT_View_FILE = {
             "txt","java","xml","go","html","css","js","ts","vue","json","c","scala","yml",
-            "cpp","py","bash","conf","ini"
+            "cpp","py","bash","conf","ini","sql","cnf"
     };
 
     private static final Map<String,Boolean> supportMap = new HashMap<>();
@@ -45,7 +45,7 @@ public class PreviewNoteType extends AbstractNoteType implements NotePreview{
     }
 
     @Override
-    public Object getContent(Long id) {
+    public Object doGetContent(Long id) {
         //前提,当前文件要可预览, 目前使用markdown预览
         //因此 文本内容前后加了 " ```xxx  内容  ```` "
         if (!checkFileCanPreviewByCache(id)) {

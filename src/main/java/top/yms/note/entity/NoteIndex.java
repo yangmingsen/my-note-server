@@ -71,6 +71,16 @@ public class NoteIndex {
      */
     private String encrypted;
 
+    private Date viewTime;
+
+    public Date getViewTime() {
+        return viewTime;
+    }
+
+    public void setViewTime(Date viewTime) {
+        this.viewTime = viewTime;
+    }
+
     public String getEncrypted() {
         return encrypted;
     }

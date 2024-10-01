@@ -52,6 +52,16 @@ public abstract class AbstractNoteType implements NoteType, NoteExport {
     protected MongoTemplate mongoTemplate;
 
     public Object getContent(Long id) {
+        //修改访问时间
+        NoteIndex upNoteIndex = new NoteIndex();
+        upNoteIndex.setId(id);
+        upNoteIndex.setViewTime(new Date());
+        noteIndexMapper.updateByPrimaryKeySelective(upNoteIndex);
+
+        return doGetContent(id);
+    }
+
+    protected Object doGetContent(Long id) {
         return noteDataMapper.selectByPrimaryKey(id);
     }
 
