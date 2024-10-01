@@ -2,10 +2,12 @@ package top.yms.note.controller;
 
 import com.alibaba.fastjson2.JSONObject;
 import org.apache.commons.lang3.StringUtils;
+import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import top.yms.note.comm.CommonErrorCode;
@@ -21,10 +23,12 @@ import top.yms.note.entity.RestOut;
 import top.yms.note.exception.WangEditorUploadException;
 import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.service.NoteFileService;
+import top.yms.note.service.NoteIndexService;
 import top.yms.note.utils.LocalThreadUtils;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.Map;
@@ -36,7 +40,7 @@ import java.util.Map;
 @RequestMapping("/file/")
 public class NoteFileController {
 
-    private Logger log = LoggerFactory.getLogger(NoteFileController.class);
+    private static final Logger  log = LoggerFactory.getLogger(NoteFileController.class);
 
     @Autowired
     private NoteFileService noteFileService;
@@ -46,6 +50,9 @@ public class NoteFileController {
 
     @Autowired
     private NoteFileMapper noteFileMapper;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     /**
      * 目前用于wangeditor的图片上传
@@ -80,17 +87,35 @@ public class NoteFileController {
     public RestOut<JSONObject> uploadText(@RequestBody Map<String, Object> dataMap) throws BusinessException {
         Long parentId = Long.parseLong((String)dataMap.get("parentId"));
         String text = (String)dataMap.get("content");
-        if (parentId== null) {
-            throw new BusinessException(NoteIndexErrorCode.E_203105);
-        }
         if (StringUtils.isBlank(text)) {
             throw new BusinessException(NoteIndexErrorCode.E_203115);
         }
-
-
         JSONObject res = noteFileService.uploadText(text,parentId);
 
         return RestOut.success(res);
+    }
+
+    @PostMapping("/uploadTmpFile")
+    public RestOut uploadTmpFile(@RequestParam(value = "file") MultipartFile file) throws Exception {
+        if (file == null) {
+            throw new BusinessException(NoteIndexErrorCode.E_203108);
+        }
+
+        JSONObject resJson = new JSONObject();
+        String fileId = fileStore.saveFile(file);
+        String url = Constants.BASE_TMP_VIEW_URL+fileId;
+        resJson.put("url", url);
+        resJson.put("userId", LocalThreadUtils.getUserId().toString());
+        resJson.put("createTime", new Date());
+        resJson.put("type", file.getContentType());
+        resJson.put("name", file.getName());
+        resJson.put("size", file.getSize());
+
+        //存入mongo
+        Document document = Document.parse(resJson.toString());
+        mongoTemplate.save(document, Constants.tmpUploadFile);
+
+        return RestOut.success(resJson);
     }
 
 
@@ -131,13 +156,65 @@ public class NoteFileController {
         return RestOut.success("ok");
     }
 
+    private boolean checkIsEncryptedNote(NoteFile noteFile, HttpServletResponse response, String msg) {
+        NoteIndex noteIndex = null;
+        if (noteFile.getNoteRef() != 0L) {
+            noteIndex = noteIndexService.findOne(noteFile.getNoteRef());
+        } else {
+            noteIndex = noteIndexService.findBySiteId(noteFile.getFileId());
+        }
+
+        if ("1".equals(noteIndex.getEncrypted())) {
+            response.setCharacterEncoding("UTF-8");
+            response.setHeader("Content-Type", "application/json");
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.setContentType("application/json;charset=UTF-8");
+
+            PrintWriter writer=null;
+            try {
+                RestOut<Object> restOut = RestOut.error(msg);
+                JSONObject resJson = JSONObject.from(restOut);
+                writer=response.getWriter();
+                writer.write(resJson.toString());
+                writer.flush();
+            }catch (Exception ex) {
+                log.error("reponseErr", ex);
+            }finally {
+                if(writer!=null) {
+                    writer.close();
+                }
+            }
+
+            return false;
+        }
+        return true;
+    }
+
+    @Autowired
+    private NoteIndexService noteIndexService;
+
+
+    @GetMapping("/tmpView")
+    public void tmpView(@RequestParam("id") String id, HttpServletResponse resp) throws Exception {
+        log.info("tmpView: id={}", id);
+        if (StringUtils.isBlank(id)) return;
+
+        AnyFile file = fileStore.loadFile(id);
+        resp.setContentType(file.getContentType());
+        file.writeTo(resp.getOutputStream());
+    }
+
     @GetMapping("/view")
     public void view(@RequestParam("id") String id, HttpServletResponse resp) throws Exception {
         log.info("view: id={}", id);
         if (StringUtils.isBlank(id)) return;
         NoteFile noteFile = noteFileService.findOne(id);
-        log.info("view: noteFile:{}", noteFile);
+//        log.info("view: noteFile:{}", noteFile);
         if (noteFile == null) return ;
+
+        if (!checkIsEncryptedNote(noteFile, resp, "加密笔记不可阅读")) {
+            return;
+        }
 
         //update viewCount
         NoteFile upCnt = new NoteFile();
@@ -148,7 +225,6 @@ public class NoteFileController {
         AnyFile file = fileStore.loadFile(id);
         resp.setContentType(file.getContentType());
         file.writeTo(resp.getOutputStream());
-
     }
 
     @GetMapping("/download")
@@ -157,9 +233,15 @@ public class NoteFileController {
         if (StringUtils.isBlank(id)) {
             throw new BusinessException(CommonErrorCode.E_203001);
         }
+
         NoteFile noteFile = noteFileService.findOne(id);
-        log.info("download: noteFile:{}", noteFile);
+//        log.info("download: noteFile:{}", noteFile);
         if (noteFile == null) return ;
+
+        if (!checkIsEncryptedNote(noteFile, resp, "加密笔记不可下载")) {
+            return;
+        }
+
         NoteFile upCnt = new NoteFile();
         upCnt.setId(noteFile.getId());
         upCnt.setDownloadCount(noteFile.getDownloadCount()+1);

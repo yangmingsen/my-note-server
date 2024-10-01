@@ -28,6 +28,7 @@ public class NoteWebMvcConfigSupport extends WebMvcConfigurationSupportConfigure
             registry.addInterceptor(jwtInterceptor)
                     .addPathPatterns("/**")
                     .excludePathPatterns("/user/login","/file/view","/file/download",
+                            "/file/tmpView",
                             "/actuator/**","/favicon.ico","/health","/account/login",
                             "/swagger-ui.html","/webjars/**","/swagger-resources/**");
         }
