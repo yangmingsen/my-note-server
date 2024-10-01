@@ -8,7 +8,8 @@ public abstract class Constants {
     public final static String userid = "userid";
     public final static String MONGO = "mongo";
     public final static String MYSQL = "mysql";
-    public final static String BASE_URL = "http://api.note.yms.top/note/file/view?id=";
+    public final static String BASE_URL = "http://api.notetest.yms.top/note/file/view?id=";
+    public final static String BASE_TMP_VIEW_URL = "http://api.notetest.yms.top/note/file/tmpView?id=";
     public final static String MONGO_FILE_SITE = "note.file";
 
     public final static String markdownSuffix = "md";
@@ -18,6 +19,7 @@ public abstract class Constants {
     public final static String noteMindMap = "note_mindmap";
     public final static String noteWerTextContent = "wer_text_content";
     public final static String customConfig = "custom_config";
+    public final static String tmpUploadFile = "tmp_upload_file";
 
 
     public final static String defaultNoteCache = "defaultNoteCache";

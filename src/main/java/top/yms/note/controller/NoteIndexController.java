@@ -380,6 +380,17 @@ public class NoteIndexController {
         return RestOut.succeed("ok");
     }
 
+    @PostMapping("/unencrypted-read-note")
+    public RestOut unEncryptedReadNote(@RequestParam("id") Long id, @RequestParam("password") String password) {
+        RestOut<NoteIndex> authResult = notePasswordAuth(id, password);
+        if (!authResult.isSuccess()) {
+            return authResult;
+        }
+        noteIndexService.unEncryptedReadNote(id);
+
+        return authResult;
+    }
+
 
 
 }

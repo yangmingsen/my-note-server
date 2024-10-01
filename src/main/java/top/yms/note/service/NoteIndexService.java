@@ -95,6 +95,16 @@ public class NoteIndexService {
         return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).filter(filter).get().example());
     }
 
+
+    /**
+     * 根据siteId查询
+     * @param siteId
+     * @return
+     */
+    public NoteIndex findBySiteId(String siteId) {
+        return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().siteId(siteId).get().example()).get(0);
+    }
+
     /**
      * 查询noteIndex列表, 顺便修改访问时间
      * @param parentId
@@ -714,6 +724,19 @@ public class NoteIndexService {
     public void encryptedReadNote(Long id) {
         NoteIndex upDao = new NoteIndex();
         upDao.setEncrypted("1");
+        upDao.setId(id);
+
+        noteIndexMapper.updateByPrimaryKeySelective(upDao);
+    }
+
+    /**
+     * 设置为未加密
+     * @param id
+     */
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
+    public void unEncryptedReadNote(Long id) {
+        NoteIndex upDao = new NoteIndex();
+        upDao.setEncrypted("0");
         upDao.setId(id);
 
         noteIndexMapper.updateByPrimaryKeySelective(upDao);
