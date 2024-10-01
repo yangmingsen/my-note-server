@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.dto.NoteListQueryDto;
@@ -20,6 +21,7 @@ import top.yms.note.vo.MenuListVo;
 import top.yms.note.vo.NoteInfoVo;
 import top.yms.note.vo.NoteSearchVo;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -355,7 +357,9 @@ public class NoteIndexController {
         }
         Long userId = LocalThreadUtils.getUserId();
         NoteUser noteUser = (NoteUser) LocalThreadUtils.get().get(userId.toString());
-        if (password.equals(noteUser.getPassword())) {
+        String srcStr = noteUser.getId().toString()+"_"+password;
+        String encryptedStr = DigestUtils.md5DigestAsHex(srcStr.getBytes(StandardCharsets.UTF_8));
+        if (encryptedStr.equals(noteUser.getPassword())) {
             NoteIndex noteIndex = noteIndexService.findOne(id);
             return RestOut.success(noteIndex);
         } else {

@@ -3,6 +3,7 @@ package top.yms.note.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.Constants;
 import top.yms.note.conpont.NoteCache;
@@ -14,6 +15,8 @@ import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteUserMapper;
 import top.yms.note.utils.JwtUtil;
 import top.yms.note.vo.AuthResult;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * Created by yangmingsen on 2024/8/19.
@@ -37,7 +40,9 @@ public class NoteAuthService {
             if (noteUser == null) {
                 return RestOut.failed("账号不存在");
             }
-            if (noteUser.getPassword().equals(noteAuth.getPassword())) {
+            String srcStr = noteUser.getId().toString()+"_"+noteAuth.getPassword();
+            String encryptedStr = DigestUtils.md5DigestAsHex(srcStr.getBytes(StandardCharsets.UTF_8));
+            if (noteUser.getPassword().equals(encryptedStr)) {
                 String token = jwtUtil.generateToken(noteUser.getId().toString());
                 noteCache.update(noteUser.getId().toString(), noteUser);
                 AuthResult authResult = new AuthResult();
