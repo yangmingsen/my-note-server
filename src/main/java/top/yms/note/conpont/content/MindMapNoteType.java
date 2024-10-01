@@ -33,7 +33,7 @@ public class MindMapNoteType extends AbstractNoteType{
     final String noteMindMap = Constants.noteMindMap;
 
     @Override
-    public Object getContent(Long id) {
+    public Object doGetContent(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
 
         NoteData res = new NoteData();

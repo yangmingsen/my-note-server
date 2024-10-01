@@ -40,7 +40,7 @@ public class NoteIndexController {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         log.info("findByUid: {}", uid);
         List<NoteIndex> noteList = noteIndexService.findByUserId(uid);
-        log.info("findByUid: {} , count: {}", uid, noteList.size());
+//        log.info("findByUid: {} , count: {}", uid, noteList.size());
         return RestOut.success(noteList);
     }
 
@@ -49,7 +49,7 @@ public class NoteIndexController {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         log.info("findNoteTreeByUid: {}", uid);
         List<NoteTree> noteTreeList = noteIndexService.findNoteTreeByUid(uid);
-        log.info("findByUid: {} , count: {}", uid, noteTreeList.size());
+//        log.info("findByUid: {} , count: {}", uid, noteTreeList.size());
         return RestOut.success(noteTreeList);
     }
 
@@ -57,34 +57,36 @@ public class NoteIndexController {
     public RestOut findAntTree() {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         log.info("antTree: {}", uid);
-        List<AntTreeNode> antTreeList = noteIndexService.findAntTreeNode(uid);
-        log.info("antTree: {} , count: {}", uid, antTreeList.size());
+        List<AntTreeNode> antTreeList = noteIndexService.findAntTreeExcludeEncrypted(uid);
+//        log.info("antTree: {} , count: {}", uid, antTreeList.size());
         return RestOut.success(antTreeList);
     }
 
     /**
      *  文件列表查询
+     *  根据传入的id（这个id是目录id）, 查找其子节点笔记文件/文件夹
      * @return
      */
     @PostMapping("/sub")
     public RestOut<List<NoteIndex>> findSubBy(NoteListQueryDto noteListQueryDto) {
         log.info("findSubBy_noteListQueryDto:{}", noteListQueryDto);
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
-        if (uid == null) {
-            log.info("findSubBy: uid is null");
-        }
         Long parentId = noteListQueryDto.getParentId();
         if (parentId == null) {
             throw new BusinessException(CommonErrorCode.E_100101);
         }
-        log.info("findSubBy: uid= {}, parentId={}", uid, parentId);
+//        log.info("findSubBy: uid= {}, parentId={}", uid, parentId);
         List<NoteIndex> resList =  handleSortBy(noteListQueryDto, noteIndexService.findSubBy(parentId, uid));
-
-        log.info("findSubBy: uid= {}, parentId={}, count:{}", uid, parentId, resList.size());
-
+//        log.info("findSubBy: uid= {}, parentId={}, count:{}", uid, parentId, resList.size());
         return RestOut.success(resList);
     }
 
+    /**
+     * 控制排序规则
+     * @param noteListQueryDto
+     * @param list
+     * @return
+     */
     private List<NoteIndex> handleSortBy(NoteListQueryDto noteListQueryDto, List<NoteIndex> list) {
         return list.stream().sorted((o1,o2) -> {
             if (noteListQueryDto.getSortBy() == 0) {
@@ -104,11 +106,19 @@ public class NoteIndexController {
                     return o2.getName().compareTo(o1.getName());
                 }
                 return o1.getName().compareTo(o2.getName());
-            } else {
+            } else if (noteListQueryDto.getSortBy() == 3) {
                 if (noteListQueryDto.getAsc() == 0) {
                     return o2.getSize().compareTo(o1.getSize());
                 }
                 return o1.getSize().compareTo(o2.getSize());
+            } else {
+                //增加对访问时间的排序，规则为，如果访问时间不为空就就用访问时间, 如果空就用updateTime, 如果updateTime空，就用createTime
+                Date t1 = o1.getViewTime() != null ? o1.getViewTime() : o1.getUpdateTime() != null ? o1.getUpdateTime(): o1.getCreateTime();
+                Date t2 = o2.getViewTime() != null ? o2.getViewTime() : o2.getUpdateTime() != null ? o2.getUpdateTime(): o2.getCreateTime();
+                if (noteListQueryDto.getAsc() == 0) {
+                    return t2.compareTo(t1);
+                }
+                return t1.compareTo(t2);
             }
         }).collect(Collectors.toList());
     }
@@ -141,7 +151,7 @@ public class NoteIndexController {
             throw new BusinessException(NoteIndexErrorCode.E_203104);
         }
         NoteIndex res = noteIndexService.findOne(id);
-        log.info("findOne: id= {},  count:{}", id, res);
+//        log.info("findOne: id= {},  count:{}", id, res);
 
         return RestOut.success(res);
     }
@@ -253,7 +263,7 @@ public class NoteIndexController {
         }
         List<NoteIndex> resList = noteIndexService.findBy(query);
 
-        log.info("findBy Result: 共{}条", resList.size());
+//        log.info("findBy Result: 共{}条", resList.size());
         return RestOut.success(resList);
     }
 
@@ -270,7 +280,7 @@ public class NoteIndexController {
         }
         List<NoteIndex> res = new LinkedList<>();
         noteIndexService.findBreadcrumb(id, res);
-        log.info("findBreadcrumb Result: 共{}条", res.size());
+//        log.info("findBreadcrumb Result: 共{}条", res.size());
         return RestOut.success(res);
     }
 
@@ -287,7 +297,7 @@ public class NoteIndexController {
     public RestOut<List<NoteIndex>> getRecentFiles(NoteListQueryDto noteListQueryDto) {
         log.info("getRecentFiles => {}", noteListQueryDto);
         List<NoteIndex> resList = handleSortBy(noteListQueryDto, noteIndexService.getRecentFiles());
-        log.info("getRecentFiles Result: 共{}条", resList.size());
+//        log.info("getRecentFiles Result: 共{}条", resList.size());
 
         return RestOut.success(resList);
     }
@@ -296,7 +306,7 @@ public class NoteIndexController {
     public RestOut<List<NoteIndex>> getDeletedFiles(NoteListQueryDto noteListQueryDto) {
         log.info("getDeletedFiles => {}", noteListQueryDto);
         List<NoteIndex> resList = handleSortBy(noteListQueryDto, noteIndexService.getDeletedFiles());
-        log.info("getDeletedFiles Result: 共{}条", resList.size());
+//        log.info("getDeletedFiles Result: 共{}条", resList.size());
 
         return RestOut.success(resList);
     }

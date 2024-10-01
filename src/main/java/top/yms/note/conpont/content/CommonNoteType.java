@@ -15,7 +15,7 @@ public class CommonNoteType extends AbstractNoteType {
     }
 
     @Override
-    public Object getContent(Long id) {
+    public Object doGetContent(Long id) {
         throw new BusinessException(CommonErrorCode.E_200211);
     }
 

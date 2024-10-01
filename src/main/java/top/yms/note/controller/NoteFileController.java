@@ -125,7 +125,7 @@ public class NoteFileController {
             note.setType(FileTypeEnum.UNKNOWN.getValue());
         }
         note.setCreateTime(new Date());
-        log.info("upload Note={}", note);
+//        log.info("upload Note={}", note);
         noteFileService.addNote(file, note);
 
         return RestOut.success("ok");

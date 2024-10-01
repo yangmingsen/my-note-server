@@ -10,6 +10,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import top.yms.note.comm.Constants;
 import top.yms.note.conpont.NoteCache;
 import top.yms.note.entity.NoteUser;
+import top.yms.note.service.NoteUserService;
 import top.yms.note.utils.JwtUtil;
 import top.yms.note.utils.LocalThreadUtils;
 
@@ -33,6 +34,25 @@ public class JwtInterceptor implements HandlerInterceptor {
     @Qualifier(Constants.defaultNoteCache)
     private NoteCache noteCache;
 
+    @Autowired
+    private NoteUserService noteUserService;
+
+    private static final Object syncObj = new Object();
+
+
+    private NoteUser updateUserCache(String userId) {
+        synchronized (syncObj) {
+            NoteUser noteUser = (NoteUser)noteCache.find(userId);
+            if (noteUser != null) {
+                return noteUser;
+            }
+
+            noteUser = noteUserService.findOne(Long.parseLong(userId));
+            noteCache.update(userId, noteUser);
+            return noteUser;
+        }
+    }
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String token = request.getHeader("Authorization");
@@ -42,11 +62,15 @@ public class JwtInterceptor implements HandlerInterceptor {
             return false;
         }
         if (jwtUtil.validateToken(token)) {
-            String userId = jwtUtil.extractUsername(token);
+            String userId = jwtUtil.extractUserId(token);
             NoteUser noteUser = (NoteUser)noteCache.find(userId);
             if (noteUser == null) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return false;
+//                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//                return false;
+
+                //todo 暂时先以Token的过期时间为失效条件吧。 意味着如果缓存中没有了user的数据，那就重新查一下
+                //todo 而不在以失效的方式
+                noteUser = updateUserCache(userId);
             }
             Map<String, Object> localMap = LocalThreadUtils.get();
             localMap.put(userId, noteUser);

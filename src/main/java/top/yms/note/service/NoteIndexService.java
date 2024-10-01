@@ -96,20 +96,36 @@ public class NoteIndexService {
     }
 
     /**
-     * 查询noteIndex列表
+     * 查询noteIndex列表, 顺便修改访问时间
      * @param parentId
      * @param uid
      * @return
      */
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public List<NoteIndex> findSubBy(Long parentId, Long uid) {
+        //修改访问时间
+        NoteIndex upNoteIndex = new NoteIndex();
+        upNoteIndex.setId(parentId);
+        upNoteIndex.setViewTime(new Date());
+        noteIndexMapper.updateByPrimaryKeySelective(upNoteIndex);
+
         return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().parentId(parentId).uid(uid).get().example());
     }
 
+    /**
+     * 查找某个用户的顶级目录
+     * @return
+     */
     public NoteIndex findRoot() {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).parentId(0L).del(false).get().example()).get(0);
     }
 
+    /**
+     * 根据noteIndex id 回退到其父目录
+     * @param id
+     * @return
+     */
     public List<NoteIndex> findBackParentDir(Long id) {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         NoteIndex note = noteIndexMapper.selectByPrimaryKey(id);
@@ -117,10 +133,21 @@ public class NoteIndexService {
         return findSubBy(note.getParentId(), uid);
     }
 
+    /**
+     * 根据id查找noteIndex 元数据
+     * @param id
+     * @return
+     */
     public NoteIndex findOne(Long id) {
         return noteIndexMapper.selectByPrimaryKey(id);
     }
 
+    /**
+     * 笔记全文搜索
+     * 目前包含对标题和其内容
+     * @param searchDto
+     * @return
+     */
     public NoteSearchVo findNoteByCondition(NoteSearchCondition searchDto) {
         NoteSearchDto noteSearchDto = new NoteSearchDto();
         noteSearchDto.setUserId(LocalThreadUtils.getUserId());
@@ -169,6 +196,88 @@ public class NoteIndexService {
     }
 
     /**
+     * 为了支持阅读密码的目录树。
+     * 当父目录是被要求密码访问的，那么其子目录不该出现的tree树节点中。
+     *  因为防止直接绕过父目录访问到其子目录
+     * @param userId
+     * @return
+     */
+    public List<AntTreeNode> findAntTreeExcludeEncrypted(Long userId) {
+        List<NoteIndex> noteIndexList =  noteIndexMapper.selectByExample(
+                NoteIndexQuery.Builder.build().uid(userId).del(false).filter(2).get().example()
+        );
+        //列表转换为结构树
+        Map<Long, NoteTree> noteTreeMap = new HashMap<>();
+        Map<Long, NoteIndex> noteIndexMap = new HashMap<>();
+        for (NoteIndex note : noteIndexList) {
+            NoteTree tmpNoteTree = new NoteTree();
+            tmpNoteTree.setId(note.getId());
+            tmpNoteTree.setLabel(note.getName());
+            tmpNoteTree.setParentId(note.getParentId());
+            tmpNoteTree.setChildren(new LinkedList<>());
+
+            noteTreeMap.put(tmpNoteTree.getId(), tmpNoteTree);
+            noteIndexMap.put(note.getId(), note);
+        }
+
+        //各自找各自的父节点
+        List<NoteTree> resList = new LinkedList<>();
+        for(Map.Entry<Long, NoteTree> entry : noteTreeMap.entrySet()) {
+            NoteTree value = entry.getValue();
+            Long parentId = value.getParentId();
+
+            NoteTree parentNoteTree = noteTreeMap.get(parentId);
+            if (parentNoteTree != null) {
+                parentNoteTree.getChildren().add(value);
+            } else {
+                //说明当前节点已经是顶层节点
+                if (value.getParentId() == 0L)
+                    resList.add(value);
+            }
+        }
+
+        List<AntTreeNode> antTreeList = new LinkedList<>();
+        for (NoteTree noteTree : resList) {
+            antTreeList.add(transferToAntTree(noteTree, noteIndexMap));
+        }
+
+        return antTreeList;
+    }
+
+    /**
+     * 树转换及排序。 将NoteTree转换为antTree. 且进行子节点排序
+     * @param noteTree
+     * @param noteTreeMap
+     * @return
+     */
+    private AntTreeNode transferToAntTree(NoteTree noteTree, final Map<Long, NoteIndex> noteTreeMap) {
+        if (noteTree == null) return null;
+        List<AntTreeNode> antTreeNodeList = new LinkedList<>();
+        if (noteTree.getChildren() != null) {
+            if (noteTreeMap.get(noteTree.getId()).getEncrypted().equals("0")) {
+                for (NoteTree nTree : noteTree.getChildren()) {
+                    antTreeNodeList.add(transferToAntTree(nTree, noteTreeMap));
+                }
+                //增加排序
+                antTreeNodeList = antTreeNodeList.stream().sorted((o1, o2) -> {
+                    NoteIndex note1 = noteTreeMap.get(Long.valueOf(o1.getKey()));
+                    NoteIndex note2 = noteTreeMap.get(Long.valueOf(o2.getKey()));
+
+                    //默认对访问时间的排序，规则为，如果访问时间不为空就就用访问时间, 如果空就用updateTime, 如果updateTime空，就用createTime
+                    Date t1 = note1.getViewTime() != null ? note1.getViewTime() : note1.getUpdateTime() != null ? note1.getUpdateTime(): note1.getCreateTime();
+                    Date t2 = note2.getViewTime() != null ? note2.getViewTime() : note2.getUpdateTime() != null ? note2.getUpdateTime(): note2.getCreateTime();
+                    return t2.compareTo(t1);
+                }).collect(Collectors.toList());
+            }
+        }
+
+        return new AntTreeNode(noteTree.getLabel(), noteTree.getId().toString(), antTreeNodeList);
+    }
+
+
+    //处理加密的文件夹, 去除掉子目录
+
+    /**
      * NoteTree 转 AntTree.
      * 由于之前使用的是element-ui的tree组件, 现在改为使用antd-ui的tree组件,
      *  需要转换一下名称
@@ -187,6 +296,12 @@ public class NoteIndexService {
         return new AntTreeNode(noteTree.getLabel(), noteTree.getId().toString(), antTreeNodeList);
     }
 
+    /**
+     * 暂不使用, 因为没有加密阅读隐藏功能。 请使用 findAntTreeExcludeEncrypted
+     * @param userId
+     * @return
+     */
+    @Deprecated
     public List<AntTreeNode> findAntTreeNode(Long userId) {
         List<NoteTree> noteTreeList = findNoteTreeByUid(userId);
         List<AntTreeNode> antTreeList = new LinkedList<>();
@@ -197,6 +312,10 @@ public class NoteIndexService {
         return antTreeList;
     }
 
+    /**
+     * 新增noteIndex笔记元数据
+     * @param note
+     */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void add(NoteIndex note) {
         String mindMapMongoId = null;
@@ -280,6 +399,10 @@ public class NoteIndexService {
         }
     }
 
+    /**
+     * noteIndex笔记更新
+     * @param note
+     */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void update(NoteIndex note) {
         Long id = note.getId();
@@ -317,6 +440,11 @@ public class NoteIndexService {
         noteIndexLogMapper.insert(logData);
     }
 
+    /**
+     * 物理删除笔记文件或文件夹
+     * 这里的删除不仅会物理删除noteIndex, 还会物理删除掉跟当前笔记相关的资源（如存储在mongodb上的图片,文件等)
+     * @param id
+     */
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 10)
     public void destroyNote(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
@@ -396,6 +524,10 @@ public class NoteIndexService {
         }
     }
 
+    /**
+     * 标记删除noteIndex
+     * @param id
+     */
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 10)
     public void delNote(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
@@ -417,7 +549,12 @@ public class NoteIndexService {
         noteIndexLogMapper.insert(addLog);
     }
 
-    public List<NoteIndex> bfsSearchTree(Long parentId) {
+    /**
+     * bfs搜索某棵树节点
+     * @param parentId
+     * @return
+     */
+    private List<NoteIndex> bfsSearchTree(Long parentId) {
         Queue<Long> queue = new LinkedList<>();
         List<NoteIndex> resList = new LinkedList<>();
         resList.add(noteIndexMapper.selectByPrimaryKey(parentId));
@@ -434,6 +571,10 @@ public class NoteIndexService {
         return resList;
     }
 
+    /**
+     * 执行删除标记
+     * @param parentId
+     */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void delDir(Long parentId) {
         Queue<Long> queue = new LinkedList<>();
@@ -467,6 +608,12 @@ public class NoteIndexService {
         return Optional.ofNullable(noteIndexMapper.selectByExample(query.example())).orElse(Collections.emptyList());
     }
 
+    /**
+     * 获取面包线：
+     *  结果： root-> sub1 -> sub2
+     * @param id
+     * @param list
+     */
     public void findBreadcrumb(Long id, List<NoteIndex> list) {
         if (id == 0L) {
             return;
@@ -481,6 +628,11 @@ public class NoteIndexService {
         list.add(noteIndex);
     }
 
+    /**
+     * 获取一个笔记的信息及存储位置信息
+     * @param id
+     * @return
+     */
     public NoteInfoVo getNoteAndSite(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
         NoteInfoVo res = new NoteInfoVo();
@@ -497,17 +649,29 @@ public class NoteIndexService {
         return res;
     }
 
+    /**
+     * 获取最近新添加或者修改过的文件列表
+     * @return
+     */
     public List<NoteIndex> getRecentFiles() {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         return noteIndexMapper.selectRecentUpdate(uid).stream()
                 .limit(30).collect(Collectors.toList());
     }
 
+    /**
+     * 获取被标记为删除的文件列表
+     * @return
+     */
     public List<NoteIndex> getDeletedFiles() {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).del(true).get().example());
     }
 
+    /**
+     * 物理删除掉，被标记为删除的笔记文件/文件夹。 注意该方法的结果不可逆
+     * @return
+     */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 15)
     public int allDestroy() {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
@@ -518,12 +682,20 @@ public class NoteIndexService {
         return destroyNoteList.size();
     }
 
+    /**
+     * 恢复所有被标记为删除的笔记文件/文件夹, 变为原来的样子
+     * @return
+     */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public int allRecover() {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         return noteIndexMapper.allRecover(uid);
     }
 
+    /**
+     * 操作文件到文件夹中的移动
+     * @param noteMoveDto
+     */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void updateMove(NoteMoveDto noteMoveDto) {
         NoteIndex upDo = new NoteIndex();
@@ -533,6 +705,11 @@ public class NoteIndexService {
         noteIndexMapper.updateByPrimaryKeySelective(upDo);
     }
 
+    /**
+     * 加密笔记文件/文件夹
+     *  意思是，让访问笔记文件和文件夹需要输入相关密码
+     * @param id
+     */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void encryptedReadNote(Long id) {
         NoteIndex upDao = new NoteIndex();
