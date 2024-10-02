@@ -15,9 +15,9 @@ public enum FileTypeEnum {
         this.desc = desc;
     }
 
-    private int code;
-    private String value;
-    private String desc;
+    private final int code;
+    private final String value;
+    private final String desc;
 
     public int getCode() {
         return code;

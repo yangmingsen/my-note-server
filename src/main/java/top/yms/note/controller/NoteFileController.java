@@ -105,6 +105,7 @@ public class NoteFileController {
         String fileId = fileStore.saveFile(file);
         String url = Constants.BASE_TMP_VIEW_URL+fileId;
         resJson.put("url", url);
+        resJson.put("fileId", fileId);
         resJson.put("userId", LocalThreadUtils.getUserId().toString());
         resJson.put("createTime", new Date());
         resJson.put("type", file.getContentType());

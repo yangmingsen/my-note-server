@@ -1,14 +1,14 @@
-package top.yms.note.conpont.queue;
+package top.yms.note.conpont.task;
 
-import org.springframework.stereotype.Component;
 import top.yms.note.conpont.NoteQueue;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * Created by yangmingsen on 2024/8/21.
+ *
+ * 暂不使用
  */
-
 public class NoteMemoryQueue implements NoteQueue {
 
     private final ArrayBlockingQueue<Object> queue = new ArrayBlockingQueue<>(100);
