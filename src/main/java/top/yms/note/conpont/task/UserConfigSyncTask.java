@@ -24,8 +24,6 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
 
     private final static Logger log = LoggerFactory.getLogger(UserConfigSyncTask.class);
 
-    @Autowired
-    private CustomConfService customConfService;
 
     @Override
     boolean needTx() {

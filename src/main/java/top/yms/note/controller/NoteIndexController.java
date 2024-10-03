@@ -193,9 +193,6 @@ public class NoteIndexController {
         Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
         note.setUserId(uid);
         log.info("add: {}", note);
-        if (note == null) {
-            throw new BusinessException(CommonErrorCode.E_200202);
-        }
         if (StringUtils.isBlank(note.getName())) {
             throw new BusinessException(NoteIndexErrorCode.E_203100);
         }
