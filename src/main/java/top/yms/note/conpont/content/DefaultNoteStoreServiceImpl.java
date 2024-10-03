@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
@@ -22,7 +23,7 @@ import java.util.List;
  * Created by yangmingsen on 2024/8/21.
  */
 @Component
-public class DefaultNoteStoreServiceImpl implements NoteStoreService, ApplicationListener {
+public class DefaultNoteStoreServiceImpl implements NoteStoreService, ApplicationListener<ApplicationReadyEvent> {
 
     private static  final Logger log = LoggerFactory.getLogger(DefaultNoteStoreServiceImpl.class);
 
@@ -64,18 +65,25 @@ public class DefaultNoteStoreServiceImpl implements NoteStoreService, Applicatio
         save(note);
     }
 
-    private boolean init = false;
+//    private boolean init = false;
+//    @Override
+//    public void onApplicationEvent(ApplicationEvent event) {
+//        if (!init && event.getSource() instanceof AnnotationConfigServletWebServerApplicationContext) {
+//            ApplicationContext context = (ApplicationContext) event.getSource();
+//            noteContentTypeList.addAll(
+//                BeanFactoryUtils.beansOfTypeIncludingAncestors(
+//                        context, NoteType.class, true, false).values());
+//            log.info("noteContentTypeList: {}", noteContentTypeList);
+//        }
+//
+//    }
+
     @Override
-    public void onApplicationEvent(ApplicationEvent event) {
-        if (!init && event.getSource() instanceof AnnotationConfigServletWebServerApplicationContext) {
-            ApplicationContext context = (ApplicationContext) event.getSource();
-            noteContentTypeList.addAll(
+    public void onApplicationEvent(ApplicationReadyEvent event) {
+        ApplicationContext context = event.getApplicationContext();
+        noteContentTypeList.addAll(
                 BeanFactoryUtils.beansOfTypeIncludingAncestors(
                         context, NoteType.class, true, false).values());
-            log.info("noteContentTypeList: {}", noteContentTypeList);
-
-            init = true;
-        }
-
+        log.info("获取到NoteContentTypeList: {}", noteContentTypeList);
     }
 }

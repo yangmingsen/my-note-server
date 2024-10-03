@@ -1,6 +1,5 @@
 package top.yms.note.service;
 
-import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -29,6 +28,9 @@ public class CustomConfService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    public void priff() {
+        System.out.println("Hello world");
+    }
 
     public void updateUserConfig(JSONObject jsonObject) {
         Long userId = LocalThreadUtils.getUserId();
@@ -39,7 +41,7 @@ public class CustomConfService {
             Document saveRes = mongoTemplate.save(newDoc, Constants.customConfig);
             //决定是否保存
             ObjectId objId = saveRes.getObjectId("_id");
-            log.info("updateUserConfig_创建成功");
+//            log.info("updateUserConfig_创建成功");
         } else {
             for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
                 String key = entry.getKey();
@@ -47,7 +49,7 @@ public class CustomConfService {
                 oldDoc.put(key, value);
             }
             mongoTemplate.save(oldDoc,  Constants.customConfig);
-            log.info("updateUserConfig_更新成功");
+            log.info("updateUserConfig_更新成功: {}", jsonObject);
         }
     }
 

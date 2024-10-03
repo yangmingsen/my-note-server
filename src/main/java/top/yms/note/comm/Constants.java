@@ -20,6 +20,7 @@ public abstract class Constants {
     public final static String noteWerTextContent = "wer_text_content";
     public final static String customConfig = "custom_config";
     public final static String tmpUploadFile = "tmp_upload_file";
+    public final static String taskInfoMessage = "task_info_message";
 
 
     public final static String defaultNoteCache = "defaultNoteCache";
@@ -27,6 +28,15 @@ public abstract class Constants {
     public final static String noteLuceneSearch = "noteLuceneSearch";
     public final static String noteDefaultSearch = "noteDefaultSearch";
     public final static String noteLuceneIndexMemoryQueue = "noteLuceneIndexMemoryQueue";
+    public final static String asyncTaskMemoryQueue = "asyncTaskMemoryQueue";
+
+    public final static String noteThreadPoolExecutor = "noteThreadPoolExecutor";
+    public final static String noteScheduledThreadPoolExecutor = "noteScheduledThreadPoolExecutor";
+
+
+    public final static String bgImgInfo = "bgImgInfo";
+
+
 
     public final static String token = "token";
 
