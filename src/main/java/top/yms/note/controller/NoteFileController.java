@@ -14,6 +14,7 @@ import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.Constants;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStore;
+import top.yms.note.entity.NoteTree;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.enums.FileTypeEnum;
 import top.yms.note.comm.NoteIndexErrorCode;
@@ -31,6 +32,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -306,6 +308,52 @@ public class NoteFileController {
 
         noteFileService.generateTree(file, parentId);
         return RestOut.succeed("OK");
+    }
+
+
+    String baseSyncLocalPath = "E:\\tmp\\youdaoNote\\yangmingsen\\";
+
+    @GetMapping("/syncNote")
+    public RestOut syncNoteFromLocalFS(@RequestParam("id") Integer id) throws Exception {
+        String [] para = {
+                "Github","tmp","专业","人体","公司",
+                //0        1      2     3       4
+                "其他分类","办公","团队协作","国家",
+                //5         6       7           8
+                "娱乐","学校","心理","总结","成长",
+                //9     10      11      12      13
+                "我","我的资源","数学","来自手机",
+                //14  15        16      17
+                "生活","经济",
+                //18     19
+        };
+
+        NoteTree rootNoteTree = noteIndexService.findCurUserRootNoteTree();
+
+        String syncName = para[id];
+        if (StringUtils.isBlank(syncName)) {
+            throw new RuntimeException("syncName is empty");
+        }
+        NoteTree syncNoteTree = null;
+        for (NoteTree nt : rootNoteTree.getChildren()) {
+            if (syncName.equals(nt.getLabel())) {
+                syncNoteTree = nt;
+            }
+        }
+        if (syncNoteTree == null) {
+            throw new RuntimeException("syncNoteTree is null");
+        }
+
+        String baseLocalPath = baseSyncLocalPath+syncName;
+        File syncFile = new File(baseLocalPath);
+        if (syncFile.listFiles() == null) {
+            throw new RuntimeException("目标文件为空");
+        }
+
+        noteFileService.syncNoteFromLocalFS(syncNoteTree, syncFile);
+
+
+        return RestOut.success("ok");
     }
 
 

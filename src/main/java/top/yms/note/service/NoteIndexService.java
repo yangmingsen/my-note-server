@@ -165,15 +165,27 @@ public class NoteIndexService {
         return new NoteSearchVo(noteSearchService.doSearch(noteSearchDto));
     }
 
+
     /**
-     * 查找目录树
-     * @param uid
+     * 查找当当前用户的笔记树.
+     *  只查未删除掉的，但要注意只是未标记删除的
      * @return
      */
-    public List<NoteTree> findNoteTreeByUid(Long uid) {
+    public NoteTree findCurUserRootNoteTree() {
+        Long userId = LocalThreadUtils.getUserId();
         List<NoteIndex> noteIndexList =  noteIndexMapper.selectByExample(
-                NoteIndexQuery.Builder.build().uid(uid).del(false).filter(2).get().example()
+                NoteIndexQuery.Builder.build().uid(userId).del(false).get().example()
         );
+
+        List<NoteTree> noteTreeList = transferNoteTree(noteIndexList);
+        if (noteTreeList.size() > 0) {
+            return noteTreeList.get(0);
+        }
+        return null;
+    }
+
+
+    private List<NoteTree> transferNoteTree(List<NoteIndex> noteIndexList) {
         //列表转换为结构树
         Map<Long, NoteTree> noteTreeMap = new HashMap<>();
         for (NoteIndex note : noteIndexList) {
@@ -203,6 +215,21 @@ public class NoteIndexService {
         }
 
         return resList;
+    }
+
+
+    /**
+     * 查找目录树
+     * 只有目录，不包含文件
+     * @param uid
+     * @return
+     */
+    public List<NoteTree> findNoteTreeByUid(Long uid) {
+        List<NoteIndex> noteIndexList =  noteIndexMapper.selectByExample(
+                NoteIndexQuery.Builder.build().uid(uid).del(false).filter(2).get().example()
+        );
+        //列表转换为结构树
+        return transferNoteTree(noteIndexList);
     }
 
     /**

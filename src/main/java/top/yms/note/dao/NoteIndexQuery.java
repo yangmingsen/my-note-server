@@ -30,7 +30,7 @@ public class NoteIndexQuery {
      *  1.查找所有(含文件和目录);
      *  2.只查目录
      */
-    private int filter;
+    private int filter = 1;
 
 
 

@@ -23,6 +23,7 @@ import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteFile;
 import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteTree;
 import top.yms.note.enums.FileTypeEnum;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.exception.WangEditorUploadException;
@@ -43,8 +44,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Created by yangmingsen on 2024/4/6.
@@ -209,11 +212,47 @@ public class NoteFileService {
         noteFileMapper.insertSelective(noteFile);
     }
 
+    /**
+     * 从本地文件同步到笔记系统
+     *
+     * 这里noteTree与file保持同层, 创建新文件交给generateTree.
+     *     如果涉及到比对，再看...
+     * @param noteTree
+     * @param file
+     */
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 120)
+    public void syncNoteFromLocalFS(NoteTree noteTree, File file) throws Exception{
+        if (file.isDirectory()) {
+            File[] files = file.listFiles();
+            List<NoteTree> treeChildrenList = noteTree.getChildren();
+            Map<String, NoteTree> treeMap = treeChildrenList.stream().collect(Collectors.toMap(NoteTree::getLabel, Function.identity(), (k1, k2) -> k2));
+            for (File tf : files) {
+                if (tf.getName().equals("images")) {
+                    continue;
+                }
+                String fileName = tf.getName();
+                NoteTree tmpNoteTree = treeMap.get(fileName);
+                if (tmpNoteTree == null) {
+                    log.info("本地笔记[{}] 在TreeNote中不存在, 执行创建", tf.getAbsolutePath());
+                }
+
+                if (tmpNoteTree != null) {
+                    //存在的情况, 继续往下处理
+                    syncNoteFromLocalFS(tmpNoteTree, tf);
+                } else {
+                    //不存在就创建
+                    generateTree(tf, noteTree.getId());
+                }
+
+            }
+        }
+    }
+
 
     /**
-     * 从本地文件导入
-     * @param file
-     * @param parentId
+     * 从本地文件导入, 主要用于创建新文件或文件夹
+     * @param file 当前需要创建的文件/文件夹
+     * @param parentId  file 的 parentId
      * @throws Throwable
      */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 120)
