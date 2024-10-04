@@ -51,9 +51,9 @@ public class AsyncExecuteTaskServiceImpl implements NoteAsyncExecuteTaskService,
      * @param asyncExecuteTask
      */
     private void executeTask(AsyncTask task, AsyncExecuteTask asyncExecuteTask) {
-        if (AsyncExcuteTypeEnum.apply(task.getExecuteType().getValue()) == AsyncExcuteTypeEnum.SYNC_TASK) {
+        if (task.getExecuteType() == AsyncExcuteTypeEnum.SYNC_TASK) {
             noteExecuteService.execute(asyncExecuteTask);
-        } else if (AsyncExcuteTypeEnum.apply(task.getExecuteType().getValue()) == AsyncExcuteTypeEnum.CALLER_TASK) {
+        } else if (task.getExecuteType() == AsyncExcuteTypeEnum.CALLER_TASK) {
             AbstractAsyncExecuteTask abTask = (AbstractAsyncExecuteTask)asyncExecuteTask;
             abTask.run();
         }

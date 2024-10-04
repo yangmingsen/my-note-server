@@ -11,7 +11,6 @@ import top.yms.note.comm.Constants;
 import top.yms.note.conpont.NoteAsyncExecuteTaskService;
 import top.yms.note.conpont.NoteCache;
 import top.yms.note.conpont.task.AsyncTask;
-import top.yms.note.entity.NoteUser;
 import top.yms.note.entity.RestOut;
 import top.yms.note.enums.AsyncExcuteTypeEnum;
 import top.yms.note.enums.AsyncTaskEnum;
@@ -54,10 +53,10 @@ public class CustomConfController {
         AsyncTask asyncTask = AsyncTask.Builder
                 .build()
                 .taskId(idWorker.nextId())
-                .taskName(AsyncTaskEnum.ASYNC_USER_CONFIG.getName())
+                .taskName(AsyncTaskEnum.SYNC_USER_CONFIG.getName())
                 .createTime(new Date())
                 .userId(LocalThreadUtils.getUserId())
-                .type(AsyncTaskEnum.ASYNC_USER_CONFIG)
+                .type(AsyncTaskEnum.SYNC_USER_CONFIG)
                 .executeType(AsyncExcuteTypeEnum.TIMED_TASK)
                 .taskInfo(userConfigJsonData)
                 .get();

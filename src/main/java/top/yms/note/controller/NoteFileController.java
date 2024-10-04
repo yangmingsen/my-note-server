@@ -14,6 +14,7 @@ import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.Constants;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStore;
+import top.yms.note.conpont.NoteCache;
 import top.yms.note.entity.NoteTree;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.enums.FileTypeEnum;
@@ -27,6 +28,7 @@ import top.yms.note.service.NoteFileService;
 import top.yms.note.service.NoteIndexService;
 import top.yms.note.utils.LocalThreadUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.PrintWriter;
@@ -55,6 +57,10 @@ public class NoteFileController {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    @Qualifier(Constants.defaultNoteCache)
+    private NoteCache noteCache;
 
     /**
      * 目前用于wangeditor的图片上传
@@ -159,7 +165,8 @@ public class NoteFileController {
         return RestOut.success("ok");
     }
 
-    private boolean checkIsEncryptedNote(NoteFile noteFile, HttpServletResponse response, String msg) {
+    //todo 加密访问先放着
+    private boolean checkIsEncryptedNote(NoteFile noteFile, HttpServletRequest req, HttpServletResponse response, String msg) {
         NoteIndex noteIndex = null;
         if (noteFile.getNoteRef() != 0L) {
             noteIndex = noteIndexService.findOne(noteFile.getNoteRef());
@@ -168,6 +175,26 @@ public class NoteFileController {
         }
 
         if ("1".equals(noteIndex.getEncrypted())) {
+            String tmpToken = req.getParameter("tmpToken");
+            if (StringUtils.isNotBlank(tmpToken)) {
+                Long noteIdRef = noteFile.getNoteRef();
+                if (noteIdRef == 0L) {
+                    String fileId = noteFile.getFileId();
+                    NoteIndex tmpNoteIndex = noteIndexService.findBySiteId(fileId);
+                    noteIdRef = tmpNoteIndex.getId();
+                }
+                String cacheId = Constants.tmpReadPasswordToken+noteIdRef;
+                String tmpTokenValue  = (String)noteCache.find(cacheId);
+                if (StringUtils.isNotBlank(tmpTokenValue)) {
+                    if (tmpTokenValue.equals(tmpToken)) {
+                        //token正确
+                        noteCache.delete(cacheId);
+                        return true;
+                    }
+                }
+            }
+            log.info("checkIsEncryptedNote: 携带tmpToken: {}", tmpToken);
+
             response.setCharacterEncoding("UTF-8");
             response.setHeader("Content-Type", "application/json");
             response.setStatus(HttpServletResponse.SC_OK);
@@ -208,16 +235,16 @@ public class NoteFileController {
     }
 
     @GetMapping("/view")
-    public void view(@RequestParam("id") String id, HttpServletResponse resp) throws Exception {
+    public void view(@RequestParam("id") String id, HttpServletRequest req, HttpServletResponse resp) throws Exception {
         log.info("view: id={}", id);
         if (StringUtils.isBlank(id)) return;
         NoteFile noteFile = noteFileService.findOne(id);
 //        log.info("view: noteFile:{}", noteFile);
         if (noteFile == null) return ;
 
-        if (!checkIsEncryptedNote(noteFile, resp, "加密笔记不可阅读")) {
-            return;
-        }
+//        if (!checkIsEncryptedNote(noteFile, req, resp, "加密笔记不可阅读")) {
+//            return;
+//        }
 
         //update viewCount
         NoteFile upCnt = new NoteFile();
@@ -231,7 +258,7 @@ public class NoteFileController {
     }
 
     @GetMapping("/download")
-    public void download(@RequestParam("id") String id, HttpServletResponse resp)  throws Exception{
+    public void download(@RequestParam("id") String id, HttpServletRequest req, HttpServletResponse resp)  throws Exception{
         log.info("download: id={}", id);
         if (StringUtils.isBlank(id)) {
             throw new BusinessException(CommonErrorCode.E_203001);
@@ -241,9 +268,9 @@ public class NoteFileController {
 //        log.info("download: noteFile:{}", noteFile);
         if (noteFile == null) return ;
 
-        if (!checkIsEncryptedNote(noteFile, resp, "加密笔记不可下载")) {
-            return;
-        }
+//        if (!checkIsEncryptedNote(noteFile, req, resp, "加密笔记不可下载")) {
+//            return;
+//        }
 
         NoteFile upCnt = new NoteFile();
         upCnt.setId(noteFile.getId());

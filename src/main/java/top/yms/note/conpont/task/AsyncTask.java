@@ -1,17 +1,23 @@
 package top.yms.note.conpont.task;
 
-import top.yms.note.entity.NoteUser;
 import top.yms.note.enums.AsyncExcuteTypeEnum;
 import top.yms.note.enums.AsyncTaskEnum;
 
 import java.util.Date;
 
+/**
+ * 异步任务描述类
+ */
 public  class AsyncTask {
     private Long taskId;
     private String taskName;
     private Date createTime;
 
-    //任务执行方式
+
+    /**
+     * <p>任务执行方式： 1.立即执行  2.定时任务执行  3.调用者线程执行</p>
+     * 注意： 2定时任务执行, 不需要设置, 因为执行类已经初始化设置过了, 见 UserConfigTask
+     */
     private AsyncExcuteTypeEnum executeType;
 
     //任务类型
