@@ -11,11 +11,13 @@ import top.yms.note.comm.Constants;
 import top.yms.note.conpont.NoteAsyncExecuteTaskService;
 import top.yms.note.conpont.NoteCache;
 import top.yms.note.conpont.task.AsyncTask;
+import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.RestOut;
 import top.yms.note.enums.AsyncExcuteTypeEnum;
 import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.service.CustomConfService;
+import top.yms.note.service.NoteIndexService;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 
@@ -42,6 +44,9 @@ public class CustomConfController {
     @Autowired
     private NoteCache noteCache;
 
+    @Autowired
+    private NoteIndexService noteIndexService;
+
     @PostMapping("/update-user-config")
     public RestOut updateUserConfig(@RequestParam("content") String jsonContent) {
         if (StringUtils.isBlank(jsonContent)) {
@@ -67,6 +72,25 @@ public class CustomConfController {
         }
 
         noteExecuteTaskService.addTask(asyncTask);
+
+        //关于lru计算
+        if (userConfigJsonData.containsKey(Constants.lastvisit)) {
+            JSONObject lastVisitJson = userConfigJsonData.getJSONObject(Constants.lastvisit);
+            String noteId = lastVisitJson.getString("id");
+            NoteIndex noteMeta = noteIndexService.findOne(Long.valueOf(noteId));
+            AsyncTask visitComputeTask = AsyncTask.Builder
+                    .build()
+                    .taskId(idWorker.nextId())
+                    .taskName(AsyncTaskEnum.SYNC_COMPUTE_RECENT_VISIT.getName())
+                    .createTime(new Date())
+                    .userId(LocalThreadUtils.getUserId())
+                    .type(AsyncTaskEnum.SYNC_COMPUTE_RECENT_VISIT)
+                    .executeType(AsyncExcuteTypeEnum.SYNC_TASK)
+                    .taskInfo(noteMeta)
+                    .get();
+            noteExecuteTaskService.addTask(visitComputeTask);
+        }
+
 
         return RestOut.succeed("Ok");
     }

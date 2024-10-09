@@ -135,6 +135,11 @@
             <artifactId>IKAnalyzer-lucene</artifactId>
             <version>8.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>net.sourceforge.javacsv</groupId>
+            <artifactId>javacsv</artifactId>
+            <version>${javacsv.version}</version>
+        </dependency>
 
     </dependencies>
 

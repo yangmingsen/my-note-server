@@ -54,6 +54,10 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
             log.warn("beforeRun 异常....");
         }
 
+        if (!hasData()) {
+            return;
+        }
+
         if (needTx()) {
             TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
             try {

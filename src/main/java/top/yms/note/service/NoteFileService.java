@@ -144,6 +144,11 @@ public class NoteFileService {
     }
 
 
+    /**
+     * 根据mongoFileId进行查找
+     * @param fileId
+     * @return
+     */
     public NoteFile findOne(String fileId) {
         List<NoteFile> noteFiles = noteFileMapper.selectByExample(NoteFileQuery.Builder.build().fileId(fileId).get().example());
         if (noteFiles != null && noteFiles.size() >0) {

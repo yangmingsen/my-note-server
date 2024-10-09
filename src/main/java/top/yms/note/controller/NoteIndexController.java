@@ -8,17 +8,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
+import top.yms.note.conpont.NoteAsyncExecuteTaskService;
 import top.yms.note.conpont.NoteCache;
+import top.yms.note.conpont.NoteRecentVisitService;
+import top.yms.note.conpont.task.AsyncTask;
+import top.yms.note.conpont.task.NoteExecuteService;
 import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.dto.NoteListQueryDto;
 import top.yms.note.dto.NoteMoveDto;
 import top.yms.note.dto.NoteSearchCondition;
 import top.yms.note.entity.*;
+import top.yms.note.enums.AsyncExcuteTypeEnum;
+import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.Constants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.service.NoteIndexService;
+import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.MenuListVo;
 import top.yms.note.vo.NoteIndexVo;
@@ -45,6 +52,13 @@ public class NoteIndexController {
     @Autowired
     @Qualifier(Constants.defaultNoteCache)
     private NoteCache noteCache;
+
+    @Autowired
+    private IdWorker idWorker;
+
+
+    @Autowired
+    private NoteAsyncExecuteTaskService noteExecuteTaskService;
 
     @GetMapping("/list")
     public RestOut<List<NoteIndex>> findByUid() {
@@ -317,6 +331,29 @@ public class NoteIndexController {
 //        log.info("getDeletedFiles Result: 共{}条", resList.size());
 
         return RestOut.success(resList);
+    }
+
+    @GetMapping("/recentVisitList")
+    public RestOut recentVisitList() {
+        List<NoteIndex> recentVisits = noteIndexService.recentVisitList();
+        return RestOut.success(recentVisits);
+    }
+
+    @GetMapping("/treeClick")
+    public RestOut treeClick(@RequestParam("id") Long id) {
+        NoteIndex noteMeta = noteIndexService.findOne(id);
+        AsyncTask visitComputeTask = AsyncTask.Builder
+                .build()
+                .taskId(idWorker.nextId())
+                .taskName(AsyncTaskEnum.SYNC_COMPUTE_RECENT_VISIT.getName())
+                .createTime(new Date())
+                .userId(LocalThreadUtils.getUserId())
+                .type(AsyncTaskEnum.SYNC_COMPUTE_RECENT_VISIT)
+                .executeType(AsyncExcuteTypeEnum.SYNC_TASK)
+                .taskInfo(noteMeta)
+                .get();
+        noteExecuteTaskService.addTask(visitComputeTask);
+        return RestOut.success("Ok");
     }
 
 

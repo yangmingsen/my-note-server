@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.conpont.FileStore;
 import top.yms.note.conpont.NoteDataIndexService;
+import top.yms.note.conpont.NoteRecentVisitService;
 import top.yms.note.conpont.NoteSearch;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dto.*;
@@ -80,6 +81,9 @@ public class NoteIndexService {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private NoteRecentVisitService noteRecentVisitService;
 
     public List<NoteIndex> findByUserId(Long userid) {
         return Optional.of(findNoteList(userid, 1)).orElse(Collections.emptyList());
@@ -767,5 +771,9 @@ public class NoteIndexService {
         upDao.setId(id);
 
         noteIndexMapper.updateByPrimaryKeySelective(upDao);
+    }
+
+    public List<NoteIndex> recentVisitList() {
+        return noteRecentVisitService.getRecentVisitList();
     }
 }
