@@ -3,24 +3,36 @@ package top.yms.note.controller;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
+import top.yms.note.conpont.NoteAsyncExecuteTaskService;
+import top.yms.note.conpont.NoteCache;
+import top.yms.note.conpont.NoteRecentVisitService;
+import top.yms.note.conpont.task.AsyncTask;
+import top.yms.note.conpont.task.NoteExecuteService;
 import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.dto.NoteListQueryDto;
 import top.yms.note.dto.NoteMoveDto;
 import top.yms.note.dto.NoteSearchCondition;
 import top.yms.note.entity.*;
+import top.yms.note.enums.AsyncExcuteTypeEnum;
+import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.Constants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.service.NoteIndexService;
+import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.MenuListVo;
+import top.yms.note.vo.NoteIndexVo;
 import top.yms.note.vo.NoteInfoVo;
 import top.yms.note.vo.NoteSearchVo;
 
+import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,6 +48,17 @@ public class NoteIndexController {
 
     @Autowired
     private NoteIndexService noteIndexService;
+
+    @Autowired
+    @Qualifier(Constants.defaultNoteCache)
+    private NoteCache noteCache;
+
+    @Autowired
+    private IdWorker idWorker;
+
+
+    @Autowired
+    private NoteAsyncExecuteTaskService noteExecuteTaskService;
 
     @GetMapping("/list")
     public RestOut<List<NoteIndex>> findByUid() {
@@ -310,6 +333,29 @@ public class NoteIndexController {
         return RestOut.success(resList);
     }
 
+    @GetMapping("/recentVisitList")
+    public RestOut recentVisitList() {
+        List<NoteIndex> recentVisits = noteIndexService.recentVisitList();
+        return RestOut.success(recentVisits);
+    }
+
+    @GetMapping("/treeClick")
+    public RestOut treeClick(@RequestParam("id") Long id) {
+        NoteIndex noteMeta = noteIndexService.findOne(id);
+        AsyncTask visitComputeTask = AsyncTask.Builder
+                .build()
+                .taskId(idWorker.nextId())
+                .taskName(AsyncTaskEnum.SYNC_COMPUTE_RECENT_VISIT.getName())
+                .createTime(new Date())
+                .userId(LocalThreadUtils.getUserId())
+                .type(AsyncTaskEnum.SYNC_COMPUTE_RECENT_VISIT)
+                .executeType(AsyncExcuteTypeEnum.SYNC_TASK)
+                .taskInfo(noteMeta)
+                .get();
+        noteExecuteTaskService.addTask(visitComputeTask);
+        return RestOut.success("Ok");
+    }
+
 
     @GetMapping("/allDestroy")
     public RestOut allDestroy() {
@@ -346,7 +392,8 @@ public class NoteIndexController {
      * @return
      */
     @PostMapping("/note-pass-auth")
-    public RestOut<NoteIndex> notePasswordAuth(@RequestParam("id") Long id, @RequestParam("password") String password) {
+    public RestOut<NoteIndexVo> notePasswordAuth(@RequestParam("id") Long id,
+                                                 @RequestParam("password") String password) {
         log.info("notePasswordAuth: id={}, password={}", id, password);
         //todo 去做密码验证， 暂时先不验证，因为密码还不知道存哪里
         if (StringUtils.isBlank(password) || id == null) {
@@ -358,7 +405,19 @@ public class NoteIndexController {
         String encryptedStr = DigestUtils.md5DigestAsHex(srcStr.getBytes(StandardCharsets.UTF_8));
         if (encryptedStr.equals(noteUser.getPassword())) {
             NoteIndex noteIndex = noteIndexService.findOne(id);
-            return RestOut.success(noteIndex);
+            NoteIndexVo resVo = new NoteIndexVo();
+            BeanUtils.copyProperties(noteIndex, resVo);
+
+
+            //生成零时token, 如果是文件访问
+            //todo 加密访问先放着
+//            if (noteIndex.getType().equals("1")) {
+//                String tmpToken = UUID.randomUUID().toString();
+//                resVo.setTmpToken(tmpToken);
+//                noteCache.add(Constants.tmpReadPasswordToken+resVo.getId(), tmpToken);
+//            }
+
+            return RestOut.success(resVo);
         } else {
             return RestOut.failed("密码错误");
         }
@@ -378,8 +437,9 @@ public class NoteIndexController {
     }
 
     @PostMapping("/unencrypted-read-note")
-    public RestOut unEncryptedReadNote(@RequestParam("id") Long id, @RequestParam("password") String password) {
-        RestOut<NoteIndex> authResult = notePasswordAuth(id, password);
+    public RestOut unEncryptedReadNote(@RequestParam("id") Long id,
+                                       @RequestParam("password") String password) {
+        RestOut<NoteIndexVo> authResult = notePasswordAuth(id, password);
         if (!authResult.isSuccess()) {
             return authResult;
         }

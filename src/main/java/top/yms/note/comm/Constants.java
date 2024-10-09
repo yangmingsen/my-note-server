@@ -35,6 +35,14 @@ public abstract class Constants {
 
 
     public final static String bgImgInfo = "bgImgInfo";
+    public final static String lastvisit = "lastvisit";
+    public final static String noteId = "noteId";
+    public final static String id = "id";
+    public final static String textContent = "textContent";
+
+    public final static String tmpReadPasswordToken = "tmp_read_password_token";
+
+
 
 
 

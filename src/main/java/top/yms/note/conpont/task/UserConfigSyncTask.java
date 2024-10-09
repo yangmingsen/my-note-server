@@ -4,13 +4,11 @@ import com.alibaba.fastjson2.JSONObject;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.Constants;
 import top.yms.note.enums.AsyncTaskEnum;
-import top.yms.note.service.CustomConfService;
 
 import java.util.List;
 import java.util.Map;
@@ -68,7 +66,7 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
 
     @Override
     public boolean support(AsyncTask task) {
-        return AsyncTaskEnum.apply(task.getType().getValue()) == AsyncTaskEnum.ASYNC_USER_CONFIG;
+        return AsyncTaskEnum.apply(task.getType().getValue()) == AsyncTaskEnum.SYNC_USER_CONFIG;
     }
 
 

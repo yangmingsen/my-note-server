@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.conpont.FileStore;
 import top.yms.note.conpont.NoteDataIndexService;
+import top.yms.note.conpont.NoteRecentVisitService;
 import top.yms.note.conpont.NoteSearch;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dto.*;
@@ -80,6 +81,9 @@ public class NoteIndexService {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private NoteRecentVisitService noteRecentVisitService;
 
     public List<NoteIndex> findByUserId(Long userid) {
         return Optional.of(findNoteList(userid, 1)).orElse(Collections.emptyList());
@@ -165,15 +169,27 @@ public class NoteIndexService {
         return new NoteSearchVo(noteSearchService.doSearch(noteSearchDto));
     }
 
+
     /**
-     * 查找目录树
-     * @param uid
+     * 查找当当前用户的笔记树.
+     *  只查未删除掉的，但要注意只是未标记删除的
      * @return
      */
-    public List<NoteTree> findNoteTreeByUid(Long uid) {
+    public NoteTree findCurUserRootNoteTree() {
+        Long userId = LocalThreadUtils.getUserId();
         List<NoteIndex> noteIndexList =  noteIndexMapper.selectByExample(
-                NoteIndexQuery.Builder.build().uid(uid).del(false).filter(2).get().example()
+                NoteIndexQuery.Builder.build().uid(userId).del(false).get().example()
         );
+
+        List<NoteTree> noteTreeList = transferNoteTree(noteIndexList);
+        if (noteTreeList.size() > 0) {
+            return noteTreeList.get(0);
+        }
+        return null;
+    }
+
+
+    private List<NoteTree> transferNoteTree(List<NoteIndex> noteIndexList) {
         //列表转换为结构树
         Map<Long, NoteTree> noteTreeMap = new HashMap<>();
         for (NoteIndex note : noteIndexList) {
@@ -203,6 +219,21 @@ public class NoteIndexService {
         }
 
         return resList;
+    }
+
+
+    /**
+     * 查找目录树
+     * 只有目录，不包含文件
+     * @param uid
+     * @return
+     */
+    public List<NoteTree> findNoteTreeByUid(Long uid) {
+        List<NoteIndex> noteIndexList =  noteIndexMapper.selectByExample(
+                NoteIndexQuery.Builder.build().uid(uid).del(false).filter(2).get().example()
+        );
+        //列表转换为结构树
+        return transferNoteTree(noteIndexList);
     }
 
     /**
@@ -740,5 +771,9 @@ public class NoteIndexService {
         upDao.setId(id);
 
         noteIndexMapper.updateByPrimaryKeySelective(upDao);
+    }
+
+    public List<NoteIndex> recentVisitList() {
+        return noteRecentVisitService.getRecentVisitList();
     }
 }

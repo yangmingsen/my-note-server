@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.Constants;
 import top.yms.note.conpont.NoteDataIndexService;
@@ -62,6 +63,9 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
 
     @Autowired
     private NoteDataMapper noteDataMapper;
+
+    @Autowired
+    protected MongoTemplate mongoTemplate;
 
     @Qualifier(Constants.noteLuceneIndexMemoryQueue)
     @Autowired
@@ -239,7 +243,28 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
                 if (noteIndex.getStoreSite().equals("mysql")) {
                     NoteData noteData = noteDataMapper.selectByPrimaryKey(noteIndex.getId());
                     if (!StringUtils.isEmpty(noteData.getContent())) {
-                        document.add(new TextField("content", noteData.getContent(), Field.Store.YES));
+                        if ("wer".equals(noteIndex.getType())) {
+                            //从mongo中获取
+                            Long noteId = noteIndex.getId();
+                            org.bson.Document mongoDoc = mongoTemplate
+                                    .findOne(org.springframework.data.mongodb.core.query.Query.query(
+                                            org.springframework.data.mongodb.core.query.Criteria.where(Constants.id).is(noteId)),
+                                            org.bson.Document.class,
+                                            Constants.noteWerTextContent);
+                            if (mongoDoc == null) {
+                                logger.warn("根据id: {} 从mongo获取Wer数据为空", noteId);
+                                continue;
+                            }
+                            String textContent = (String)mongoDoc.get(Constants.textContent);
+                            if (!StringUtils.isEmpty(textContent)) {
+                                document.add(new TextField("content", textContent, Field.Store.YES));
+                            } else {
+                                document.add(new TextField("content", noteData.getContent(), Field.Store.YES));
+                            }
+
+                        } else {
+                            document.add(new TextField("content", noteData.getContent(), Field.Store.YES));
+                        }
                     }
                 }
                 document.add(new StoredField("type", noteIndex.getType()));

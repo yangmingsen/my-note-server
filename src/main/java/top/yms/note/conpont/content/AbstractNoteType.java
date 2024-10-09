@@ -19,6 +19,7 @@ import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteDataVersionMapper;
 import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.mapper.NoteIndexMapper;
+import top.yms.note.service.NoteFileService;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -41,6 +42,9 @@ public abstract class AbstractNoteType implements NoteType, NoteExport {
     @Autowired
     protected NoteFileMapper noteFileMapper;
 
+
+    NoteFileService noteFileService;
+
     @Autowired
     protected FileStore fileStore;
 
@@ -50,6 +54,20 @@ public abstract class AbstractNoteType implements NoteType, NoteExport {
 
     @Autowired
     protected MongoTemplate mongoTemplate;
+
+    /**
+     * 查找noteFile信息
+     * @param id
+     * @return
+     */
+    protected NoteFile findNoteFile(Long id) {
+        List<NoteFile> noteFiles = noteFileMapper.selectByNoteRef(id);
+        if (noteFiles.size() > 0) {
+            return noteFiles.get(0);
+        }
+        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        return noteFileService.findOne(noteIndex.getSiteId());
+    }
 
     public Object getContent(Long id) {
         //修改访问时间
