@@ -9,11 +9,17 @@ import org.springframework.boot.web.servlet.context.AnnotationConfigServletWebSe
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import top.yms.note.comm.CommonErrorCode;
+import top.yms.note.comm.NoteConstants;
+import top.yms.note.conpont.NoteLuceneDataService;
 import top.yms.note.conpont.NoteStoreService;
+import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteIndex;
+import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteIndexMapper;
 
 import java.util.LinkedList;
@@ -22,15 +28,16 @@ import java.util.List;
 /**
  * Created by yangmingsen on 2024/8/21.
  */
-@Component
+@Primary
+@Component(NoteConstants.defaultNoteStoreServiceImpl)
 public class DefaultNoteStoreServiceImpl implements NoteStoreService, ApplicationListener<ApplicationReadyEvent> {
 
     private static  final Logger log = LoggerFactory.getLogger(DefaultNoteStoreServiceImpl.class);
 
-    private final List<NoteType> noteContentTypeList = new LinkedList<>();
+    protected final List<NoteType> noteContentTypeList = new LinkedList<>();
 
     @Autowired
-    private NoteIndexMapper noteIndexMapper;
+    protected NoteIndexMapper noteIndexMapper;
 
     @Override
     public Object findOne(Long id) {
@@ -40,8 +47,7 @@ public class DefaultNoteStoreServiceImpl implements NoteStoreService, Applicatio
                 return noteType.getContent(id);
             }
         }
-        log.error("未找到id:{}的笔记", id);
-        return null;
+        throw new BusinessException(CommonErrorCode.E_200215);
     }
 
     @Override
@@ -54,10 +60,10 @@ public class DefaultNoteStoreServiceImpl implements NoteStoreService, Applicatio
         for(NoteType noteType : noteContentTypeList) {
             if (noteType.support(noteIndex.getType())) {
                 noteType.save(note);
-                break;
+                return;
             }
         }
-
+        throw new BusinessException(CommonErrorCode.E_200215);
     }
 
     @Override
@@ -65,18 +71,17 @@ public class DefaultNoteStoreServiceImpl implements NoteStoreService, Applicatio
         save(note);
     }
 
-//    private boolean init = false;
-//    @Override
-//    public void onApplicationEvent(ApplicationEvent event) {
-//        if (!init && event.getSource() instanceof AnnotationConfigServletWebServerApplicationContext) {
-//            ApplicationContext context = (ApplicationContext) event.getSource();
-//            noteContentTypeList.addAll(
-//                BeanFactoryUtils.beansOfTypeIncludingAncestors(
-//                        context, NoteType.class, true, false).values());
-//            log.info("noteContentTypeList: {}", noteContentTypeList);
-//        }
-//
-//    }
+
+    protected NoteType findCanApplyNoteType(Long id) {
+        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        for(NoteType noteType : noteContentTypeList) {
+            if (noteType.support(noteIndex.getType())) {
+                return noteType;
+            }
+        }
+        throw new BusinessException(CommonErrorCode.E_200215);
+    }
+
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
@@ -86,4 +91,6 @@ public class DefaultNoteStoreServiceImpl implements NoteStoreService, Applicatio
                         context, NoteType.class, true, false).values());
         log.info("获取到NoteContentTypeList: {}", noteContentTypeList);
     }
+
+
 }

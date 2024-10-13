@@ -1,6 +1,6 @@
 package top.yms.note.conpont;
 
-import top.yms.note.dto.NoteDataIndex;
+import top.yms.note.conpont.search.NoteDataIndex;
 
 import java.util.List;
 

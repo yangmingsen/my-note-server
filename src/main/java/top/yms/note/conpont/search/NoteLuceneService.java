@@ -12,10 +12,9 @@ import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.NoteDataIndexService;
+import top.yms.note.conpont.NoteLuceneDataService;
 import top.yms.note.conpont.NoteQueue;
 import top.yms.note.conpont.NoteSearch;
-import top.yms.note.dto.NoteDataIndex;
-import top.yms.note.dto.NoteLuceneIndex;
 import top.yms.note.dto.NoteSearchDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteIndex;
@@ -77,6 +76,11 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
     private NoteQueue noteQueue;
 
     private Thread updateIndexTask ;
+
+
+    @Qualifier(NoteConstants.noteLuceneDataServiceImpl)
+    @Autowired
+    private NoteLuceneDataService noteLuceneDataService;
 
     @Override
     public List<SearchResult> doSearch(NoteSearchDto noteSearchDto) {
@@ -351,42 +355,42 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
     }
 
     private NoteLuceneIndex getFromNoteId(Long id) {
-        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
-        if (noteIndex == null) {
-            logger.error("noteIndex目标不存在, 使用id={} 进行查询时", id);
-            throw new BusinessException(NoteIndexErrorCode.E_203117);
-        }
-        NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
-        if (noteData == null) {
-            logger.error("noteData目标不存在, 使用id={} 进行查询时", id);
-            throw new BusinessException(NoteIndexErrorCode.E_203117);
-        }
-        String textContent = null;
-        if (!StringUtils.isEmpty(noteData.getContent())) {
-            if ("wer".equals(noteIndex.getType())) {
-                //从mongo中获取
-                Long noteId = noteIndex.getId();
-                org.bson.Document mongoDoc = mongoTemplate
-                        .findOne(org.springframework.data.mongodb.core.query.Query.query(
-                                        org.springframework.data.mongodb.core.query.Criteria.where(NoteConstants.id).is(noteId)),
-                                org.bson.Document.class,
-                                NoteConstants.noteWerTextContent);
-                if (mongoDoc == null) {
-                    logger.warn("根据id: {} 从mongo获取Wer数据为空", noteId);
-                }  else {
-                   textContent = (String)mongoDoc.get(NoteConstants.textContent);
-                }
+//        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+//        if (noteIndex == null) {
+//            logger.error("noteIndex目标不存在, 使用id={} 进行查询时", id);
+//            throw new BusinessException(NoteIndexErrorCode.E_203117);
+//        }
+//        NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
+//        if (noteData == null) {
+//            logger.error("noteData目标不存在, 使用id={} 进行查询时", id);
+//            throw new BusinessException(NoteIndexErrorCode.E_203117);
+//        }
+//        String textContent = null;
+//        if (!StringUtils.isEmpty(noteData.getContent())) {
+//            if ("wer".equals(noteIndex.getType())) {
+//                //从mongo中获取
+//                Long noteId = noteIndex.getId();
+//                org.bson.Document mongoDoc = mongoTemplate
+//                        .findOne(org.springframework.data.mongodb.core.query.Query.query(
+//                                        org.springframework.data.mongodb.core.query.Criteria.where(NoteConstants.id).is(noteId)),
+//                                org.bson.Document.class,
+//                                NoteConstants.noteWerTextContent);
+//                if (mongoDoc == null) {
+//                    logger.warn("根据id: {} 从mongo获取Wer数据为空", noteId);
+//                }  else {
+//                   textContent = (String)mongoDoc.get(NoteConstants.textContent);
+//                }
+//
+//            } else {
+//               textContent = noteData.getContent();
+//            }
+//        }
+//
+//        NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
+//        BeanUtils.copyProperties(noteIndex, noteLuceneIndex);
+//        noteLuceneIndex.setContent(textContent);
 
-            } else {
-               textContent = noteData.getContent();
-            }
-        }
-
-        NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
-        BeanUtils.copyProperties(noteIndex, noteLuceneIndex);
-        noteLuceneIndex.setContent(textContent);
-
-        return noteLuceneIndex;
+        return noteLuceneDataService.findNoteLuceneDataOne(id);
     }
 
 

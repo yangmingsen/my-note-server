@@ -20,7 +20,7 @@ import top.yms.note.conpont.*;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.dto.NoteDataDto;
-import top.yms.note.dto.NoteLuceneIndex;
+import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.entity.*;
 import top.yms.note.enums.FileTypeEnum;
 import top.yms.note.exception.BusinessException;

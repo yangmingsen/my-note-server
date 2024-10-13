@@ -1,14 +1,20 @@
 package top.yms.note.conpont.content;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.FileStore;
 import top.yms.note.conpont.NoteAsyncExecuteTaskService;
 import top.yms.note.conpont.NoteDataIndexService;
+import top.yms.note.conpont.NoteLuceneDataService;
+import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.conpont.task.DelayExecuteAsyncTask;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteDataVersion;
@@ -32,7 +38,9 @@ import java.util.List;
 /**
  * Created by yangmingsen on 2024/8/21.
  */
-public abstract class AbstractNoteType implements NoteType, NoteExport {
+public abstract class AbstractNoteType implements NoteType, NoteLuceneDataService, NoteExport {
+
+    private final static Logger log = LoggerFactory.getLogger(AbstractNoteType.class);
 
     @Autowired
     protected NoteDataMapper noteDataMapper;
@@ -46,7 +54,7 @@ public abstract class AbstractNoteType implements NoteType, NoteExport {
     @Autowired
     protected NoteFileMapper noteFileMapper;
 
-
+    @Autowired
     NoteFileService noteFileService;
 
     @Autowired
@@ -205,4 +213,25 @@ public abstract class AbstractNoteType implements NoteType, NoteExport {
 
     public abstract void save(Object data) throws BusinessException ;
 
+
+    protected NoteLuceneIndex packNoteIndexForNoteLuceneIndex(Long id) {
+        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        if (noteIndex == null) {
+            log.error("noteIndex目标不存在, 使用id={} 进行查询时", id);
+            throw new BusinessException(NoteIndexErrorCode.E_203117);
+        }
+
+        NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
+        BeanUtils.copyProperties(noteIndex, noteLuceneIndex);
+
+        //NoteIndex中的创建时间是 createTime， 而NoteLuceneIndex中是createDate。要注意
+        noteLuceneIndex.setCreateDate(noteIndex.getCreateTime());
+
+        return noteLuceneIndex;
+    }
+
+    @Override
+    public NoteLuceneIndex findNoteLuceneDataOne(Long id) {
+        throw new BusinessException(CommonErrorCode.E_200214);
+    }
 }

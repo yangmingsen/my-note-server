@@ -1,4 +1,4 @@
-package top.yms.note.dto;
+package top.yms.note.conpont.search;
 
 /**
  * 索引数据抽象接口

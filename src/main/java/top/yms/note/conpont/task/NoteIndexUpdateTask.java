@@ -1,5 +1,7 @@
 package top.yms.note.conpont.task;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -16,6 +18,8 @@ import java.util.stream.Collectors;
 @Component
 public class NoteIndexUpdateTask extends AbstractAsyncExecuteTask implements DelayExecuteTask{
 
+    private final static Logger log = LoggerFactory.getLogger(NoteIndexUpdateTask.class);
+
     @Value("${system.task.index_exc_delay_time}")
     private long excDelayTime;
 
@@ -24,6 +28,7 @@ public class NoteIndexUpdateTask extends AbstractAsyncExecuteTask implements Del
     @Autowired
     private NoteDataIndexService noteDataIndexService;
 
+    final Object obj = new Object();
 
     @Override
     boolean needTx() {
@@ -33,7 +38,14 @@ public class NoteIndexUpdateTask extends AbstractAsyncExecuteTask implements Del
     @Override
     void doRun() {
         List<Long> ids = getAllData().stream().map(x -> (Long) x.getTaskInfo()).distinct().collect(Collectors.toList());
-        noteDataIndexService.updateByIds(ids);
+        log.debug("Exc: ids={}", ids);
+
+        //这里进行索引更新时必须要加锁进行
+        synchronized (obj) {
+            noteDataIndexService.updateByIds(ids);
+            log.debug("NoteIndexUpdateTask#更新完成....{}", ids);
+        }
+
     }
 
     @Override
@@ -44,6 +56,7 @@ public class NoteIndexUpdateTask extends AbstractAsyncExecuteTask implements Del
 
     @Override
     public void delayExecute(NoteScheduledExecutorService noteScheduledExecutorService, DelayExecuteAsyncTask delayExecuteAsyncTask) {
+        log.info("delayExecute_excDelayTime={}_timeUnit={}", excDelayTime, timeUnit);
         noteScheduledExecutorService.schedule(this, excDelayTime, timeUnit);
     }
 }

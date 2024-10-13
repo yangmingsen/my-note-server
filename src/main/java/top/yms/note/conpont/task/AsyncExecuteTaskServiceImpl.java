@@ -65,6 +65,7 @@ public class AsyncExecuteTaskServiceImpl implements NoteAsyncExecuteTaskService,
     private void executeTask(AsyncTask task, AsyncExecuteTask asyncExecuteTask) {
         //如果当前正在运行任务, 离开
         if (((AbstractAsyncExecuteTask)asyncExecuteTask).isRun()) {
+            log.info("{}#当前任务正在执行...", asyncExecuteTask);
             return;
         }
 

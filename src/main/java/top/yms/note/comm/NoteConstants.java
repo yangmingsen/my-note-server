@@ -8,6 +8,9 @@ import top.yms.note.conpont.SysConfigService;
  * Created by yangmingsen on 2024/4/6.
  */
 public abstract class NoteConstants {
+
+    public final static String METHOD_NOT_IMPLEMENT = "METHOD_NOT_IMPLEMENT";
+
     public final static String USER_ID = "USER_ID";
     public final static String userid = "userid";
     public final static String MONGO = "mongo";
@@ -40,6 +43,8 @@ public abstract class NoteConstants {
 
     public final static String noteThreadPoolExecutor = "noteThreadPoolExecutor";
     public final static String noteScheduledThreadPoolExecutor = "noteScheduledThreadPoolExecutor";
+    public final static String defaultNoteStoreServiceImpl = "defaultNoteStoreServiceImpl";
+    public final static String noteLuceneDataServiceImpl = "noteLuceneDataServiceImpl";
 
 
     public final static String bgImgInfo = "bgImgInfo";

@@ -10,6 +10,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
+import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteIndex;
@@ -82,5 +83,31 @@ public class WerNoteType extends AbstractNoteType {
             throw new RuntimeException(e);
         }
 
+    }
+
+
+    public NoteLuceneIndex findNoteLuceneDataOne(Long id) {
+        NoteLuceneIndex noteLuceneIndex = packNoteIndexForNoteLuceneIndex(id);
+
+        NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
+        if (noteData == null) {
+            log.error("noteData目标不存在, 使用id={} 进行查询时", id);
+            throw new BusinessException(NoteIndexErrorCode.E_203117);
+        }
+        String textContent;
+        org.bson.Document mongoDoc = mongoTemplate
+                .findOne(org.springframework.data.mongodb.core.query.Query.query(
+                                org.springframework.data.mongodb.core.query.Criteria.where(NoteConstants.id).is(id)),
+                        org.bson.Document.class,
+                        NoteConstants.noteWerTextContent);
+        if (mongoDoc == null) {
+            log.warn("根据id: {} 从mongo获取Wer数据为空", id);
+            throw new BusinessException(NoteIndexErrorCode.E_203118);
+        }  else {
+            textContent = (String)mongoDoc.get(NoteConstants.textContent);
+        }
+        noteLuceneIndex.setContent(textContent);
+
+        return noteLuceneIndex;
     }
 }

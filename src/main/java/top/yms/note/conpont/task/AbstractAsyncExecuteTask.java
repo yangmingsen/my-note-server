@@ -90,24 +90,22 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
             log.warn("beforeRun 异常....");
         }
 
-        if (!hasData()) {
-            return;
-        }
-
-        if (needTx()) {
-            TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
-            try {
-                doRun();
-                transactionManager.commit(status);
-            } catch (Exception e) {
-                log.error("AbstractAsyncExecuteTask1执行异常：", e);
-                transactionManager.rollback(status);
-            }
-        } else {
-            try {
-                doRun();
-            } catch (Exception e) {
-                log.error("AbstractAsyncExecuteTask2执行异常", e);
+        if (hasData()) {
+            if (needTx()) {
+                TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
+                try {
+                    doRun();
+                    transactionManager.commit(status);
+                } catch (Exception e) {
+                    log.error("AbstractAsyncExecuteTask1执行异常：", e);
+                    transactionManager.rollback(status);
+                }
+            } else {
+                try {
+                    doRun();
+                } catch (Exception e) {
+                    log.error("AbstractAsyncExecuteTask2执行异常", e);
+                }
             }
         }
 

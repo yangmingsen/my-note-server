@@ -23,7 +23,7 @@ public class NoteScheduledThreadPoolExecutor implements NoteScheduledExecutorSer
 
     @Override
     public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-        return null;
+        return scheduledExecutorService.schedule(command, delay, unit);
     }
 
     @Override

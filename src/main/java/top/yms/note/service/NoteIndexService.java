@@ -18,7 +18,7 @@ import top.yms.note.conpont.FileStore;
 import top.yms.note.conpont.NoteDataIndexService;
 import top.yms.note.conpont.NoteRecentVisitService;
 import top.yms.note.conpont.NoteSearch;
-import top.yms.note.conpont.task.DelayExecuteAsyncTask;
+import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dto.*;
 import top.yms.note.entity.*;
