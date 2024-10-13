@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +28,7 @@ import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.service.NoteFileService;
 import top.yms.note.service.NoteIndexService;
 import top.yms.note.utils.LocalThreadUtils;
+import top.yms.note.vo.LocalNoteSyncResult;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -37,6 +39,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Created by yangmingsen on 2024/4/6.
@@ -62,6 +66,9 @@ public class NoteFileController {
     @Autowired
     @Qualifier(NoteConstants.defaultNoteCache)
     private NoteCache noteCache;
+
+    @Value("${user.sync_local_note_path}")
+    private String syncLocalNotePath;
 
     /**
      * 目前用于wangeditor的图片上传
@@ -367,9 +374,55 @@ public class NoteFileController {
 
     @GetMapping("/syncAll")
     public RestOut syncAllFromLocalFs() throws Exception {
-        for (int i=0; i<syncDir.length; i++) {
-            syncNoteFromLocalFS(i);
+        NoteTree rootNoteTree = noteIndexService.findCurUserRootNoteTree();
+        Map<String, NoteTree> fileNameMap = rootNoteTree.getChildren().stream().collect(Collectors.toMap(NoteTree::getLabel, Function.identity(), (k1, k2) -> k1));
+        File baseDir = new File(syncLocalNotePath);
+        if (!baseDir.isDirectory()) {
+            log.error("目标同步路径非目录: {}", syncLocalNotePath);
+            throw new RuntimeException("目标同步路径非目录");
         }
+
+        //如果发生异常，则回滚当前mongList
+        List<String> mongoRollBackList = new ArrayList<>();
+        List<LocalNoteSyncResult> syncStatisticList = new ArrayList<>();
+        File[] files = baseDir.listFiles();
+        try {
+            for (File file : files) {
+                String fileName = file.getName();
+                NoteTree noteTree = fileNameMap.get(fileName);
+                boolean exist = noteTree != null;
+                //存在情况
+                if (exist) {
+                    if (file.isDirectory()) {
+                        noteFileService.syncNoteFromLocalFS(noteTree, file, mongoRollBackList, syncStatisticList);
+                    } else {
+                        //文件情况是否考虑，内容相同等
+                    }
+                } else {
+                    noteFileService.generateTree(file, rootNoteTree.getId(), mongoRollBackList, syncStatisticList);
+                }
+            }
+        } catch (Exception e) {
+            log.error("同步异常", e);
+            log.info("开始回滚mongo....");
+            for (String fileId : mongoRollBackList) {
+                try {
+                    fileStore.delFile(fileId);
+                } catch (Exception ex) {
+                    log.debug("删除文件【{}】失败", fileId);
+                    log.error("回滚错误", ex);
+                }
+            }
+
+            throw new BusinessException(CommonErrorCode.E_200213);
+        }
+
+        log.info("----------syncResult------------");
+        List<LocalNoteSyncResult> fileStatisticList = syncStatisticList.stream().filter(LocalNoteSyncResult::isFile).collect(Collectors.toList());
+        log.info("文件新增：{}", fileStatisticList.size());
+        log.info("目录新增：{}", syncStatisticList.size() - fileStatisticList.size());
+        log.info("总共新增：{}", syncStatisticList.size());
+        log.info("--------------------------------");
         return RestOut.succeed("OK");
     }
 
@@ -381,9 +434,14 @@ public class NoteFileController {
      * @throws Exception
      */
     @GetMapping("/syncNote")
-    public RestOut syncNoteFromLocalFS(@RequestParam("id") Integer id) throws Exception {
-        NoteTree rootNoteTree = noteIndexService.findCurUserRootNoteTree();
+    public RestOut syncNoteBy(@RequestParam("id") Integer id) throws Exception {
         String syncName = syncDir[id];
+        return syncNoteFromLocalFS(syncName);
+    }
+
+
+    private RestOut syncNoteFromLocalFS(String syncName) throws Exception {
+        NoteTree rootNoteTree = noteIndexService.findCurUserRootNoteTree();
         if (StringUtils.isBlank(syncName)) {
             throw new RuntimeException("syncName is empty");
         }
@@ -394,9 +452,8 @@ public class NoteFileController {
             }
         }
         if (syncNoteTree == null) {
-            throw new RuntimeException("syncNoteTree is null");
+            throw new RuntimeException("RootNoteTree下未找到: "+syncName);
         }
-
         String baseLocalPath = baseSyncLocalPath+syncName;
         File syncFile = new File(baseLocalPath);
         if (syncFile.listFiles() == null) {
@@ -406,7 +463,7 @@ public class NoteFileController {
         //如果发生异常，则回滚当前mongList
         List<String> mongoRollBackList = new ArrayList<>();
         try {
-            noteFileService.syncNoteFromLocalFS(syncNoteTree, syncFile, mongoRollBackList);
+            noteFileService.syncNoteFromLocalFS(syncNoteTree, syncFile, mongoRollBackList, null);
         } catch (Exception e) {
             log.error("syncNoteFromLocalFS异常", e);
 

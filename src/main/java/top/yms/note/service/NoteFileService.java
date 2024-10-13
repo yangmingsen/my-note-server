@@ -29,6 +29,7 @@ import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.mapper.NoteIndexMapper;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
+import top.yms.note.vo.LocalNoteSyncResult;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -227,15 +228,17 @@ public class NoteFileService {
     }
 
     /**
-     * 从本地文件同步到笔记系统
+     * 从本地文件同步到笔记系统.
+     *
+     * 注意： 这里的file必须是文件夹。
      *
      * 这里noteTree与file保持同层, 创建新文件交给generateTree.
      *     如果涉及到比对，再看...
      * @param noteTree
-     * @param file
+     * @param file 这里的file必须是文件夹, 如果是普通file, 会直接忽略
      */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 120)
-    public void syncNoteFromLocalFS(NoteTree noteTree, File file, List<String> mongoRollBackList) throws Exception{
+    public void syncNoteFromLocalFS(NoteTree noteTree, File file, List<String> mongoRollBackList, List<LocalNoteSyncResult> syncStatisticList) throws Exception{
         if (file.isDirectory()) {
             File[] files = file.listFiles();
             Map<String, NoteTree> treeMap = noteTree.getChildren().stream().collect(Collectors.toMap(NoteTree::getLabel, Function.identity(), (k1, k2) -> k2));
@@ -251,10 +254,10 @@ public class NoteFileService {
 
                 if (tmpNoteTree != null) {
                     //存在的情况, 继续往下处理
-                    syncNoteFromLocalFS(tmpNoteTree, tf, mongoRollBackList);
+                    syncNoteFromLocalFS(tmpNoteTree, tf, mongoRollBackList, syncStatisticList);
                 } else {
                     //不存在就创建
-                    generateTree(tf, noteTree.getId(), mongoRollBackList);
+                    generateTree(tf, noteTree.getId(), mongoRollBackList, syncStatisticList);
                 }
 
             }
@@ -269,7 +272,7 @@ public class NoteFileService {
      * @throws Throwable
      */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 120)
-    public void generateTree(File file, Long parentId, final List<String> mongoRollBackList) throws Exception{
+    public void generateTree(File file, Long parentId, final List<String> mongoRollBackList, List<LocalNoteSyncResult> syncStatisticList) throws Exception{
         if (file.getName().equals("images")) {
             return;
         }
@@ -363,9 +366,13 @@ public class NoteFileService {
             File[] files = file.listFiles();
             for (File subFile : files) {
                 if (subFile.getName().equals("images")) continue;
-                generateTree(subFile, id, mongoRollBackList);
+                generateTree(subFile, id, mongoRollBackList, syncStatisticList);
             }
         }
+
+        //统计信息
+        syncStatisticList.add(new LocalNoteSyncResult(id, isFile));
+
         noteIndexMapper.insertSelective(noteIndex);
     }
 
