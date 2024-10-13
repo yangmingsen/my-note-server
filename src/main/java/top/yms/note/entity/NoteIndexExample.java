@@ -368,73 +368,73 @@ public class NoteIndexExample {
             return (Criteria) this;
         }
 
-        public Criteria andIsileIsNull() {
+        public Criteria andIsFileIsNull() {
             addCriterion("f_isfile is null");
             return (Criteria) this;
         }
 
-        public Criteria andIsileIsNotNull() {
+        public Criteria andIsFileIsNotNull() {
             addCriterion("f_isfile is not null");
             return (Criteria) this;
         }
 
-        public Criteria andIsileEqualTo(String value) {
-            addCriterion("f_isfile =", value, "isile");
+        public Criteria andIsFileEqualTo(String value) {
+            addCriterion("f_isfile =", value, "isFile");
             return (Criteria) this;
         }
 
-        public Criteria andIsileNotEqualTo(String value) {
-            addCriterion("f_isfile <>", value, "isile");
+        public Criteria andIsFileNotEqualTo(String value) {
+            addCriterion("f_isfile <>", value, "isFile");
             return (Criteria) this;
         }
 
-        public Criteria andIsileGreaterThan(String value) {
-            addCriterion("f_isfile >", value, "isile");
+        public Criteria andIsFileGreaterThan(String value) {
+            addCriterion("f_isfile >", value, "IsFile");
             return (Criteria) this;
         }
 
-        public Criteria andIsileGreaterThanOrEqualTo(String value) {
-            addCriterion("f_isfile >=", value, "isile");
+        public Criteria andIsFileGreaterThanOrEqualTo(String value) {
+            addCriterion("f_isfile >=", value, "IsFile");
             return (Criteria) this;
         }
 
-        public Criteria andIsileLessThan(String value) {
-            addCriterion("f_isfile <", value, "isile");
+        public Criteria andIsFileLessThan(String value) {
+            addCriterion("f_isfile <", value, "IsFile");
             return (Criteria) this;
         }
 
-        public Criteria andIsileLessThanOrEqualTo(String value) {
-            addCriterion("f_isfile <=", value, "isile");
+        public Criteria andIsFileLessThanOrEqualTo(String value) {
+            addCriterion("f_isfile <=", value, "IsFile");
             return (Criteria) this;
         }
 
-        public Criteria andIsileLike(String value) {
-            addCriterion("f_isfile like", value, "isile");
+        public Criteria andIsFileLike(String value) {
+            addCriterion("f_isfile like", value, "IsFile");
             return (Criteria) this;
         }
 
-        public Criteria andIsileNotLike(String value) {
-            addCriterion("f_isfile not like", value, "isile");
+        public Criteria andIsFileNotLike(String value) {
+            addCriterion("f_isfile not like", value, "IsFile");
             return (Criteria) this;
         }
 
-        public Criteria andIsileIn(List<String> values) {
-            addCriterion("f_isfile in", values, "isile");
+        public Criteria andIsFileIn(List<String> values) {
+            addCriterion("f_isfile in", values, "IsFile");
             return (Criteria) this;
         }
 
-        public Criteria andIsileNotIn(List<String> values) {
-            addCriterion("f_isfile not in", values, "isile");
+        public Criteria andIsFileNotIn(List<String> values) {
+            addCriterion("f_isfile not in", values, "IsFile");
             return (Criteria) this;
         }
 
-        public Criteria andIsileBetween(String value1, String value2) {
-            addCriterion("f_isfile between", value1, value2, "isile");
+        public Criteria andIsFileBetween(String value1, String value2) {
+            addCriterion("f_isfile between", value1, value2, "IsFile");
             return (Criteria) this;
         }
 
-        public Criteria andIsileNotBetween(String value1, String value2) {
-            addCriterion("f_isfile not between", value1, value2, "isile");
+        public Criteria andIsFileNotBetween(String value1, String value2) {
+            addCriterion("f_isfile not between", value1, value2, "IsFile");
             return (Criteria) this;
         }
 

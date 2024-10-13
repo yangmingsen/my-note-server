@@ -54,6 +54,7 @@ swagger:
 mybatis:
   mapper-locations: classpath:top/yms/note/mapper/*.xml
 
+
 cors:
   allowed-hosts: 127.0.0.1,localhost,api.notetest.yms.top
   allowed-ports: 5173,9090

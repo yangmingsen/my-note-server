@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import top.yms.note.comm.CommonErrorCode;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStore;
 import top.yms.note.conpont.NoteCache;
@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +60,7 @@ public class NoteFileController {
     private MongoTemplate mongoTemplate;
 
     @Autowired
-    @Qualifier(Constants.defaultNoteCache)
+    @Qualifier(NoteConstants.defaultNoteCache)
     private NoteCache noteCache;
 
     /**
@@ -111,7 +112,7 @@ public class NoteFileController {
 
         JSONObject resJson = new JSONObject();
         String fileId = fileStore.saveFile(file);
-        String url = Constants.BASE_TMP_VIEW_URL+fileId;
+        String url = NoteConstants.getBaseUrl()+NoteConstants.getTmpFileViewUrlSuffix(fileId);
         resJson.put("url", url);
         resJson.put("fileId", fileId);
         resJson.put("userId", LocalThreadUtils.getUserId().toString());
@@ -122,11 +123,16 @@ public class NoteFileController {
 
         //存入mongo
         Document document = Document.parse(resJson.toString());
-        mongoTemplate.save(document, Constants.tmpUploadFile);
+        mongoTemplate.save(document, NoteConstants.tmpUploadFile);
 
         return RestOut.success(resJson);
     }
 
+
+    @PostMapping("/uploadMultiFile")
+    public RestOut uploadMultiFile(@RequestParam("files") MultipartFile[] files, @RequestParam("parentId") Long parentId) {
+        throw new RuntimeException("Not implement");
+    }
 
     @PostMapping("/uploadNote")
     public RestOut uploadNote(@RequestParam(value = "file") MultipartFile file,
@@ -137,7 +143,7 @@ public class NoteFileController {
         if (parentId== null) {
             throw new BusinessException(NoteIndexErrorCode.E_203105);
         }
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         String fileName = file.getOriginalFilename();
         if (StringUtils.isBlank(fileName)) {
             throw new BusinessException(NoteIndexErrorCode.E_203109);
@@ -148,7 +154,7 @@ public class NoteFileController {
         note.setUserId(uid);
         note.setName(fileName);
         note.setSize(file.getSize());
-        note.setIsile("1");
+        note.setIsFile("1");
         int dot = fileName.lastIndexOf('.');
         if (dot > 0) {
             int len = fileName.length();
@@ -183,7 +189,7 @@ public class NoteFileController {
                     NoteIndex tmpNoteIndex = noteIndexService.findBySiteId(fileId);
                     noteIdRef = tmpNoteIndex.getId();
                 }
-                String cacheId = Constants.tmpReadPasswordToken+noteIdRef;
+                String cacheId = NoteConstants.tmpReadPasswordToken+noteIdRef;
                 String tmpTokenValue  = (String)noteCache.find(cacheId);
                 if (StringUtils.isNotBlank(tmpTokenValue)) {
                     if (tmpTokenValue.equals(tmpToken)) {
@@ -232,6 +238,12 @@ public class NoteFileController {
         AnyFile file = fileStore.loadFile(id);
         resp.setContentType(file.getContentType());
         file.writeTo(resp.getOutputStream());
+    }
+
+    @GetMapping("/test")
+    public NoteFile test(@RequestParam("id") String id, HttpServletResponse resp) throws Exception {
+        NoteFile noteFile = noteFileService.findOne(id);
+        return noteFile;
     }
 
     @GetMapping("/view")
@@ -333,17 +345,15 @@ public class NoteFileController {
 //        File file = new File("E:\\tmp\\youdaoNote\\yangmingsen\\专业\\"+fileNames[id]);
 
 
-        noteFileService.generateTree(file, parentId);
+//        noteFileService.generateTree(file, parentId);
         return RestOut.succeed("OK");
     }
 
 
     String baseSyncLocalPath = "E:\\tmp\\youdaoNote\\yangmingsen\\";
 
-    @GetMapping("/syncNote")
-    public RestOut syncNoteFromLocalFS(@RequestParam("id") Integer id) throws Exception {
-        String [] para = {
-                "Github","tmp","专业","人体","公司",
+    final String [] syncDir = {
+        "Github","tmp","专业","人体","公司",
                 //0        1      2     3       4
                 "其他分类","办公","团队协作","国家",
                 //5         6       7           8
@@ -352,12 +362,28 @@ public class NoteFileController {
                 "我","我的资源","数学","来自手机",
                 //14  15        16      17
                 "生活","经济",
-                //18     19
-        };
+        //18     19
+    };
 
+    @GetMapping("/syncAll")
+    public RestOut syncAllFromLocalFs() throws Exception {
+        for (int i=0; i<syncDir.length; i++) {
+            syncNoteFromLocalFS(i);
+        }
+        return RestOut.succeed("OK");
+    }
+
+
+    /**
+     * 同步某个目录
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/syncNote")
+    public RestOut syncNoteFromLocalFS(@RequestParam("id") Integer id) throws Exception {
         NoteTree rootNoteTree = noteIndexService.findCurUserRootNoteTree();
-
-        String syncName = para[id];
+        String syncName = syncDir[id];
         if (StringUtils.isBlank(syncName)) {
             throw new RuntimeException("syncName is empty");
         }
@@ -377,8 +403,25 @@ public class NoteFileController {
             throw new RuntimeException("目标文件为空");
         }
 
-        noteFileService.syncNoteFromLocalFS(syncNoteTree, syncFile);
+        //如果发生异常，则回滚当前mongList
+        List<String> mongoRollBackList = new ArrayList<>();
+        try {
+            noteFileService.syncNoteFromLocalFS(syncNoteTree, syncFile, mongoRollBackList);
+        } catch (Exception e) {
+            log.error("syncNoteFromLocalFS异常", e);
 
+            log.debug("回滚mongo...");
+            for (String fileId : mongoRollBackList) {
+                try {
+                    fileStore.delFile(fileId);
+                } catch (Exception ex) {
+                    log.debug("删除文件【{}】失败", fileId);
+                    log.error("回滚错误", ex);
+                }
+            }
+
+            throw new Exception(e);
+        }
 
         return RestOut.success("ok");
     }

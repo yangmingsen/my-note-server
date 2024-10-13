@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.alibaba.ttl.TransmittableThreadLocal;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 
 /**
  * 记录线程信息
@@ -16,7 +16,7 @@ import top.yms.note.comm.Constants;
 public class LocalThreadUtils {
 
     public static Long getUserId() {
-        return (Long)threadLocalValue.get().get(Constants.USER_ID);
+        return (Long)threadLocalValue.get().get(NoteConstants.USER_ID);
     }
 
     private static final ThreadLocal<Map<String, Object>> threadLocalValue = new TransmittableThreadLocal<>();

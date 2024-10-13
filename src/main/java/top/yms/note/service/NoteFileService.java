@@ -1,13 +1,10 @@
 package top.yms.note.service;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -16,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import top.yms.note.comm.CommonErrorCode;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.FileStore;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dto.NoteDataDto;
@@ -34,8 +31,6 @@ import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 
 import java.io.*;
-import java.net.URL;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -108,15 +103,17 @@ public class NoteFileService {
         JSONObject res = new JSONObject();
 
         Map<String, Object> reqInfo = LocalThreadUtils.get();
-        long userId = (long)reqInfo.get(Constants.USER_ID);
+        long userId = (long)reqInfo.get(NoteConstants.USER_ID);
         log.info("uploadFileForWer: userId={}", userId);
+        String fileId = null;
 
         try {
-            String fileId = fileStore.saveFile(file);
+            fileId = fileStore.saveFile(file);
             String fileName = file.getOriginalFilename();
             String fileType = file.getContentType();
             long fileSize = file.getSize();
-            String url = Constants.BASE_URL+fileId;
+            String tmpViewUrl = NoteConstants.getFileViewUrlSuffix(fileId);
+            String url = NoteConstants.getBaseUrl()+tmpViewUrl;
 
             NoteFile noteFile = new NoteFile();
             noteFile.setFileId(fileId);
@@ -124,7 +121,7 @@ public class NoteFileService {
             noteFile.setType(fileType);
             noteFile.setSize(fileSize);
             noteFile.setUserId(userId);
-            noteFile.setUrl(url);
+            noteFile.setUrl(tmpViewUrl);
             noteFile.setNoteRef(noteId);
             noteFile.setCreateTime(new Date());
             noteFileMapper.insertSelective(noteFile);
@@ -137,6 +134,9 @@ public class NoteFileService {
             res.put("errno", 0);
             return res;
         } catch (Exception e) {
+            if (fileId != null) {
+                fileStore.delFile(fileId);
+            }
             log.error("uploadFileForWer Error", e);
             throw new WangEditorUploadException(CommonErrorCode.E_203002);
         }
@@ -160,7 +160,7 @@ public class NoteFileService {
 
     private void handleMarkdown(MultipartFile file, NoteIndex note) throws Exception {
         long genId = idWorker.nextId();
-        note.setStoreSite(Constants.MYSQL);
+        note.setStoreSite(NoteConstants.MYSQL);
         note.setId(genId);
         //存储到t_note_index
         noteIndexService.add(note);
@@ -190,31 +190,40 @@ public class NoteFileService {
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void addNote(MultipartFile file, NoteIndex note) throws Exception{
-        if (Constants.markdownSuffix.equals(note.getType())) {
-            handleMarkdown(file, note);
-            return;
+        String fileId = null;
+        try {
+            if (NoteConstants.markdownSuffix.equals(note.getType())) {
+                handleMarkdown(file, note);
+                return;
+            }
+            fileId = fileStore.saveFile(file);
+            //先默认上传到mongo
+            note.setStoreSite(NoteConstants.MONGO);
+            note.setSiteId(fileId);
+
+            //存储到t_note_index
+            noteIndexService.add(note);
+
+            String tmpViewUrl = NoteConstants.getFileViewUrlSuffix(fileId);
+            //store to t_note_file
+            NoteFile noteFile = new NoteFile();
+            noteFile.setFileId(fileId);
+            noteFile.setName(note.getName());
+            noteFile.setType(note.getType());
+            noteFile.setSize(file.getSize());
+            noteFile.setUserId(note.getUserId());
+            noteFile.setUrl(tmpViewUrl);
+            noteFile.setViewCount(0L);
+            noteFile.setCreateTime(new Date());
+            noteFile.setNoteRef(note.getId());
+            noteFileMapper.insertSelective(noteFile);
+        } catch (Exception e) {
+            if (fileId != null) {
+                fileStore.delFile(fileId);
+            }
+            throw new RuntimeException(e);
         }
-        String fileId = fileStore.saveFile(file);
-        //先默认上传到mongo
-        note.setStoreSite(Constants.MONGO);
-        note.setSiteId(fileId);
 
-        //存储到t_note_index
-        noteIndexService.add(note);
-
-        String url = Constants.BASE_URL+fileId;
-        //store to t_note_file
-        NoteFile noteFile = new NoteFile();
-        noteFile.setFileId(fileId);
-        noteFile.setName(note.getName());
-        noteFile.setType(note.getType());
-        noteFile.setSize(file.getSize());
-        noteFile.setUserId(note.getUserId());
-        noteFile.setUrl(url);
-        noteFile.setViewCount(0L);
-        noteFile.setCreateTime(new Date());
-        noteFile.setNoteRef(note.getId());
-        noteFileMapper.insertSelective(noteFile);
     }
 
     /**
@@ -226,11 +235,10 @@ public class NoteFileService {
      * @param file
      */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 120)
-    public void syncNoteFromLocalFS(NoteTree noteTree, File file) throws Exception{
+    public void syncNoteFromLocalFS(NoteTree noteTree, File file, List<String> mongoRollBackList) throws Exception{
         if (file.isDirectory()) {
             File[] files = file.listFiles();
-            List<NoteTree> treeChildrenList = noteTree.getChildren();
-            Map<String, NoteTree> treeMap = treeChildrenList.stream().collect(Collectors.toMap(NoteTree::getLabel, Function.identity(), (k1, k2) -> k2));
+            Map<String, NoteTree> treeMap = noteTree.getChildren().stream().collect(Collectors.toMap(NoteTree::getLabel, Function.identity(), (k1, k2) -> k2));
             for (File tf : files) {
                 if (tf.getName().equals("images")) {
                     continue;
@@ -243,10 +251,10 @@ public class NoteFileService {
 
                 if (tmpNoteTree != null) {
                     //存在的情况, 继续往下处理
-                    syncNoteFromLocalFS(tmpNoteTree, tf);
+                    syncNoteFromLocalFS(tmpNoteTree, tf, mongoRollBackList);
                 } else {
                     //不存在就创建
-                    generateTree(tf, noteTree.getId());
+                    generateTree(tf, noteTree.getId(), mongoRollBackList);
                 }
 
             }
@@ -261,7 +269,7 @@ public class NoteFileService {
      * @throws Throwable
      */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 120)
-    public void generateTree(File file, Long parentId) throws Exception{
+    public void generateTree(File file, Long parentId, final List<String> mongoRollBackList) throws Exception{
         if (file.getName().equals("images")) {
             return;
         }
@@ -273,9 +281,9 @@ public class NoteFileService {
         noteIndex.setUserId(userId);
         boolean isFile = file.isFile();
         if (isFile) {
-            noteIndex.setIsile("1");
+            noteIndex.setIsFile("1");
         } else {
-            noteIndex.setIsile("0");
+            noteIndex.setIsFile("0");
         }
         String fileName = file.getName();
         noteIndex.setName(fileName);
@@ -296,8 +304,8 @@ public class NoteFileService {
                 noteIndex.setType(FileTypeEnum.UNKNOWN.getValue());
             }
 
-            if (Constants.markdownSuffix.equals(noteIndex.getType())) {
-                noteIndex.setStoreSite(Constants.MYSQL);
+            if (NoteConstants.markdownSuffix.equals(noteIndex.getType())) {
+                noteIndex.setStoreSite(NoteConstants.MYSQL);
                 StringBuilder sb = new StringBuilder();
 
                 try(InputStreamReader isr = new InputStreamReader(new FileInputStream(file))) {
@@ -313,7 +321,7 @@ public class NoteFileService {
 
                 String contentStr = sb.toString();
                 if (StringUtils.isNotBlank(contentStr))
-                    contentStr = replaceImageUrls(contentStr, file, id);
+                    contentStr = replaceImageUrls(contentStr, file, id, mongoRollBackList);
 
                 NoteData noteData = new NoteData();
                 noteData.setId(id);
@@ -328,13 +336,15 @@ public class NoteFileService {
 
             } else {
                 String fileId = fileStore.saveFile(file);
+                mongoRollBackList.add(fileId);
                 //先默认上传到mongo
-                noteIndex.setStoreSite(Constants.MONGO);
+                noteIndex.setStoreSite(NoteConstants.MONGO);
                 noteIndex.setSiteId(fileId);
                 //设置大小
                 noteIndex.setSize(file.length());
 
-                String url = Constants.BASE_URL+fileId;
+                String tmpUrl = NoteConstants.getFileViewUrlSuffix(fileId);
+//                String url = NoteConstants.BASE_URL+fileId;
                 //store to t_note_file
                 NoteFile noteFile = new NoteFile();
                 noteFile.setFileId(fileId);
@@ -342,7 +352,7 @@ public class NoteFileService {
                 noteFile.setType(noteIndex.getType());
                 noteFile.setSize(file.length());
                 noteFile.setUserId(userId);
-                noteFile.setUrl(url);
+                noteFile.setUrl(tmpUrl);
                 noteFile.setViewCount(0L);
                 noteFile.setCreateTime(new Date());
                 noteFile.setNoteRef(id);
@@ -353,7 +363,7 @@ public class NoteFileService {
             File[] files = file.listFiles();
             for (File subFile : files) {
                 if (subFile.getName().equals("images")) continue;
-                generateTree(subFile, id);
+                generateTree(subFile, id, mongoRollBackList);
             }
         }
         noteIndexMapper.insertSelective(noteIndex);
@@ -362,7 +372,7 @@ public class NoteFileService {
     @Autowired
     private NoteDataMapper noteDataMapper;
 
-    private  String replaceImageUrls(String content, File srcFile, Long noteId) throws Exception{
+    private  String replaceImageUrls(String content, File srcFile, Long noteId, final List<String> mongoRollBackList) throws Exception{
         Pattern pattern = Pattern.compile("!\\[([^\\]]*)\\]\\(([^\\)]+)\\)");
         Matcher matcher = pattern.matcher(content);
         StringBuffer sb = new StringBuffer();
@@ -381,7 +391,10 @@ public class NoteFileService {
 
                 File targetFile = new File(targetPath);
                 String targetFileMongoId = fileStore.saveFile(targetFile);
-                String viewUrl = Constants.BASE_URL+ targetFileMongoId;
+                mongoRollBackList.add(targetFileMongoId);
+
+                String vieUrlSuffix = NoteConstants.getFileViewUrlSuffix(targetFileMongoId);
+                String viewUrl =NoteConstants.getBaseUrl()+vieUrlSuffix;
 
 
                 //store to t_note_file
@@ -406,14 +419,13 @@ public class NoteFileService {
 
                 noteFile.setSize(targetFile.length());
                 noteFile.setUserId(LocalThreadUtils.getUserId());
-                noteFile.setUrl(viewUrl);
+                noteFile.setUrl(vieUrlSuffix);
                 noteFile.setViewCount(0L);
                 noteFile.setCreateTime(new Date());
                 noteFile.setNoteRef(noteId);
                 noteFileMapper.insertSelective(noteFile);
 
-                String newUrl = viewUrl;
-                matcher.appendReplacement(sb, "![" + altText + "](" + newUrl + ")");
+                matcher.appendReplacement(sb, "![" + altText + "](" + viewUrl + ")");
             } catch (Exception e) {
                 matcher.appendReplacement(sb, "![" + altText + "](" + oldUrl + ")");
             }
@@ -423,24 +435,26 @@ public class NoteFileService {
     }
 
     public JSONObject uploadFile(MultipartFile file, Long noteId) throws BusinessException {
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
+        String fileId = null;
         try {
-            String fileId = fileStore.saveFile(file);
+            fileId = fileStore.saveFile(file);
             String fileName = file.getOriginalFilename();
             String fileType = file.getContentType();
             long fileSize = file.getSize();
-            String url = Constants.BASE_URL+fileId;
+            String fileViewUrlSuffix = NoteConstants.getFileViewUrlSuffix(fileId);
             NoteFile noteFile = new NoteFile();
             noteFile.setFileId(fileId);
             noteFile.setName(fileName);
             noteFile.setType(fileType);
             noteFile.setSize(fileSize);
             noteFile.setUserId(uid);
-            noteFile.setUrl(url);
+            noteFile.setUrl(fileViewUrlSuffix);
             noteFile.setNoteRef(noteId);
             noteFile.setCreateTime(new Date());
             noteFileMapper.insertSelective(noteFile);
 
+            String url = NoteConstants.getBaseUrl()+fileViewUrlSuffix;
             JSONObject resJson = new JSONObject();
             resJson.put("url", url);
             resJson.put("alt", fileName);
@@ -448,6 +462,9 @@ public class NoteFileService {
 
             return resJson;
         } catch (Exception e) {
+            if (fileId != null) {
+                fileStore.delFile(fileId);
+            }
             throw new BusinessException(CommonErrorCode.E_203004);
         }
     }
@@ -463,21 +480,22 @@ public class NoteFileService {
         long id = idWorker.nextId();
         String fileName = "临时文本"+id;
         String fileType = FileTypeEnum.TXT.getValue();
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         NoteIndex note = new NoteIndex();
         note.setId(id);
         note.setParentId(parentId);
         note.setUserId(uid);
         note.setName(fileName);
-        note.setIsile("1");
+        note.setIsFile("1");
         note.setType(fileType);
         note.setDel("0");
         note.setCreateTime(new Date());
         note.setSize((long)textContent.getBytes(StandardCharsets.UTF_8).length);
-        note.setStoreSite(Constants.MONGO);
+        note.setStoreSite(NoteConstants.MONGO);
 
         JSONObject resJson = new JSONObject();
         Path tempFile = null;
+        String fileId = null;
         try {
             // 创建一个临时文件
             tempFile = Files.createTempFile(id+"", ".txt");
@@ -486,26 +504,31 @@ public class NoteFileService {
             Map<String, Object> optionMap = new HashMap<>();
             optionMap.put("fileName", fileName);
             optionMap.put("fileType", FileTypeEnum.TXT.getValue());
-            String fileId = fileStore.saveFile(inputStream, optionMap);
+            fileId = fileStore.saveFile(inputStream, optionMap);
             note.setSiteId(fileId);
 
             //t_note_file
-            String url = Constants.BASE_URL+fileId;
+            String fileViewUrlSuffix = NoteConstants.getFileViewUrlSuffix(fileId);
+
             NoteFile noteFile = new NoteFile();
             noteFile.setFileId(fileId);
             noteFile.setName(fileName);
             noteFile.setType(fileType);
             noteFile.setSize((long) textContent.getBytes(StandardCharsets.UTF_8).length);
             noteFile.setUserId(uid);
-            noteFile.setUrl(url);
+            noteFile.setUrl(fileViewUrlSuffix);
             noteFile.setCreateTime(new Date());
             noteFile.setNoteRef(id);
             noteFileMapper.insertSelective(noteFile);
 
+            String url = NoteConstants.getBaseUrl()+fileViewUrlSuffix;
             inputStream.close();
             resJson.put("url", url);
             resJson.put("id", fileId);
         } catch (Exception e) {
+            if (fileId != null) {
+                fileStore.delFile(fileId);
+            }
             throw new RuntimeException(e);
         } finally {
             // 删除临时文件
@@ -537,20 +560,21 @@ public class NoteFileService {
         long id = idWorker.nextId();
         String fileName = "url转Pdf_"+id;
         String fileType = FileTypeEnum.PDF.getValue();
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         NoteIndex note = new NoteIndex();
         note.setId(id);
         note.setParentId(parentId);
         note.setUserId(uid);
         note.setName(fileName);
-        note.setIsile("1");
+        note.setIsFile("1");
         note.setType(fileType);
         note.setDel("0");
         note.setCreateTime(new Date());
         note.setSize((long)body.length);
-        note.setStoreSite(Constants.MONGO);
+        note.setStoreSite(NoteConstants.MONGO);
 
         Path tempFile = null;
+        String fileId = null;
         try {
             // 创建一个临时文件
             tempFile = Files.createTempFile(id+"", ".pdf");
@@ -559,24 +583,28 @@ public class NoteFileService {
             Map<String, Object> optionMap = new HashMap<>();
             optionMap.put("fileName", fileName);
             optionMap.put("fileType", FileTypeEnum.PDF.getValue());
-            String fileId = fileStore.saveFile(inputStream, optionMap);
+            fileId = fileStore.saveFile(inputStream, optionMap);
             note.setSiteId(fileId);
 
             //t_note_file
-            String url = Constants.BASE_URL+fileId;
+            String fileViewUrlSuffix = NoteConstants.getFileViewUrlSuffix(fileId);
             NoteFile noteFile = new NoteFile();
             noteFile.setFileId(fileId);
             noteFile.setName(fileName);
             noteFile.setType(fileType);
             noteFile.setSize((long) body.length);
             noteFile.setUserId(uid);
-            noteFile.setUrl(url);
+            noteFile.setUrl(fileViewUrlSuffix);
             noteFile.setCreateTime(new Date());
             noteFile.setNoteRef(id);
             noteFileMapper.insertSelective(noteFile);
 
             inputStream.close();
         } catch (Exception e) {
+            //删除fileId
+            if (fileId != null) {
+                fileStore.delFile(fileId);
+            }
             throw new RuntimeException(e);
         } finally {
             // 删除临时文件

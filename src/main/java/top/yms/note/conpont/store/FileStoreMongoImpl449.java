@@ -41,7 +41,7 @@ public class FileStoreMongoImpl449 implements FileStore {
     @Override
     public AnyFile loadFile(String id) throws BusinessException {
         try {
-            log.info("loadFile id={}", id);
+            log.debug("loadFile id={}", id);
             GridFSFile gFS = gridFsTemplate.findOne(new Query(Criteria.where("_id").is(id)));
             return new MongFile449(gFS, gridFSBucket);
         } catch (Exception e) {

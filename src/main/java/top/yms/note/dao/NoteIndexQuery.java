@@ -67,10 +67,10 @@ public class NoteIndexQuery {
             criteria.andDelEqualTo("0");
         }
         if (filter == 2) {
-            criteria.andIsileEqualTo("0");
+            criteria.andIsFileEqualTo("0");
         }
         if (filter == 3) {
-            criteria.andIsileEqualTo("1");
+            criteria.andIsFileEqualTo("1");
         }
 
         return example;

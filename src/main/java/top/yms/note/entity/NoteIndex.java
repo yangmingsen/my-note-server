@@ -30,7 +30,7 @@ public class NoteIndex {
     /**
      * 是否为目录(0是目录，1是文件)
      */
-    private String isile;
+    private String isFile;
 
     /**
      * 文件类型(为文件时有值)
@@ -137,12 +137,12 @@ public class NoteIndex {
         this.name = name == null ? null : name.trim();
     }
 
-    public String getIsile() {
-        return isile;
+    public String getIsFile() {
+        return isFile;
     }
 
-    public void setIsile(String isile) {
-        this.isile = isile == null ? null : isile.trim();
+    public void setIsFile(String isFile) {
+        this.isFile = isFile == null ? null : isFile.trim();
     }
 
     public String getType() {
@@ -193,7 +193,7 @@ public class NoteIndex {
                 ", parentId=" + parentId +
                 ", userId=" + userId +
                 ", name='" + name + '\'' +
-                ", isile='" + isile + '\'' +
+                ", isFile='" + isFile + '\'' +
                 ", type='" + type + '\'' +
                 ", del='" + del + '\'' +
                 ", size='" + size + '\'' +

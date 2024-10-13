@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.CommonErrorCode;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteIndex;
@@ -27,10 +27,10 @@ public class MindMapNoteType extends AbstractNoteType{
 
     @Override
     public boolean support(String type) {
-        return Constants.mindmapSuffix.equals(type);
+        return NoteConstants.mindmapSuffix.equals(type);
     }
 
-    final String noteMindMap = Constants.noteMindMap;
+    final String noteMindMap = NoteConstants.noteMindMap;
 
     @Override
     public Object doGetContent(Long id) {

@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -22,6 +22,42 @@ import java.util.List;
 public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
 
     private final static Logger log = LoggerFactory.getLogger(AbstractAsyncExecuteTask.class);
+
+    /**
+     * 当前状态：0, 未在允许; 1,运行中
+     */
+    private volatile int status;
+
+    private enum StatusEnum {
+        UnRunning(0, "未运行中"),
+        Running(1, "运行中"),
+        ;
+        private int value;
+        private String name;
+
+        StatusEnum(int value, String name) {
+            this.value = value;
+            this.name = name;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public static StatusEnum apply(int v) {
+            for (StatusEnum nt : StatusEnum.values()) {
+                if (nt.value == v) {
+                    return nt;
+                }
+            }
+            return null;
+        }
+
+    }
 
     protected List<AsyncTask> dataList = new LinkedList<>();
 
@@ -38,7 +74,7 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
 
         JSONObject taskInfo = JSONObject.from(task);
         Document newDoc = Document.parse(taskInfo.toString());
-        mongoTemplate.save(newDoc, Constants.taskInfoMessage);
+        mongoTemplate.save(newDoc, NoteConstants.taskInfoMessage);
     }
 
 
@@ -118,16 +154,34 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
         return resList;
     }
 
+    protected int getStatus() {
+        return status;
+    }
+
+    protected void setStatus(int status) {
+        this.status = status;
+    }
+
+    /**
+     * true 正在运行
+     * @return
+     */
+    public boolean isRun() {
+        return StatusEnum.apply(getStatus()) == StatusEnum.Running;
+    }
+
     /**
      * 执行任务
      */
     abstract void doRun();
 
     protected boolean beforeRun() {
+        setStatus(StatusEnum.Running.getValue());
         return true;
     }
 
     protected boolean runComplete() {
+        setStatus(StatusEnum.UnRunning.getValue());
         return true;
     }
 }

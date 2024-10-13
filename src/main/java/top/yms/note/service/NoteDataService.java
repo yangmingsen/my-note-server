@@ -14,10 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.comm.CommonErrorCode;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.*;
-import top.yms.note.conpont.content.NotePreview;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.dto.NoteDataDto;
@@ -58,7 +57,7 @@ public class NoteDataService {
     private FileStore fileStore;
 
     @Autowired
-    @Qualifier(Constants.noteLuceneSearch)
+    @Qualifier(NoteConstants.noteLuceneSearch)
     private NoteDataIndexService noteDataIndexService;
 
     @Autowired
@@ -68,8 +67,7 @@ public class NoteDataService {
     private NoteStoreService noteStoreService;
 
 
-
-    private final String noteMindMap = Constants.noteMindMap;
+    private final String noteMindMap = NoteConstants.noteMindMap;
 
     /**
      * 过期与20240927，请使用 NoteStoreService#save
@@ -168,12 +166,12 @@ public class NoteDataService {
                     Document document = Document.parse(jsonObject.toString());
 
                     if (StringUtils.isNotBlank(noteIndex1.getSiteId())) {
-                        oldDoc = mongoTemplate.findById(noteIndex1.getSiteId(), Document.class, Constants.noteWerTextContent);
+                        oldDoc = mongoTemplate.findById(noteIndex1.getSiteId(), Document.class, NoteConstants.noteWerTextContent);
                         ObjectId objectId = new ObjectId(noteIndex1.getSiteId());
                         document.put("_id", objectId);
-                        mongoTemplate.save(document,  Constants.noteWerTextContent);
+                        mongoTemplate.save(document,  NoteConstants.noteWerTextContent);
                     } else {
-                        Document saveRes = mongoTemplate.save(document, Constants.noteWerTextContent);
+                        Document saveRes = mongoTemplate.save(document, NoteConstants.noteWerTextContent);
                         objId = saveRes.getObjectId("_id");
                         noteIndex.setSiteId(objId.toString());
                     }
@@ -194,9 +192,10 @@ public class NoteDataService {
             } else {
                 noteLuceneIndex.setContent(noteData.getContent());
             }
-            noteLuceneIndex.setIsFile(noteIndex1.getIsile());
+            noteLuceneIndex.setIsFile(noteIndex1.getIsFile());
             noteLuceneIndex.setType(noteIndex1.getType());
             noteLuceneIndex.setCreateDate(opTime);
+            noteLuceneIndex.setEncrypted(noteIndex1.getEncrypted());
             noteDataIndexService.update(noteLuceneIndex);
 
             //版本记录
@@ -208,10 +207,10 @@ public class NoteDataService {
             noteDataVersionMapper.insertSelective(dataVersion);
         } catch (Exception e) {
             if (objId != null) {
-                mongoTemplate.remove(new Document("_id", objId), Constants.noteWerTextContent);
+                mongoTemplate.remove(new Document("_id", objId), NoteConstants.noteWerTextContent);
             }
             if (oldDoc != null) {
-                mongoTemplate.save(oldDoc, Constants.noteWerTextContent);
+                mongoTemplate.save(oldDoc, NoteConstants.noteWerTextContent);
             }
             log.error("addAndUpdate异常", e);
             throw new RuntimeException(e);
@@ -274,7 +273,7 @@ public class NoteDataService {
         }
         //2. 不在的话再去通过内容判断是否为文本。
         //todo 哎，这个判断算法还有问题，后续在看
-        if (!Constants.MONGO.equals(noteIndex.getStoreSite())) {
+        if (!NoteConstants.MONGO.equals(noteIndex.getStoreSite())) {
             log.info("查询的文件id={}, 未存储在mongo上", id);
             //目前都是存储在mongo上的,
             return false;
@@ -312,7 +311,7 @@ public class NoteDataService {
     public NoteData findOne(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
         NoteData noteData = new NoteData();
-        if (Constants.MYSQL.equals(noteIndex.getStoreSite())) {
+        if (NoteConstants.MYSQL.equals(noteIndex.getStoreSite())) {
             noteData = noteDataMapper.selectByPrimaryKey(id);
         } else {
             if (FileTypeEnum.MINDMAP.compare(noteIndex.getType())) {
@@ -362,7 +361,7 @@ public class NoteDataService {
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 20)
     public void syncDataSize() {
         Long uid = LocalThreadUtils.getUserId();
-        noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).filter(3).storeSite(Constants.MYSQL).get().example())
+        noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).filter(3).storeSite(NoteConstants.MYSQL).get().example())
                 .forEach(index -> {
                     Long id = index.getId();
                     NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
@@ -376,7 +375,7 @@ public class NoteDataService {
 
                 });
 
-        noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).filter(3).storeSite(Constants.MONGO).get().example())
+        noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).filter(3).storeSite(NoteConstants.MONGO).get().example())
                 .forEach(index -> {
                     Long id = index.getId();
                     String fileId = index.getSiteId();

@@ -1,9 +1,8 @@
 package top.yms.note.conpont.search;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteSearch;
 import top.yms.note.dto.NoteSearchDto;
 import top.yms.note.entity.SearchLog;
@@ -20,7 +19,7 @@ import java.util.stream.Collectors;
 /**
  * Created by yangmingsen on 2024/8/21.
  */
-@Component(Constants.noteDefaultSearch)
+@Component(NoteConstants.noteDefaultSearch)
 public class NoteDefaultSearch implements NoteSearch {
 
 
@@ -58,7 +57,7 @@ public class NoteDefaultSearch implements NoteSearch {
                     searchResult.setResult(highlightResult);
                     searchResult.setId(noteIndex.getId());
                     searchResult.setParentId(noteIndex.getParentId());
-                    searchResult.setIsile(noteIndex.getIsile());
+                    searchResult.setIsFile(noteIndex.getIsFile());
                     searchResult.setType(noteIndex.getType());
                     return (SearchResult)searchResult;
                 })

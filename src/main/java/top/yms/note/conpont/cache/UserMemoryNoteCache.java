@@ -2,7 +2,7 @@ package top.yms.note.conpont.cache;
 
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteCache;
 import top.yms.note.utils.LocalThreadUtils;
 
@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentMap;
  * Created by yangmingsen on 2024/8/12.
  */
 @Primary
-@Component(Constants.userMemoryNoteCache)
+@Component(NoteConstants.userMemoryNoteCache)
 public class UserMemoryNoteCache implements NoteCache {
 
     private final ConcurrentMap<String, Map<String, Object>> cacheMap = new ConcurrentHashMap<>();
@@ -46,7 +46,7 @@ public class UserMemoryNoteCache implements NoteCache {
     }
 
     private String getUserId() {
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         cacheMap.computeIfAbsent(uid.toString(), k -> new HashMap<>());
         return uid.toString();
     }

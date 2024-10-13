@@ -64,11 +64,12 @@ public class ConfigureListener implements ApplicationListener<ApplicationEnviron
                 String sql = "select * from t_system_config";
                 // 4、执行sql语句并且换回一个查询的结果集
                 rs = st.executeQuery(sql);
+                log.debug("--------GetConfigFromDB--------------");
                 while (rs.next()) {
                     // 获取数据库中的数据
                     String configKey = rs.getString("f_config_key");
                     String configValue = rs.getString("f_config_value");
-                    log.info("item: {} => value: {}", configKey, configValue);
+                    log.debug("configKey: {} => value: {}", configKey, configValue);
                     // 通过数据库中的配置 修改application集合中数据
                     Map<String, OriginTrackedValue> source = (Map<String, OriginTrackedValue>)propertySource.getSource();
                     OriginTrackedValue originTrackedValue = source.get(configKey);
@@ -78,6 +79,7 @@ public class ConfigureListener implements ApplicationListener<ApplicationEnviron
                     }
 
                 }
+                log.debug("--------GetConfigFromDB Over--------------");
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {

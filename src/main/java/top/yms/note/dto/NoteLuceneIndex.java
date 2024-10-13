@@ -14,6 +14,15 @@ public class NoteLuceneIndex implements NoteDataIndex{
     private String type;
     private String isFile;
     private Date createDate;
+    private String encrypted;
+
+    public String getEncrypted() {
+        return encrypted;
+    }
+
+    public void setEncrypted(String encrypted) {
+        this.encrypted = encrypted;
+    }
 
     public Long getId() {
         return id;

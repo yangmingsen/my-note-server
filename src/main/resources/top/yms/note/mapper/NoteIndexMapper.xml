@@ -6,7 +6,7 @@
     <result column="f_parent_id" jdbcType="BIGINT" property="parentId" />
     <result column="f_user_id" jdbcType="BIGINT" property="userId" />
     <result column="f_name" jdbcType="VARCHAR" property="name" />
-    <result column="f_isfile" jdbcType="CHAR" property="isile" />
+    <result column="f_isfile" jdbcType="CHAR" property="isFile" />
     <result column="f_type" jdbcType="VARCHAR" property="type" />
     <result column="f_del" jdbcType="CHAR" property="del" />
     <result column="f_create_time" jdbcType="TIMESTAMP" property="createTime" />
@@ -115,7 +115,7 @@
       f_create_time, f_update_time, f_store_site, f_site_id,
                               f_encrypted, f_view_time)
     values (#{id,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, 
-      #{name,jdbcType=VARCHAR}, #{isile,jdbcType=CHAR}, #{type,jdbcType=VARCHAR}, #{del,jdbcType=CHAR}, 
+      #{name,jdbcType=VARCHAR}, #{isFile,jdbcType=CHAR}, #{type,jdbcType=VARCHAR}, #{del,jdbcType=CHAR},
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{storeSite,jdbcType=VARCHAR},
             #{siteId,jdbcType=VARCHAR}, #{encrypted,jdbcType=VARCHAR}, #{viewTime,jdbcType=TIMESTAMP})
   </insert>
@@ -134,7 +134,7 @@
       <if test="name != null">
         f_name,
       </if>
-      <if test="isile != null">
+      <if test="isFile != null">
         f_isfile,
       </if>
       <if test="type != null">
@@ -175,8 +175,8 @@
       <if test="name != null">
         #{name,jdbcType=VARCHAR},
       </if>
-      <if test="isile != null">
-        #{isile,jdbcType=CHAR},
+      <if test="isFile != null">
+        #{isFile,jdbcType=CHAR},
       </if>
       <if test="type != null">
         #{type,jdbcType=VARCHAR},
@@ -225,8 +225,8 @@
       <if test="record.name != null">
         f_name = #{record.name,jdbcType=VARCHAR},
       </if>
-      <if test="record.isile != null">
-        f_isfile = #{record.isile,jdbcType=CHAR},
+      <if test="record.isFile != null">
+        f_isfile = #{record.isFile,jdbcType=CHAR},
       </if>
       <if test="record.type != null">
         f_type = #{record.type,jdbcType=VARCHAR},
@@ -266,7 +266,7 @@
       f_parent_id = #{record.parentId,jdbcType=BIGINT},
       f_user_id = #{record.userId,jdbcType=BIGINT},
       f_name = #{record.name,jdbcType=VARCHAR},
-      f_isfile = #{record.isile,jdbcType=CHAR},
+      f_isfile = #{record.isFile,jdbcType=CHAR},
       f_type = #{record.type,jdbcType=VARCHAR},
       f_del = #{record.del,jdbcType=CHAR},
       f_create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -291,8 +291,8 @@
       <if test="name != null">
         f_name = #{name,jdbcType=VARCHAR},
       </if>
-      <if test="isile != null">
-        f_isfile = #{isile,jdbcType=CHAR},
+      <if test="isFile != null">
+        f_isfile = #{isFile,jdbcType=CHAR},
       </if>
       <if test="type != null">
         f_type = #{type,jdbcType=VARCHAR},
@@ -329,7 +329,7 @@
     set f_parent_id = #{parentId,jdbcType=BIGINT},
       f_user_id = #{userId,jdbcType=BIGINT},
       f_name = #{name,jdbcType=VARCHAR},
-      f_isfile = #{isile,jdbcType=CHAR},
+      f_isfile = #{isFile,jdbcType=CHAR},
       f_type = #{type,jdbcType=VARCHAR},
       f_del = #{del,jdbcType=CHAR},
       f_create_time = #{createTime,jdbcType=TIMESTAMP},

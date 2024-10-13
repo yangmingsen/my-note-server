@@ -1,7 +1,8 @@
 package top.yms.note.conpont.task;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -11,10 +12,19 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by yangmingsen on 2024/10/2.
  */
-@Component(Constants.noteScheduledThreadPoolExecutor)
+@Component(NoteConstants.noteScheduledThreadPoolExecutor)
 public class NoteScheduledThreadPoolExecutor implements NoteScheduledExecutorService {
 
-    private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);
+    @Value("${system.task.exc_work_num}")
+    private int coreCpuNum;
+
+    private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(coreCpuNum);
+
+
+    @Override
+    public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
+        return null;
+    }
 
     @Override
     public void execute(Runnable command) {

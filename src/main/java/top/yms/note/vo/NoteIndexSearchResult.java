@@ -10,7 +10,7 @@ public class NoteIndexSearchResult implements SearchResult {
     private Long id;
     private Long parentId;
     private String type;
-    private String isile;
+    private String isFile;
 
 
     @Override
@@ -59,11 +59,11 @@ public class NoteIndexSearchResult implements SearchResult {
         this.type = type;
     }
 
-    public String getIsile() {
-        return isile;
+    public String getIsFile() {
+        return isFile;
     }
 
-    public void setIsile(String isile) {
-        this.isile = isile;
+    public void setIsFile(String isFile) {
+        this.isFile = isFile;
     }
 }

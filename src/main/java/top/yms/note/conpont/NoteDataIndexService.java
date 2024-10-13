@@ -14,6 +14,8 @@ public interface NoteDataIndexService {
      */
     void update(NoteDataIndex noteDataIndex);
 
+    void updateByIds(List<Long> ids);
+
     void delete(Long id);
 
     void delete(List<Long> ids);

@@ -4,22 +4,26 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.FileStore;
+import top.yms.note.conpont.NoteAsyncExecuteTaskService;
 import top.yms.note.conpont.NoteDataIndexService;
-import top.yms.note.dto.NoteDataDto;
-import top.yms.note.dto.NoteLuceneIndex;
+import top.yms.note.conpont.task.DelayExecuteAsyncTask;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteDataVersion;
 import top.yms.note.entity.NoteFile;
 import top.yms.note.entity.NoteIndex;
+import top.yms.note.enums.AsyncExcuteTypeEnum;
+import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteDataVersionMapper;
 import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.mapper.NoteIndexMapper;
 import top.yms.note.service.NoteFileService;
+import top.yms.note.utils.IdWorker;
+import top.yms.note.utils.LocalThreadUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -49,11 +53,17 @@ public abstract class AbstractNoteType implements NoteType, NoteExport {
     protected FileStore fileStore;
 
     @Autowired
-    @Qualifier(Constants.noteLuceneSearch)
+    @Qualifier(NoteConstants.noteLuceneSearch)
     protected NoteDataIndexService noteDataIndexService;
 
     @Autowired
     protected MongoTemplate mongoTemplate;
+
+    @Autowired
+    private NoteAsyncExecuteTaskService noteAsyncExecuteTaskService;
+
+    @Autowired
+    private IdWorker idWorker;
 
     /**
      * 查找noteFile信息
@@ -148,18 +158,35 @@ public abstract class AbstractNoteType implements NoteType, NoteExport {
      */
     protected void saveSearchIndex(NoteIndex noteIndex, String indexContent) {
         //通知更新lucene索引
-        NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
-        noteLuceneIndex.setId(noteIndex.getId());
-        noteLuceneIndex.setUserId(noteIndex.getUserId());
-        noteLuceneIndex.setParentId(noteIndex.getParentId());
-        noteLuceneIndex.setTitle(noteIndex.getName());
-        if (StringUtils.isNotBlank(indexContent)) {
-            noteLuceneIndex.setContent(indexContent);
-        }
-        noteLuceneIndex.setIsFile(noteIndex.getIsile());
-        noteLuceneIndex.setType(noteIndex.getType());
-        noteLuceneIndex.setCreateDate(new Date());
-        noteDataIndexService.update(noteLuceneIndex);
+//        NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
+//        noteLuceneIndex.setId(noteIndex.getId());
+//        noteLuceneIndex.setUserId(noteIndex.getUserId());
+//        noteLuceneIndex.setParentId(noteIndex.getParentId());
+//        noteLuceneIndex.setTitle(noteIndex.getName());
+//        if (StringUtils.isNotBlank(indexContent)) {
+//            noteLuceneIndex.setContent(indexContent);
+//        }
+//        noteLuceneIndex.setIsFile(noteIndex.getIsFile());
+//        noteLuceneIndex.setType(noteIndex.getType());
+//        noteLuceneIndex.setCreateDate(new Date());
+//        noteLuceneIndex.setEncrypted(noteLuceneIndex.getEncrypted());
+
+//        noteDataIndexService.update(noteLuceneIndex);
+
+
+        DelayExecuteAsyncTask indexUpdateDelayTask = DelayExecuteAsyncTask.Builder
+                .build()
+                .type(AsyncTaskEnum.SYNC_Note_Index_UPDATE)
+                .executeType(AsyncExcuteTypeEnum.DELAY_EXC_TASK)
+                .taskId(idWorker.nextId())
+                .taskName(AsyncTaskEnum.SYNC_Note_Index_UPDATE.getName())
+                .createTime(new Date())
+                .userId(LocalThreadUtils.getUserId())
+                .taskInfo(noteIndex.getId())
+                .get();
+
+        noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
+
     }
 
     /**
