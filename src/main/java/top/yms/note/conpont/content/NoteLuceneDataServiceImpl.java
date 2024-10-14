@@ -5,8 +5,6 @@ import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteLuceneDataService;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 
-import java.util.List;
-
 /**
  * Created by yangmingsen on 2024/10/13.
  */

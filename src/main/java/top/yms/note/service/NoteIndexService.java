@@ -14,11 +14,9 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import top.yms.note.conpont.FileStore;
-import top.yms.note.conpont.NoteDataIndexService;
-import top.yms.note.conpont.NoteRecentVisitService;
-import top.yms.note.conpont.NoteSearch;
+import top.yms.note.conpont.*;
 import top.yms.note.conpont.search.NoteLuceneIndex;
+import top.yms.note.conpont.task.DelayExecuteAsyncTask;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dto.*;
 import top.yms.note.entity.*;
@@ -81,6 +79,9 @@ public class NoteIndexService {
 
     @Autowired
     private NoteRecentVisitService noteRecentVisitService;
+
+    @Autowired
+    private NoteAsyncExecuteTaskService noteAsyncExecuteTaskService;
 
     public List<NoteIndex> findByUserId(Long userid) {
         return Optional.of(findNoteList(userid, 1)).orElse(Collections.emptyList());
@@ -415,22 +416,44 @@ public class NoteIndexService {
 
 
             //update index service
-            if (NoteTypeEnum.File == NoteTypeEnum.apply(note.getIsFile())) {
-                NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
-                noteLuceneIndex.setId(genId);
-                noteLuceneIndex.setUserId(LocalThreadUtils.getUserId());
-                noteLuceneIndex.setParentId(note.getParentId());
-                noteLuceneIndex.setTitle(note.getName());
+//            if (NoteTypeEnum.File == NoteTypeEnum.apply(note.getIsFile())) {
+//                NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
+//                noteLuceneIndex.setId(genId);
+//                noteLuceneIndex.setUserId(LocalThreadUtils.getUserId());
+//                noteLuceneIndex.setParentId(note.getParentId());
+//                noteLuceneIndex.setTitle(note.getName());
+//                noteLuceneIndex.setIsFile(note.getIsFile());
+//                noteLuceneIndex.setType(note.getType());
+//                noteLuceneIndex.setCreateDate(opTime);
+//                noteLuceneIndex.setEncrypted("0");
+//
+//
+//                noteDataIndexService.update(noteLuceneIndex);
+//
+//                //todo 需要考虑只更新索引没有内容的情况
+//            }
+//
+            NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
+            noteLuceneIndex.setId(genId);
+            noteLuceneIndex.setUserId(LocalThreadUtils.getUserId());
+            noteLuceneIndex.setParentId(note.getParentId());
+            noteLuceneIndex.setTitle(note.getName());
+            noteLuceneIndex.setIsFile(note.getIsFile());
+            noteLuceneIndex.setType(note.getType());
+            noteLuceneIndex.setCreateDate(opTime);
+            noteLuceneIndex.setEncrypted("0");
+            DelayExecuteAsyncTask indexUpdateDelayTask = DelayExecuteAsyncTask.Builder
+                    .build()
+                    .type(AsyncTaskEnum.SYNC_Note_Index_UPDATE)
+                    .executeType(AsyncExcuteTypeEnum.DELAY_EXC_TASK)
+                    .taskId(idWorker.nextId())
+                    .taskName(AsyncTaskEnum.SYNC_Note_Index_UPDATE.getName())
+                    .createTime(new Date())
+                    .userId(LocalThreadUtils.getUserId())
+                    .taskInfo(noteLuceneIndex)
+                    .get();
 
-                noteLuceneIndex.setIsFile(note.getIsFile());
-                noteLuceneIndex.setType(note.getType());
-                noteLuceneIndex.setCreateDate(opTime);
-                noteLuceneIndex.setEncrypted("0");
-                noteDataIndexService.update(noteLuceneIndex);
-
-                //todo 需要考虑只更新索引没有内容的情况
-            }
-
+            noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
         } catch (Exception e) {
             log.error("add失败", e);
             if (mindMapMongoId != null) {
@@ -455,16 +478,38 @@ public class NoteIndexService {
         if (StringUtils.isNotBlank(note.getName())) {
             if (!note.getName().equals(noteIndex.getName())) {
                 //update index service
+//                NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
+//                noteLuceneIndex.setId(id);
+//                noteLuceneIndex.setUserId(LocalThreadUtils.getUserId());
+//                noteLuceneIndex.setParentId(noteIndex.getParentId());
+//                noteLuceneIndex.setTitle(note.getName());
+//
+//                noteLuceneIndex.setIsFile(noteIndex.getIsFile());
+//                noteLuceneIndex.setType(noteIndex.getType());
+//                noteLuceneIndex.setCreateDate(new Date());
+//                noteDataIndexService.update(noteLuceneIndex);
+
                 NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
                 noteLuceneIndex.setId(id);
                 noteLuceneIndex.setUserId(LocalThreadUtils.getUserId());
-                noteLuceneIndex.setParentId(noteIndex.getParentId());
+                noteLuceneIndex.setParentId(note.getParentId());
                 noteLuceneIndex.setTitle(note.getName());
-
-                noteLuceneIndex.setIsFile(noteIndex.getIsFile());
-                noteLuceneIndex.setType(noteIndex.getType());
+                noteLuceneIndex.setIsFile(note.getIsFile());
+                noteLuceneIndex.setType(note.getType());
                 noteLuceneIndex.setCreateDate(new Date());
-                noteDataIndexService.update(noteLuceneIndex);
+                noteLuceneIndex.setEncrypted("0");
+                DelayExecuteAsyncTask indexUpdateDelayTask = DelayExecuteAsyncTask.Builder
+                        .build()
+                        .type(AsyncTaskEnum.SYNC_Note_Index_UPDATE)
+                        .executeType(AsyncExcuteTypeEnum.DELAY_EXC_TASK)
+                        .taskId(idWorker.nextId())
+                        .taskName(AsyncTaskEnum.SYNC_Note_Index_UPDATE.getName())
+                        .createTime(new Date())
+                        .userId(LocalThreadUtils.getUserId())
+                        .taskInfo(noteLuceneIndex)
+                        .get();
+
+                noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
             }
         }
 

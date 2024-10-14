@@ -52,10 +52,10 @@ public class MarkdownNoteType extends AbstractNoteType {
 
         NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
         if (noteData == null) {
-            log.error("noteData目标不存在, 使用id={} 进行查询时", id);
-            throw new BusinessException(NoteIndexErrorCode.E_203117);
+            log.warn("noteData目标不存在, 使用id={} 进行查询时", id);
+        } else {
+            noteLuceneIndex.setContent(noteData.getContent());
         }
-        noteLuceneIndex.setContent(noteData.getContent());
 
         return noteLuceneIndex;
     }

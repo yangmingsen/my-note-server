@@ -94,7 +94,7 @@ public class WerNoteType extends AbstractNoteType {
             log.error("noteData目标不存在, 使用id={} 进行查询时", id);
             throw new BusinessException(NoteIndexErrorCode.E_203117);
         }
-        String textContent;
+        String textContent = null;
         org.bson.Document mongoDoc = mongoTemplate
                 .findOne(org.springframework.data.mongodb.core.query.Query.query(
                                 org.springframework.data.mongodb.core.query.Criteria.where(NoteConstants.id).is(id)),
@@ -102,7 +102,6 @@ public class WerNoteType extends AbstractNoteType {
                         NoteConstants.noteWerTextContent);
         if (mongoDoc == null) {
             log.warn("根据id: {} 从mongo获取Wer数据为空", id);
-            throw new BusinessException(NoteIndexErrorCode.E_203118);
         }  else {
             textContent = (String)mongoDoc.get(NoteConstants.textContent);
         }

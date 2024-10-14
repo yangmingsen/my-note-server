@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import top.yms.note.conpont.NoteDataIndexService;
+import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.enums.AsyncTaskEnum;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -37,13 +39,24 @@ public class NoteIndexUpdateTask extends AbstractAsyncExecuteTask implements Del
 
     @Override
     void doRun() {
-        List<Long> ids = getAllData().stream().map(x -> (Long) x.getTaskInfo()).distinct().collect(Collectors.toList());
-        log.debug("Exc: ids={}", ids);
-
+        List<AsyncTask> allData = getAllData();
         //这里进行索引更新时必须要加锁进行
         synchronized (obj) {
+            List<Long> ids = new LinkedList<>();
+            List<NoteLuceneIndex> noteLuceneIndexList = new LinkedList<>();
+            for (AsyncTask task : allData) {
+                if (task.getTaskInfo() instanceof Long) {
+                    ids.add((Long)task.getTaskInfo());
+                } else if (task.getTaskInfo() instanceof NoteLuceneIndex) {
+                    noteLuceneIndexList.add((NoteLuceneIndex) task.getTaskInfo());
+                }
+            }
+            //去重
+            ids = ids.stream().distinct().collect(Collectors.toList());
+
             noteDataIndexService.updateByIds(ids);
-            log.debug("NoteIndexUpdateTask#更新完成....{}", ids);
+            noteDataIndexService.update(noteLuceneIndexList);
+            log.debug("NoteIndexUpdateTask#更新完成....");
         }
 
     }
@@ -56,7 +69,7 @@ public class NoteIndexUpdateTask extends AbstractAsyncExecuteTask implements Del
 
     @Override
     public void delayExecute(NoteScheduledExecutorService noteScheduledExecutorService, DelayExecuteAsyncTask delayExecuteAsyncTask) {
-        log.info("delayExecute_excDelayTime={}_timeUnit={}", excDelayTime, timeUnit);
+        log.debug("delayExecute_excDelayTime={}_timeUnit={}", excDelayTime, timeUnit);
         noteScheduledExecutorService.schedule(this, excDelayTime, timeUnit);
     }
 }

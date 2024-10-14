@@ -300,10 +300,9 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
 
     }
 
-    public void updateByIds(List<Long> ids) {
-        try {
-            List<NoteLuceneIndex> noteLuceneIndexList = ids.stream().map(this::getFromNoteId).collect(Collectors.toList());
 
+    private void doListUpdate(List<NoteLuceneIndex> noteLuceneIndexList) {
+        try {
             Directory directory = FSDirectory.open(Paths.get(indexPath));
             IndexWriterConfig config = new IndexWriterConfig(new IKAnalyzer());
             IndexWriter indexWriter = new IndexWriter(directory, config);
@@ -346,12 +345,18 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
             indexWriter.flush();
             indexWriter.close();
             directory.close();
-            logger.info("index更新完成...{}", ids);
+
+            logger.info("index更新完成....");
         } catch (Exception e) {
-            logger.error("index更新失败...{}", ids);
             logger.error("updateByIds#更新lucene索引失败：", e);
             throw new RuntimeException(e);
         }
+    }
+
+
+    public void updateByIds(List<Long> ids) {
+        List<NoteLuceneIndex> noteLuceneIndexList = ids.stream().map(this::getFromNoteId).collect(Collectors.toList());
+        doListUpdate(noteLuceneIndexList);
     }
 
     private NoteLuceneIndex getFromNoteId(Long id) {
@@ -391,6 +396,10 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
 //        noteLuceneIndex.setContent(textContent);
 
         return noteLuceneDataService.findNoteLuceneDataOne(id);
+    }
+
+    public void update(List<NoteLuceneIndex> noteLuceneIndexList) {
+       doListUpdate(noteLuceneIndexList);
     }
 
 

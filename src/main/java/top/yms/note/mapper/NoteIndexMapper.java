@@ -51,7 +51,8 @@ public interface NoteIndexMapper {
     @ResultMap("BaseResultMap")
     List<NoteIndex> searchName(@Param("name") String name, @Param("userId") Long userId);
 
-    @Select("select * from t_note_index where f_isfile='1' and f_del='0'")
+    //应该要包含对目录的的查询
+    @Select("select * from t_note_index where  f_del='0'")
     @ResultMap("BaseResultMap")
     List<NoteIndex> findAll();
 }
