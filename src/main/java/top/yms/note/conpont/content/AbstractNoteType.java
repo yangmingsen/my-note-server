@@ -16,6 +16,7 @@ import top.yms.note.conpont.NoteDataIndexService;
 import top.yms.note.conpont.NoteLuceneDataService;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.conpont.task.DelayExecuteAsyncTask;
+import top.yms.note.dto.NoteIndexLuceneUpdateDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteDataVersion;
 import top.yms.note.entity.NoteFile;
@@ -165,23 +166,6 @@ public abstract class AbstractNoteType implements NoteType, NoteLuceneDataServic
      * @param indexContent
      */
     protected void saveSearchIndex(NoteIndex noteIndex, String indexContent) {
-        //通知更新lucene索引
-//        NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
-//        noteLuceneIndex.setId(noteIndex.getId());
-//        noteLuceneIndex.setUserId(noteIndex.getUserId());
-//        noteLuceneIndex.setParentId(noteIndex.getParentId());
-//        noteLuceneIndex.setTitle(noteIndex.getName());
-//        if (StringUtils.isNotBlank(indexContent)) {
-//            noteLuceneIndex.setContent(indexContent);
-//        }
-//        noteLuceneIndex.setIsFile(noteIndex.getIsFile());
-//        noteLuceneIndex.setType(noteIndex.getType());
-//        noteLuceneIndex.setCreateDate(new Date());
-//        noteLuceneIndex.setEncrypted(noteLuceneIndex.getEncrypted());
-
-//        noteDataIndexService.update(noteLuceneIndex);
-
-
         DelayExecuteAsyncTask indexUpdateDelayTask = DelayExecuteAsyncTask.Builder
                 .build()
                 .type(AsyncTaskEnum.SYNC_Note_Index_UPDATE)
@@ -190,11 +174,10 @@ public abstract class AbstractNoteType implements NoteType, NoteLuceneDataServic
                 .taskName(AsyncTaskEnum.SYNC_Note_Index_UPDATE.getName())
                 .createTime(new Date())
                 .userId(LocalThreadUtils.getUserId())
-                .taskInfo(noteIndex.getId())
+                .taskInfo(NoteIndexLuceneUpdateDto.Builder.build().type(NoteIndexLuceneUpdateDto.updateNoteContent).data(noteIndex.getId()).get())
                 .get();
 
         noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
-
     }
 
     /**

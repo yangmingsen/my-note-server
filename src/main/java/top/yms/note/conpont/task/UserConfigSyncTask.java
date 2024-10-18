@@ -30,10 +30,6 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
 
     @Override
     void doRun() {
-        if (!hasData()) {
-//            log.info("UserConfig列表当前没有数据, 不同步....");
-            return;
-        }
         List<AsyncTask> allData = getAllData();
 //        log.info("当前时间: {} , 获取到数据: {}", DateHelper.getYYYY_MM_DD_HH_MM_SS(), allData);
         JSONObject userConfig = new JSONObject();

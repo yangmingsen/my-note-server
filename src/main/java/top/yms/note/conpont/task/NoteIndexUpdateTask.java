@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import top.yms.note.conpont.NoteDataIndexService;
 import top.yms.note.conpont.search.NoteLuceneIndex;
+import top.yms.note.dto.NoteIndexLuceneUpdateDto;
 import top.yms.note.enums.AsyncTaskEnum;
 
 import java.util.LinkedList;
@@ -30,7 +31,7 @@ public class NoteIndexUpdateTask extends AbstractAsyncExecuteTask implements Del
     @Autowired
     private NoteDataIndexService noteDataIndexService;
 
-    final Object obj = new Object();
+    private final static Object obj = new Object();
 
     @Override
     boolean needTx() {
@@ -42,24 +43,56 @@ public class NoteIndexUpdateTask extends AbstractAsyncExecuteTask implements Del
         List<AsyncTask> allData = getAllData();
         //这里进行索引更新时必须要加锁进行
         synchronized (obj) {
-            List<Long> ids = new LinkedList<>();
-            List<NoteLuceneIndex> noteLuceneIndexList = new LinkedList<>();
+            List<Long> contentUpdateList = new LinkedList<>();
+            List<NoteLuceneIndex> noteIndexList = new LinkedList<>();
+            List<Long> deleteList = new LinkedList<>();
+
             for (AsyncTask task : allData) {
-                if (task.getTaskInfo() instanceof Long) {
-                    ids.add((Long)task.getTaskInfo());
-                } else if (task.getTaskInfo() instanceof NoteLuceneIndex) {
-                    noteLuceneIndexList.add((NoteLuceneIndex) task.getTaskInfo());
+                NoteIndexLuceneUpdateDto idxDto = (NoteIndexLuceneUpdateDto) task.getTaskInfo();
+                if (idxDto.getType() == NoteIndexLuceneUpdateDto.updateNoteContent) {
+                    contentUpdateList.add((Long)idxDto.getData());
+                } else if (idxDto.getType() == NoteIndexLuceneUpdateDto.updateNoteIndex) {
+                    noteIndexList.add((NoteLuceneIndex) idxDto.getData());
+                } else if (idxDto.getType() == NoteIndexLuceneUpdateDto.deleteOne) {
+                    deleteList.add((Long)idxDto.getData());
+                } else if (idxDto.getType() == NoteIndexLuceneUpdateDto.deleteList) {
+                    deleteList.addAll((List<Long>)idxDto.getData());
                 }
             }
-            //去重
-            ids = ids.stream().distinct().collect(Collectors.toList());
 
-            noteDataIndexService.updateByIds(ids);
-            noteDataIndexService.update(noteLuceneIndexList);
+            if (contentUpdateList.size() > 0)
+            noteDataIndexService.updateByIds(contentUpdateList);
+            noteDataIndexService.update(noteIndexList);
+            noteDataIndexService.delete(deleteList);
             log.debug("NoteIndexUpdateTask#更新完成....");
         }
 
     }
+
+
+    private void handleIndexUpdate(List<AsyncTask> allData) {
+        List<Long> contentUpdateList = new LinkedList<>();
+        List<NoteLuceneIndex> noteIndexList = new LinkedList<>();
+        List<Long> deleteList = new LinkedList<>();
+
+        for (AsyncTask task : allData) {
+            NoteIndexLuceneUpdateDto idxDto = (NoteIndexLuceneUpdateDto) task.getTaskInfo();
+            if (idxDto.getType() == NoteIndexLuceneUpdateDto.updateNoteContent) {
+                contentUpdateList.add((Long)idxDto.getData());
+            } else if (idxDto.getType() == NoteIndexLuceneUpdateDto.updateNoteIndex) {
+                noteIndexList.add((NoteLuceneIndex) idxDto.getData());
+            } else if (idxDto.getType() == NoteIndexLuceneUpdateDto.deleteOne) {
+                deleteList.add((Long)idxDto.getData());
+            } else if (idxDto.getType() == NoteIndexLuceneUpdateDto.deleteList) {
+                deleteList.addAll((List<Long>)idxDto.getData());
+            }
+        }
+
+        noteDataIndexService.updateByIds(contentUpdateList);
+        noteDataIndexService.update(noteIndexList);
+        noteDataIndexService.delete(deleteList);
+    }
+
 
     @Override
     public boolean support(AsyncTask task) {

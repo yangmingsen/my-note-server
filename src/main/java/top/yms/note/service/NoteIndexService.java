@@ -450,7 +450,7 @@ public class NoteIndexService {
                     .taskName(AsyncTaskEnum.SYNC_Note_Index_UPDATE.getName())
                     .createTime(new Date())
                     .userId(LocalThreadUtils.getUserId())
-                    .taskInfo(noteLuceneIndex)
+                    .taskInfo(NoteIndexLuceneUpdateDto.Builder.build().type(NoteIndexLuceneUpdateDto.updateNoteIndex).data(noteLuceneIndex).get())
                     .get();
 
             noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
@@ -506,7 +506,7 @@ public class NoteIndexService {
                         .taskName(AsyncTaskEnum.SYNC_Note_Index_UPDATE.getName())
                         .createTime(new Date())
                         .userId(LocalThreadUtils.getUserId())
-                        .taskInfo(noteLuceneIndex)
+                        .taskInfo(NoteIndexLuceneUpdateDto.Builder.build().type(NoteIndexLuceneUpdateDto.updateNoteIndex).data(noteLuceneIndex).get())
                         .get();
 
                 noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
@@ -567,17 +567,28 @@ public class NoteIndexService {
             noteIndexLogMapper.insert(addLog);
 
             //删除索引
-            noteDataIndexService.delete(id);
+//            noteDataIndexService.delete(id);
+            DelayExecuteAsyncTask indexUpdateDelayTask = DelayExecuteAsyncTask.Builder
+                    .build()
+                    .type(AsyncTaskEnum.SYNC_Note_Index_UPDATE)
+                    .executeType(AsyncExcuteTypeEnum.DELAY_EXC_TASK)
+                    .taskId(idWorker.nextId())
+                    .taskName(AsyncTaskEnum.SYNC_Note_Index_UPDATE.getName())
+                    .createTime(new Date())
+                    .userId(LocalThreadUtils.getUserId())
+                    .taskInfo(NoteIndexLuceneUpdateDto.Builder.build().type(NoteIndexLuceneUpdateDto.deleteOne).data(id).get())
+                    .get();
+            noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
         }
 
         if (NoteTypeEnum.Directory == NoteTypeEnum.apply(noteIndex.getIsFile())) {
             final List<NoteIndex> noteIndexList = bfsSearchTree(id);
             final List<NoteIndexUpdateLog> addLogList = new LinkedList<>();
-            final List<Long> fileIds = new LinkedList<>();
+            final List<Long> delIdxList = new LinkedList<>();
             for (NoteIndex note : noteIndexList) {
                 noteIndexMapper.deleteByPrimaryKey(note.getId());
                 if (NoteTypeEnum.File == NoteTypeEnum.apply(note.getIsFile())) {
-                    fileIds.add(note.getId());
+                    delIdxList.add(note.getId());
                     //删除t_note_data
                     if (NoteConstants.MYSQL.equals(note.getStoreSite())) {
                         noteDataMapper.deleteByPrimaryKey(note.getId());
@@ -603,7 +614,18 @@ public class NoteIndexService {
             noteIndexLogMapper.insertBatch(addLogList);
 
             //删除索引
-            noteDataIndexService.delete(fileIds);
+//            noteDataIndexService.delete(fileIds);
+            DelayExecuteAsyncTask indexUpdateDelayTask = DelayExecuteAsyncTask.Builder
+                    .build()
+                    .type(AsyncTaskEnum.SYNC_Note_Index_UPDATE)
+                    .executeType(AsyncExcuteTypeEnum.DELAY_EXC_TASK)
+                    .taskId(idWorker.nextId())
+                    .taskName(AsyncTaskEnum.SYNC_Note_Index_UPDATE.getName())
+                    .createTime(new Date())
+                    .userId(LocalThreadUtils.getUserId())
+                    .taskInfo(NoteIndexLuceneUpdateDto.Builder.build().type(NoteIndexLuceneUpdateDto.deleteList).data(delIdxList).get())
+                    .get();
+            noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
 
             log.info("删除目录[{}]成功, 共[{}]条数据", noteIndex.getName(), addLogList.size());
 
