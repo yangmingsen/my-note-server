@@ -1,6 +1,7 @@
 package top.yms.note.conpont;
 
-import top.yms.note.dto.NoteDataIndex;
+import top.yms.note.conpont.search.NoteDataIndex;
+import top.yms.note.conpont.search.NoteLuceneIndex;
 
 import java.util.List;
 
@@ -13,6 +14,10 @@ public interface NoteDataIndexService {
      * @param noteDataIndex
      */
     void update(NoteDataIndex noteDataIndex);
+
+    void update(List<NoteLuceneIndex> noteLuceneIndexList);
+
+    void updateByIds(List<Long> ids);
 
     void delete(Long id);
 

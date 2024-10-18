@@ -22,13 +22,12 @@ import java.util.stream.Collectors;
 @EnableTransactionManagement
 @SpringBootApplication
 @ComponentScan("top.yms")
-//@ImportResource(locations = "classpath:spring-mongo.xml")
 public class MyNoteApplication {
     public static void main(String[] args) {
 //        ConfigurableApplicationContext applicationContext = SpringApplication.run(MyNoteApplication.class, args);
 //        Apps.show(applicationContext);
         SpringApplication app  = new SpringApplication(MyNoteApplication.class);
-//        app.addListeners(new ConfigureListener());
+        app.addListeners(new ConfigureListener());
         app.run(args);
 
     }

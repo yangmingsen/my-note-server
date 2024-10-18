@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.CommonErrorCode;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.entity.NoteData;
@@ -55,7 +55,7 @@ public class PreviewNoteType extends AbstractNoteType implements NotePreview{
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
 
         //目前访问必须在mongo上
-        if (!Constants.MONGO.equals(noteIndex.getStoreSite())) {
+        if (!NoteConstants.MONGO.equals(noteIndex.getStoreSite())) {
             throw new BusinessException(NoteIndexErrorCode.E_203119);
         }
         AnyFile anyFile = fileStore.loadFile(noteIndex.getSiteId());
@@ -115,7 +115,7 @@ public class PreviewNoteType extends AbstractNoteType implements NotePreview{
         }
         //2. 不在的话再去通过内容判断是否为文本。
         //todo 哎，这个判断算法还有问题，后续在看
-        if (!Constants.MONGO.equals(noteIndex.getStoreSite())) {
+        if (!NoteConstants.MONGO.equals(noteIndex.getStoreSite())) {
             log.info("查询的文件id={}, 未存储在mongo上", id);
             //目前都是存储在mongo上的,
             return false;

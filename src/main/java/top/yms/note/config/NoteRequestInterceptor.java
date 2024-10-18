@@ -2,10 +2,9 @@ package top.yms.note.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.utils.LocalThreadUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,9 +19,9 @@ public class NoteRequestInterceptor implements HandlerInterceptor {
     private static Logger log = LoggerFactory.getLogger(NoteRequestInterceptor.class);
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        log.info("from: addr={}", request.getRemoteAddr());
+        log.debug("from: addr={}", request.getRemoteAddr());
         Map<String, Object> map = LocalThreadUtils.get();
-        map.put(Constants.USER_ID, 1111L);
+        map.put(NoteConstants.USER_ID, 1111L);
         LocalThreadUtils.set(map);
 
         return true;

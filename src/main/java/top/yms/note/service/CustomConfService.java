@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import top.yms.note.comm.CommonErrorCode;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.utils.LocalThreadUtils;
 
@@ -28,17 +28,14 @@ public class CustomConfService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    public void priff() {
-        System.out.println("Hello world");
-    }
 
     public void updateUserConfig(JSONObject jsonObject) {
         Long userId = LocalThreadUtils.getUserId();
-        Document oldDoc = mongoTemplate.findOne(Query.query(Criteria.where(Constants.userid).is(userId)), Document.class, Constants.customConfig);
+        Document oldDoc = mongoTemplate.findOne(Query.query(Criteria.where(NoteConstants.userid).is(userId)), Document.class, NoteConstants.customConfig);
         if (oldDoc == null) {
-            jsonObject.put(Constants.userid, userId);
+            jsonObject.put(NoteConstants.userid, userId);
             Document newDoc = Document.parse(jsonObject.toString());
-            Document saveRes = mongoTemplate.save(newDoc, Constants.customConfig);
+            Document saveRes = mongoTemplate.save(newDoc, NoteConstants.customConfig);
             //决定是否保存
             ObjectId objId = saveRes.getObjectId("_id");
 //            log.info("updateUserConfig_创建成功");
@@ -48,13 +45,13 @@ public class CustomConfService {
                 Object value = entry.getValue();
                 oldDoc.put(key, value);
             }
-            mongoTemplate.save(oldDoc,  Constants.customConfig);
+            mongoTemplate.save(oldDoc,  NoteConstants.customConfig);
             log.info("updateUserConfig_更新成功: {}", jsonObject);
         }
     }
 
     public Object findUserConfig(Long userId) {
-        Document doc = mongoTemplate.findOne(Query.query(Criteria.where(Constants.userid).is(userId)), Document.class, Constants.customConfig);
+        Document doc = mongoTemplate.findOne(Query.query(Criteria.where(NoteConstants.userid).is(userId)), Document.class, NoteConstants.customConfig);
         if (doc == null) {
             throw new BusinessException(CommonErrorCode.E_200212);
         }

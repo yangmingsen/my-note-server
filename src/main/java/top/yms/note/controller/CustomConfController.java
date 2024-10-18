@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import top.yms.note.comm.CommonErrorCode;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteAsyncExecuteTaskService;
 import top.yms.note.conpont.NoteCache;
 import top.yms.note.conpont.task.AsyncTask;
@@ -67,15 +67,15 @@ public class CustomConfController {
                 .get();
 
         //如果使用bg更换需要,需要使用调用者线程
-        if (userConfigJsonData.containsKey(Constants.bgImgInfo)) {
+        if (userConfigJsonData.containsKey(NoteConstants.bgImgInfo)) {
             asyncTask.setExecuteType(AsyncExcuteTypeEnum.CALLER_TASK);
         }
 
         noteExecuteTaskService.addTask(asyncTask);
 
         //关于lru计算
-        if (userConfigJsonData.containsKey(Constants.lastvisit)) {
-            JSONObject lastVisitJson = userConfigJsonData.getJSONObject(Constants.lastvisit);
+        if (userConfigJsonData.containsKey(NoteConstants.lastvisit)) {
+            JSONObject lastVisitJson = userConfigJsonData.getJSONObject(NoteConstants.lastvisit);
             String noteId = lastVisitJson.getString("id");
             NoteIndex noteMeta = noteIndexService.findOne(Long.valueOf(noteId));
             AsyncTask visitComputeTask = AsyncTask.Builder

@@ -14,27 +14,22 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import top.yms.note.conpont.FileStore;
-import top.yms.note.conpont.NoteDataIndexService;
-import top.yms.note.conpont.NoteRecentVisitService;
-import top.yms.note.conpont.NoteSearch;
+import top.yms.note.conpont.*;
+import top.yms.note.conpont.search.NoteLuceneIndex;
+import top.yms.note.conpont.task.DelayExecuteAsyncTask;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dto.*;
 import top.yms.note.entity.*;
-import top.yms.note.enums.NoteTypeEnum;
+import top.yms.note.enums.*;
 import top.yms.note.exception.BusinessException;
-import top.yms.note.comm.Constants;
-import top.yms.note.enums.FileTypeEnum;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
-import top.yms.note.enums.NoteOpTypeEnum;
 import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.mapper.*;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
-import top.yms.note.vo.NoteIndexSearchResult;
 import top.yms.note.vo.NoteInfoVo;
 import top.yms.note.vo.NoteSearchVo;
-import top.yms.note.vo.SearchResult;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -75,7 +70,7 @@ public class NoteIndexService {
     private NoteDataIndexService noteDataIndexService;
 
 
-    @Qualifier(Constants.noteLuceneSearch)
+    @Qualifier(NoteConstants.noteLuceneSearch)
     @Autowired
     private NoteSearch noteSearchService;
 
@@ -84,6 +79,9 @@ public class NoteIndexService {
 
     @Autowired
     private NoteRecentVisitService noteRecentVisitService;
+
+    @Autowired
+    private NoteAsyncExecuteTaskService noteAsyncExecuteTaskService;
 
     public List<NoteIndex> findByUserId(Long userid) {
         return Optional.of(findNoteList(userid, 1)).orElse(Collections.emptyList());
@@ -131,7 +129,7 @@ public class NoteIndexService {
      * @return
      */
     public NoteIndex findRoot() {
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).parentId(0L).del(false).get().example()).get(0);
     }
 
@@ -141,7 +139,7 @@ public class NoteIndexService {
      * @return
      */
     public List<NoteIndex> findBackParentDir(Long id) {
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         NoteIndex note = noteIndexMapper.selectByPrimaryKey(id);
 
         return findSubBy(note.getParentId(), uid);
@@ -377,10 +375,10 @@ public class NoteIndexService {
 
             String noteType = note.getType();
             if (FileTypeEnum.WER.compare(noteType) || FileTypeEnum.MARKDOWN.compare(noteType)) {
-                note.setStoreSite(Constants.MYSQL);
+                note.setStoreSite(NoteConstants.MYSQL);
                 note.setSiteId("");
             } else if(FileTypeEnum.MINDMAP.compare(noteType)) {
-                note.setStoreSite(Constants.MONGO);
+                note.setStoreSite(NoteConstants.MONGO);
 
                 //create default value
 
@@ -393,7 +391,7 @@ public class NoteIndexService {
                 jsonObject.put("content", jsonArray);
                 log.info("defaultJsonStr: {}", jsonObject);
                 Document document = Document.parse(jsonObject.toString());
-                Document saveRes = mongoTemplate.save(document, Constants.noteMindMap);
+                Document saveRes = mongoTemplate.save(document, NoteConstants.noteMindMap);
                 ObjectId objId = saveRes.getObjectId("_id");
 
                 note.setSiteId(objId.toString());
@@ -418,23 +416,48 @@ public class NoteIndexService {
 
 
             //update index service
-            if (NoteTypeEnum.File == NoteTypeEnum.apply(note.getIsile())) {
-                NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
-                noteLuceneIndex.setId(genId);
-                noteLuceneIndex.setUserId(LocalThreadUtils.getUserId());
-                noteLuceneIndex.setParentId(note.getParentId());
-                noteLuceneIndex.setTitle(note.getName());
+//            if (NoteTypeEnum.File == NoteTypeEnum.apply(note.getIsFile())) {
+//                NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
+//                noteLuceneIndex.setId(genId);
+//                noteLuceneIndex.setUserId(LocalThreadUtils.getUserId());
+//                noteLuceneIndex.setParentId(note.getParentId());
+//                noteLuceneIndex.setTitle(note.getName());
+//                noteLuceneIndex.setIsFile(note.getIsFile());
+//                noteLuceneIndex.setType(note.getType());
+//                noteLuceneIndex.setCreateDate(opTime);
+//                noteLuceneIndex.setEncrypted("0");
+//
+//
+//                noteDataIndexService.update(noteLuceneIndex);
+//
+//                //todo 需要考虑只更新索引没有内容的情况
+//            }
+//
+            NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
+            noteLuceneIndex.setId(genId);
+            noteLuceneIndex.setUserId(LocalThreadUtils.getUserId());
+            noteLuceneIndex.setParentId(note.getParentId());
+            noteLuceneIndex.setTitle(note.getName());
+            noteLuceneIndex.setIsFile(note.getIsFile());
+            noteLuceneIndex.setType(note.getType());
+            noteLuceneIndex.setCreateDate(opTime);
+            noteLuceneIndex.setEncrypted("0");
+            DelayExecuteAsyncTask indexUpdateDelayTask = DelayExecuteAsyncTask.Builder
+                    .build()
+                    .type(AsyncTaskEnum.SYNC_Note_Index_UPDATE)
+                    .executeType(AsyncExcuteTypeEnum.DELAY_EXC_TASK)
+                    .taskId(idWorker.nextId())
+                    .taskName(AsyncTaskEnum.SYNC_Note_Index_UPDATE.getName())
+                    .createTime(new Date())
+                    .userId(LocalThreadUtils.getUserId())
+                    .taskInfo(NoteIndexLuceneUpdateDto.Builder.build().type(NoteIndexLuceneUpdateDto.updateNoteIndex).data(noteLuceneIndex).get())
+                    .get();
 
-                noteLuceneIndex.setIsFile(note.getIsile());
-                noteLuceneIndex.setType(note.getType());
-                noteLuceneIndex.setCreateDate(opTime);
-                noteDataIndexService.update(noteLuceneIndex);
-            }
-
+            noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
         } catch (Exception e) {
             log.error("add失败", e);
             if (mindMapMongoId != null) {
-                mongoTemplate.remove(new Document("_id", mindMapMongoId), Constants.noteMindMap);
+                mongoTemplate.remove(new Document("_id", mindMapMongoId), NoteConstants.noteMindMap);
             }
             throw new RuntimeException(e);
         }
@@ -455,16 +478,38 @@ public class NoteIndexService {
         if (StringUtils.isNotBlank(note.getName())) {
             if (!note.getName().equals(noteIndex.getName())) {
                 //update index service
+//                NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
+//                noteLuceneIndex.setId(id);
+//                noteLuceneIndex.setUserId(LocalThreadUtils.getUserId());
+//                noteLuceneIndex.setParentId(noteIndex.getParentId());
+//                noteLuceneIndex.setTitle(note.getName());
+//
+//                noteLuceneIndex.setIsFile(noteIndex.getIsFile());
+//                noteLuceneIndex.setType(noteIndex.getType());
+//                noteLuceneIndex.setCreateDate(new Date());
+//                noteDataIndexService.update(noteLuceneIndex);
+
                 NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
                 noteLuceneIndex.setId(id);
                 noteLuceneIndex.setUserId(LocalThreadUtils.getUserId());
-                noteLuceneIndex.setParentId(noteIndex.getParentId());
+                noteLuceneIndex.setParentId(note.getParentId());
                 noteLuceneIndex.setTitle(note.getName());
-
-                noteLuceneIndex.setIsFile(noteIndex.getIsile());
-                noteLuceneIndex.setType(noteIndex.getType());
+                noteLuceneIndex.setIsFile(note.getIsFile());
+                noteLuceneIndex.setType(note.getType());
                 noteLuceneIndex.setCreateDate(new Date());
-                noteDataIndexService.update(noteLuceneIndex);
+                noteLuceneIndex.setEncrypted("0");
+                DelayExecuteAsyncTask indexUpdateDelayTask = DelayExecuteAsyncTask.Builder
+                        .build()
+                        .type(AsyncTaskEnum.SYNC_Note_Index_UPDATE)
+                        .executeType(AsyncExcuteTypeEnum.DELAY_EXC_TASK)
+                        .taskId(idWorker.nextId())
+                        .taskName(AsyncTaskEnum.SYNC_Note_Index_UPDATE.getName())
+                        .createTime(new Date())
+                        .userId(LocalThreadUtils.getUserId())
+                        .taskInfo(NoteIndexLuceneUpdateDto.Builder.build().type(NoteIndexLuceneUpdateDto.updateNoteIndex).data(noteLuceneIndex).get())
+                        .get();
+
+                noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
             }
         }
 
@@ -497,11 +542,11 @@ public class NoteIndexService {
             throw new BusinessException(NoteIndexErrorCode.E_203114);
         }
 
-        if (NoteTypeEnum.File == NoteTypeEnum.apply(noteIndex.getIsile())) {
+        if (NoteTypeEnum.File == NoteTypeEnum.apply(noteIndex.getIsFile())) {
             //删除t_note_index
             noteIndexMapper.deleteByPrimaryKey(id);
             //删除t_note_data
-            if (Constants.MYSQL.equals(noteIndex.getStoreSite())) {
+            if (NoteConstants.MYSQL.equals(noteIndex.getStoreSite())) {
                 noteDataMapper.deleteByPrimaryKey(id);
                 noteDataVersionMapper.deleteByNoteId(id);
                 noteFileMapper.selectByNoteRef(id)
@@ -509,7 +554,7 @@ public class NoteIndexService {
                 noteFileMapper.deleteByNoteRef(id);
             }
             //删除t_note_file
-            if (Constants.MONGO.equals(noteIndex.getStoreSite())) {
+            if (NoteConstants.MONGO.equals(noteIndex.getStoreSite())) {
                 String siteId = noteIndex.getSiteId();
                 noteFileMapper.deleteByFileId(siteId);
                 fileStoreService.delFile(siteId);
@@ -522,19 +567,30 @@ public class NoteIndexService {
             noteIndexLogMapper.insert(addLog);
 
             //删除索引
-            noteDataIndexService.delete(id);
+//            noteDataIndexService.delete(id);
+            DelayExecuteAsyncTask indexUpdateDelayTask = DelayExecuteAsyncTask.Builder
+                    .build()
+                    .type(AsyncTaskEnum.SYNC_Note_Index_UPDATE)
+                    .executeType(AsyncExcuteTypeEnum.DELAY_EXC_TASK)
+                    .taskId(idWorker.nextId())
+                    .taskName(AsyncTaskEnum.SYNC_Note_Index_UPDATE.getName())
+                    .createTime(new Date())
+                    .userId(LocalThreadUtils.getUserId())
+                    .taskInfo(NoteIndexLuceneUpdateDto.Builder.build().type(NoteIndexLuceneUpdateDto.deleteOne).data(id).get())
+                    .get();
+            noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
         }
 
-        if (NoteTypeEnum.Directory == NoteTypeEnum.apply(noteIndex.getIsile())) {
+        if (NoteTypeEnum.Directory == NoteTypeEnum.apply(noteIndex.getIsFile())) {
             final List<NoteIndex> noteIndexList = bfsSearchTree(id);
             final List<NoteIndexUpdateLog> addLogList = new LinkedList<>();
-            final List<Long> fileIds = new LinkedList<>();
+            final List<Long> delIdxList = new LinkedList<>();
             for (NoteIndex note : noteIndexList) {
                 noteIndexMapper.deleteByPrimaryKey(note.getId());
-                if (NoteTypeEnum.File == NoteTypeEnum.apply(note.getIsile())) {
-                    fileIds.add(note.getId());
+                if (NoteTypeEnum.File == NoteTypeEnum.apply(note.getIsFile())) {
+                    delIdxList.add(note.getId());
                     //删除t_note_data
-                    if (Constants.MYSQL.equals(note.getStoreSite())) {
+                    if (NoteConstants.MYSQL.equals(note.getStoreSite())) {
                         noteDataMapper.deleteByPrimaryKey(note.getId());
                         noteDataVersionMapper.deleteByNoteId(note.getId());
                         noteFileMapper.selectByNoteRef(note.getId())
@@ -542,7 +598,7 @@ public class NoteIndexService {
                         noteFileMapper.deleteByNoteRef(note.getId());
                     }
                     //删除t_note_file
-                    if (Constants.MONGO.equals(note.getStoreSite())) {
+                    if (NoteConstants.MONGO.equals(note.getStoreSite())) {
                         String siteId = note.getSiteId();
                         noteFileMapper.deleteByFileId(siteId);
                         fileStoreService.delFile(siteId);
@@ -558,7 +614,18 @@ public class NoteIndexService {
             noteIndexLogMapper.insertBatch(addLogList);
 
             //删除索引
-            noteDataIndexService.delete(fileIds);
+//            noteDataIndexService.delete(fileIds);
+            DelayExecuteAsyncTask indexUpdateDelayTask = DelayExecuteAsyncTask.Builder
+                    .build()
+                    .type(AsyncTaskEnum.SYNC_Note_Index_UPDATE)
+                    .executeType(AsyncExcuteTypeEnum.DELAY_EXC_TASK)
+                    .taskId(idWorker.nextId())
+                    .taskName(AsyncTaskEnum.SYNC_Note_Index_UPDATE.getName())
+                    .createTime(new Date())
+                    .userId(LocalThreadUtils.getUserId())
+                    .taskInfo(NoteIndexLuceneUpdateDto.Builder.build().type(NoteIndexLuceneUpdateDto.deleteList).data(delIdxList).get())
+                    .get();
+            noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
 
             log.info("删除目录[{}]成功, 共[{}]条数据", noteIndex.getName(), addLogList.size());
 
@@ -679,7 +746,7 @@ public class NoteIndexService {
         NoteInfoVo res = new NoteInfoVo();
         res.setNoteIndex(noteIndex);
         if (StringUtils.isNotBlank(noteIndex.getStoreSite())) {
-            if (Constants.MONGO.equals(noteIndex.getStoreSite())) {
+            if (NoteConstants.MONGO.equals(noteIndex.getStoreSite())) {
                 String siteId = noteIndex.getSiteId();
                 List<NoteFile> noteFiles = noteFileMapper.selectByExample(NoteFileQuery.Builder.build().fileId(siteId).get().example());
                 if (noteFiles != null && noteFiles.size() >0) {
@@ -695,7 +762,7 @@ public class NoteIndexService {
      * @return
      */
     public List<NoteIndex> getRecentFiles() {
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         return noteIndexMapper.selectRecentUpdate(uid).stream()
                 .limit(30).collect(Collectors.toList());
     }
@@ -705,7 +772,7 @@ public class NoteIndexService {
      * @return
      */
     public List<NoteIndex> getDeletedFiles() {
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).del(true).get().example());
     }
 
@@ -715,7 +782,7 @@ public class NoteIndexService {
      */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 15)
     public int allDestroy() {
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         List<NoteIndex> destroyNoteList = noteIndexMapper.selectDestroyNotes(uid);
         for(NoteIndex destroyNote : destroyNoteList) {
             destroyNote(destroyNote.getId());
@@ -729,7 +796,7 @@ public class NoteIndexService {
      */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public int allRecover() {
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         return noteIndexMapper.allRecover(uid);
     }
 

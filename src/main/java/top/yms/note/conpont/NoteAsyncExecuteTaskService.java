@@ -10,7 +10,8 @@ import top.yms.note.conpont.task.AsyncTask;
 public interface NoteAsyncExecuteTaskService {
 
     /**
-     * 使用方应该直接调用该方法添加任务
+     * 使用方应该直接调用该方法添加任务.
+     * <p>注意：AsyncTask中的 AsyncExcuteTypeEnum, AsyncTaskEnum 必须指定</p>
      * @param task
      */
     void addTask(AsyncTask task);

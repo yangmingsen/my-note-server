@@ -1,11 +1,11 @@
-package top.yms.note.dto;
+package top.yms.note.conpont.search;
 
 import java.util.Date;
 
 /**
  * Created by yangmingsen on 2024/8/21.
  */
-public class NoteLuceneIndex implements NoteDataIndex{
+public class NoteLuceneIndex implements NoteDataIndex {
     private Long id;
     private Long userId;
     private Long parentId;
@@ -14,6 +14,15 @@ public class NoteLuceneIndex implements NoteDataIndex{
     private String type;
     private String isFile;
     private Date createDate;
+    private String encrypted;
+
+    public String getEncrypted() {
+        return encrypted;
+    }
+
+    public void setEncrypted(String encrypted) {
+        this.encrypted = encrypted;
+    }
 
     public Long getId() {
         return id;

@@ -6,7 +6,8 @@ public class NoteSearchResult implements SearchResult{
     private Long id;
     private Long parentId;
     private String type;
-    private String isile;
+    private String isFile;
+    private String encrypted;
 
     @Override
     public int getResType() {
@@ -51,12 +52,20 @@ public class NoteSearchResult implements SearchResult{
         this.type = type;
     }
 
-    public String getIsile() {
-        return isile;
+    public String getIsFile() {
+        return isFile;
     }
 
-    public void setIsile(String isile) {
-        this.isile = isile;
+    public void setIsFile(String isFile) {
+        this.isFile = isFile;
+    }
+
+    public String getEncrypted() {
+        return encrypted;
+    }
+
+    public void setEncrypted(String encrypted) {
+        this.encrypted = encrypted;
     }
 
     @Override
@@ -67,7 +76,7 @@ public class NoteSearchResult implements SearchResult{
                 ", id=" + id +
                 ", parentId=" + parentId +
                 ", type='" + type + '\'' +
-                ", isile='" + isile + '\'' +
+                ", isFile='" + isFile + '\'' +
                 '}';
     }
 }

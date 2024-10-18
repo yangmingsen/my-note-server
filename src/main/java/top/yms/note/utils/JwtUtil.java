@@ -1,6 +1,7 @@
 package top.yms.note.utils;
 
 import io.jsonwebtoken.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -10,22 +11,22 @@ import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import top.yms.note.comm.Constants;
-import top.yms.note.config.SpringContext;
-import top.yms.note.conpont.NoteCache;
 
 
 /**
  * Created by yangmingsen on 2024/8/19.
  */
+@Component
 public class JwtUtil {
     private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
 
-    private final static String SECRET_KEY = "note-secret-key";
+
+    @Value("${system.jwt.secret_key}")
+    private  String SECRET_KEY;
 
 
-    //6h
-    private final static Long expireTime = 6 * 60 * 60 * 1000L;
+    @Value("${system.jwt.expire_time}")
+    private Long expireTime;
 
 
     // 生成JWT

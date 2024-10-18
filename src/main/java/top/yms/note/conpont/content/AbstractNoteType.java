@@ -1,25 +1,36 @@
 package top.yms.note.conpont.content;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.CommonErrorCode;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.FileStore;
+import top.yms.note.conpont.NoteAsyncExecuteTaskService;
 import top.yms.note.conpont.NoteDataIndexService;
-import top.yms.note.dto.NoteDataDto;
-import top.yms.note.dto.NoteLuceneIndex;
+import top.yms.note.conpont.NoteLuceneDataService;
+import top.yms.note.conpont.search.NoteLuceneIndex;
+import top.yms.note.conpont.task.DelayExecuteAsyncTask;
+import top.yms.note.dto.NoteIndexLuceneUpdateDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteDataVersion;
 import top.yms.note.entity.NoteFile;
 import top.yms.note.entity.NoteIndex;
+import top.yms.note.enums.AsyncExcuteTypeEnum;
+import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteDataVersionMapper;
 import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.mapper.NoteIndexMapper;
 import top.yms.note.service.NoteFileService;
+import top.yms.note.utils.IdWorker;
+import top.yms.note.utils.LocalThreadUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -28,7 +39,9 @@ import java.util.List;
 /**
  * Created by yangmingsen on 2024/8/21.
  */
-public abstract class AbstractNoteType implements NoteType, NoteExport {
+public abstract class AbstractNoteType implements NoteType, NoteLuceneDataService, NoteExport {
+
+    private final static Logger log = LoggerFactory.getLogger(AbstractNoteType.class);
 
     @Autowired
     protected NoteDataMapper noteDataMapper;
@@ -42,18 +55,24 @@ public abstract class AbstractNoteType implements NoteType, NoteExport {
     @Autowired
     protected NoteFileMapper noteFileMapper;
 
-
+    @Autowired
     NoteFileService noteFileService;
 
     @Autowired
     protected FileStore fileStore;
 
     @Autowired
-    @Qualifier(Constants.noteLuceneSearch)
+    @Qualifier(NoteConstants.noteLuceneSearch)
     protected NoteDataIndexService noteDataIndexService;
 
     @Autowired
     protected MongoTemplate mongoTemplate;
+
+    @Autowired
+    private NoteAsyncExecuteTaskService noteAsyncExecuteTaskService;
+
+    @Autowired
+    private IdWorker idWorker;
 
     /**
      * 查找noteFile信息
@@ -147,19 +166,18 @@ public abstract class AbstractNoteType implements NoteType, NoteExport {
      * @param indexContent
      */
     protected void saveSearchIndex(NoteIndex noteIndex, String indexContent) {
-        //通知更新lucene索引
-        NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
-        noteLuceneIndex.setId(noteIndex.getId());
-        noteLuceneIndex.setUserId(noteIndex.getUserId());
-        noteLuceneIndex.setParentId(noteIndex.getParentId());
-        noteLuceneIndex.setTitle(noteIndex.getName());
-        if (StringUtils.isNotBlank(indexContent)) {
-            noteLuceneIndex.setContent(indexContent);
-        }
-        noteLuceneIndex.setIsFile(noteIndex.getIsile());
-        noteLuceneIndex.setType(noteIndex.getType());
-        noteLuceneIndex.setCreateDate(new Date());
-        noteDataIndexService.update(noteLuceneIndex);
+        DelayExecuteAsyncTask indexUpdateDelayTask = DelayExecuteAsyncTask.Builder
+                .build()
+                .type(AsyncTaskEnum.SYNC_Note_Index_UPDATE)
+                .executeType(AsyncExcuteTypeEnum.DELAY_EXC_TASK)
+                .taskId(idWorker.nextId())
+                .taskName(AsyncTaskEnum.SYNC_Note_Index_UPDATE.getName())
+                .createTime(new Date())
+                .userId(LocalThreadUtils.getUserId())
+                .taskInfo(NoteIndexLuceneUpdateDto.Builder.build().type(NoteIndexLuceneUpdateDto.updateNoteContent).data(noteIndex.getId()).get())
+                .get();
+
+        noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
     }
 
     /**
@@ -178,4 +196,25 @@ public abstract class AbstractNoteType implements NoteType, NoteExport {
 
     public abstract void save(Object data) throws BusinessException ;
 
+
+    protected NoteLuceneIndex packNoteIndexForNoteLuceneIndex(Long id) {
+        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        if (noteIndex == null) {
+            log.error("noteIndex目标不存在, 使用id={} 进行查询时", id);
+            throw new BusinessException(NoteIndexErrorCode.E_203117);
+        }
+
+        NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
+        BeanUtils.copyProperties(noteIndex, noteLuceneIndex);
+
+        //NoteIndex中的创建时间是 createTime， 而NoteLuceneIndex中是createDate。要注意
+        noteLuceneIndex.setCreateDate(noteIndex.getCreateTime());
+
+        return noteLuceneIndex;
+    }
+
+    @Override
+    public NoteLuceneIndex findNoteLuceneDataOne(Long id) {
+        throw new BusinessException(CommonErrorCode.E_200214);
+    }
 }

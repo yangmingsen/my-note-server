@@ -8,15 +8,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
+import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.exception.BusinessException;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
 
 /**
  * Created by yangmingsen on 2024/8/21.
@@ -56,12 +54,12 @@ public class WerNoteType extends AbstractNoteType {
             Document document = Document.parse(jsonObject.toString());
             NoteIndex oldNoteIdx = noteIndexMapper.selectByPrimaryKey(noteData.getId());
             if (StringUtils.isNotBlank(oldNoteIdx.getSiteId())) {
-                oldDoc = mongoTemplate.findById(oldNoteIdx.getSiteId(), Document.class, Constants.noteWerTextContent);
+                oldDoc = mongoTemplate.findById(oldNoteIdx.getSiteId(), Document.class, NoteConstants.noteWerTextContent);
                 ObjectId objectId = new ObjectId(oldNoteIdx.getSiteId());
                 document.put("_id", objectId);
-                mongoTemplate.save(document,  Constants.noteWerTextContent);
+                mongoTemplate.save(document,  NoteConstants.noteWerTextContent);
             } else {
-                Document saveRes = mongoTemplate.save(document, Constants.noteWerTextContent);
+                Document saveRes = mongoTemplate.save(document, NoteConstants.noteWerTextContent);
                 objId = saveRes.getObjectId("_id");
                 noteIndex.setSiteId(objId.toString());
             }
@@ -77,13 +75,38 @@ public class WerNoteType extends AbstractNoteType {
         } catch (Exception e) {
             log.error("save失败", e);
             if (objId != null) {
-                mongoTemplate.remove(new Document("_id", objId), Constants.noteWerTextContent);
+                mongoTemplate.remove(new Document("_id", objId), NoteConstants.noteWerTextContent);
             }
             if (oldDoc != null) {
-                mongoTemplate.save(oldDoc, Constants.noteWerTextContent);
+                mongoTemplate.save(oldDoc, NoteConstants.noteWerTextContent);
             }
             throw new RuntimeException(e);
         }
 
+    }
+
+
+    public NoteLuceneIndex findNoteLuceneDataOne(Long id) {
+        NoteLuceneIndex noteLuceneIndex = packNoteIndexForNoteLuceneIndex(id);
+
+        NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
+        if (noteData == null) {
+            log.error("noteData目标不存在, 使用id={} 进行查询时", id);
+            throw new BusinessException(NoteIndexErrorCode.E_203117);
+        }
+        String textContent = null;
+        org.bson.Document mongoDoc = mongoTemplate
+                .findOne(org.springframework.data.mongodb.core.query.Query.query(
+                                org.springframework.data.mongodb.core.query.Criteria.where(NoteConstants.id).is(id)),
+                        org.bson.Document.class,
+                        NoteConstants.noteWerTextContent);
+        if (mongoDoc == null) {
+            log.warn("根据id: {} 从mongo获取Wer数据为空", id);
+        }  else {
+            textContent = (String)mongoDoc.get(NoteConstants.textContent);
+        }
+        noteLuceneIndex.setContent(textContent);
+
+        return noteLuceneIndex;
     }
 }

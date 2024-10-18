@@ -16,6 +16,9 @@ import java.util.stream.Collectors;
 @Component
 public class NoteRecentVisitComputeTask extends AbstractAsyncExecuteTask implements NoteRecentVisitService {
 
+    /**
+     * LruCache缓存， 缓存每个用户最近访问情况，
+     */
     static class LruCache extends LinkedHashMap<Long, NoteIndex> {
         private final int capacity;
 

@@ -28,13 +28,8 @@ public class NoteUtilConfig {
         factory.setReadTimeout(60*1000);//读取超时
 
         return new RestTemplate(factory);
-
     }
 
-    @Bean
-    public JwtUtil jwtUtil() {
-        return new JwtUtil();
-    }
 
 
     @Bean

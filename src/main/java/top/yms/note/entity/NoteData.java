@@ -1,5 +1,7 @@
 package top.yms.note.entity;
 
+import top.yms.note.conpont.search.NoteIndexData;
+
 import java.util.Date;
 
 /**
@@ -7,7 +9,7 @@ import java.util.Date;
  * create by yangmingsen
  * t_note_data
  */
-public class NoteData {
+public class NoteData implements NoteIndexData {
     /**
      */
     private Long id;
@@ -79,5 +81,10 @@ public class NoteData {
                 "id=" + id +
                 ", userId=" + userId +
                 '}';
+    }
+
+    @Override
+    public String getIndexData() {
+        return content;
     }
 }

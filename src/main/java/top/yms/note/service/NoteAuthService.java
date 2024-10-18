@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import top.yms.note.comm.CommonErrorCode;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteCache;
 import top.yms.note.dto.NoteAuth;
 import top.yms.note.dto.NoteAuthPassword;
@@ -28,7 +28,7 @@ public class NoteAuthService {
     NoteUserMapper noteUserMapper;
 
     @Autowired
-    @Qualifier(Constants.defaultNoteCache)
+    @Qualifier(NoteConstants.defaultNoteCache)
     private NoteCache noteCache;
 
     @Autowired

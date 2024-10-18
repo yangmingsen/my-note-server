@@ -8,7 +8,7 @@
     <result column="f_type" jdbcType="VARCHAR" property="type" />
     <result column="f_size" jdbcType="BIGINT" property="size" />
     <result column="f_user_id" jdbcType="BIGINT" property="userId" />
-    <result column="f_url" jdbcType="VARCHAR" property="url" />
+    <result column="f_url" jdbcType="VARCHAR" typeHandler="top.yms.note.mapper.typehandler.FileUrlTypeHandler" property="url" />
     <result column="f_view_count" jdbcType="BIGINT" property="viewCount" />
     <result column="f_create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="f_update_time" jdbcType="TIMESTAMP" property="updateTime" />

@@ -6,18 +6,16 @@ import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteCache;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.WeakHashMap;
 
 /**
- * Created by yangmingsen on 2024/4/13.
+ * Created by yangmingsen on 2024/10/13.
  */
-@Component(NoteConstants.defaultNoteCache)
-public class DefaultNoteCacheImpl implements NoteCache {
-
+@Component(NoteConstants.weakMemoryNoteCache)
+public class WeakMemoryNoteCache implements NoteCache {
     private final static Logger log = LoggerFactory.getLogger(DefaultNoteCacheImpl.class);
 
-    private final Map<String, Object> cacheMap = new ConcurrentHashMap<>();
+    private final WeakHashMap<String, Object> cacheMap = new WeakHashMap<>();
 
     @Override
     public Object find(String id) {

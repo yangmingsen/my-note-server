@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteCache;
 import top.yms.note.entity.NoteUser;
 import top.yms.note.service.NoteUserService;
@@ -31,7 +31,7 @@ public class JwtInterceptor implements HandlerInterceptor {
     private JwtUtil jwtUtil;
 
     @Autowired
-    @Qualifier(Constants.defaultNoteCache)
+    @Qualifier(NoteConstants.defaultNoteCache)
     private NoteCache noteCache;
 
     @Autowired
@@ -74,7 +74,7 @@ public class JwtInterceptor implements HandlerInterceptor {
             }
             Map<String, Object> localMap = LocalThreadUtils.get();
             localMap.put(userId, noteUser);
-            localMap.put(Constants.USER_ID, noteUser.getId());
+            localMap.put(NoteConstants.USER_ID, noteUser.getId());
             LocalThreadUtils.set(localMap);
 
             return true;

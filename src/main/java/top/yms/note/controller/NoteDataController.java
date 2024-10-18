@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteDataIndexService;
 import top.yms.note.conpont.content.NotePreview;
 import top.yms.note.dto.NoteDataDto;
@@ -55,7 +55,7 @@ public class NoteDataController {
 
     @PostMapping("/addAndUpdate")
     public RestOut<String> addAndUpdate(@RequestBody NoteDataDto noteData) {
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         noteData.setUserId(uid);
 //        log.info("addAndUpdate: noteData={}", noteData);
         if (noteData == null) {

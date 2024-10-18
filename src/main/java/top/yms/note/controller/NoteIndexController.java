@@ -10,9 +10,7 @@ import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import top.yms.note.conpont.NoteAsyncExecuteTaskService;
 import top.yms.note.conpont.NoteCache;
-import top.yms.note.conpont.NoteRecentVisitService;
 import top.yms.note.conpont.task.AsyncTask;
-import top.yms.note.conpont.task.NoteExecuteService;
 import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.dto.NoteListQueryDto;
 import top.yms.note.dto.NoteMoveDto;
@@ -22,7 +20,7 @@ import top.yms.note.enums.AsyncExcuteTypeEnum;
 import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.comm.CommonErrorCode;
-import top.yms.note.comm.Constants;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.service.NoteIndexService;
 import top.yms.note.utils.IdWorker;
@@ -32,7 +30,6 @@ import top.yms.note.vo.NoteIndexVo;
 import top.yms.note.vo.NoteInfoVo;
 import top.yms.note.vo.NoteSearchVo;
 
-import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -50,7 +47,7 @@ public class NoteIndexController {
     private NoteIndexService noteIndexService;
 
     @Autowired
-    @Qualifier(Constants.defaultNoteCache)
+    @Qualifier(NoteConstants.defaultNoteCache)
     private NoteCache noteCache;
 
     @Autowired
@@ -62,7 +59,7 @@ public class NoteIndexController {
 
     @GetMapping("/list")
     public RestOut<List<NoteIndex>> findByUid() {
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         log.info("findByUid: {}", uid);
         List<NoteIndex> noteList = noteIndexService.findByUserId(uid);
 //        log.info("findByUid: {} , count: {}", uid, noteList.size());
@@ -71,7 +68,7 @@ public class NoteIndexController {
 
     @GetMapping("/tree")
     public RestOut findNoteTreeByUid() {
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         log.info("findNoteTreeByUid: {}", uid);
         List<NoteTree> noteTreeList = noteIndexService.findNoteTreeByUid(uid);
 //        log.info("findByUid: {} , count: {}", uid, noteTreeList.size());
@@ -80,7 +77,7 @@ public class NoteIndexController {
 
     @GetMapping("/antTree")
     public RestOut findAntTree() {
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         log.info("antTree: {}", uid);
         List<AntTreeNode> antTreeList = noteIndexService.findAntTreeExcludeEncrypted(uid);
 //        log.info("antTree: {} , count: {}", uid, antTreeList.size());
@@ -95,7 +92,7 @@ public class NoteIndexController {
     @PostMapping("/sub")
     public RestOut<List<NoteIndex>> findSubBy(NoteListQueryDto noteListQueryDto) {
         log.info("findSubBy_noteListQueryDto:{}", noteListQueryDto);
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         Long parentId = noteListQueryDto.getParentId();
         if (parentId == null) {
             throw new BusinessException(CommonErrorCode.E_100101);
@@ -203,7 +200,7 @@ public class NoteIndexController {
     @GetMapping("/menuList")
     public RestOut<MenuListVo> findMenuList(@RequestParam("nid") Long nid) {
         //0->dir(menu); 1->file(content)
-        Map<String, List<NoteIndex>>  mapList = Optional.ofNullable(noteIndexService.findSubBy(nid, LocalThreadUtils.getUserId())).orElse(Collections.emptyList()).stream().collect(Collectors.groupingBy(NoteIndex::getIsile));
+        Map<String, List<NoteIndex>>  mapList = Optional.ofNullable(noteIndexService.findSubBy(nid, LocalThreadUtils.getUserId())).orElse(Collections.emptyList()).stream().collect(Collectors.groupingBy(NoteIndex::getIsFile));
         MenuListVo res = new MenuListVo();
         res.setMenuList(mapList.get("0"));
         res.setNoteContentMenuList(mapList.get("1"));
@@ -213,16 +210,16 @@ public class NoteIndexController {
 
     @PostMapping("add")
     public RestOut<NoteIndex> add(@RequestBody NoteIndex note) {
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         note.setUserId(uid);
         log.info("add: {}", note);
         if (StringUtils.isBlank(note.getName())) {
             throw new BusinessException(NoteIndexErrorCode.E_203100);
         }
-        if (StringUtils.isBlank(note.getIsile())) {
+        if (StringUtils.isBlank(note.getIsFile())) {
             throw new BusinessException(NoteIndexErrorCode.E_203102);
         }
-        if ("1".equals(note.getIsile()) && StringUtils.isBlank(note.getType())) {
+        if ("1".equals(note.getIsFile()) && StringUtils.isBlank(note.getType())) {
             throw new BusinessException(NoteIndexErrorCode.E_203103);
         }
         noteIndexService.add(note);
@@ -232,7 +229,7 @@ public class NoteIndexController {
 
     @PostMapping("/update")
     public RestOut<String> update(@RequestBody NoteIndex note) {
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         note.setUserId(uid);
         log.info("update: {}", note);
         if (note == null) {
@@ -260,7 +257,7 @@ public class NoteIndexController {
     @PostMapping("/delNote")
     public RestOut<String> delNote(@RequestBody NoteIndex note) {
         log.info("delNote: {}", note);
-        Long uid = (Long) LocalThreadUtils.get().get(Constants.USER_ID);
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         note.setUserId(uid);
         if (note.getId() == null) {
             throw new BusinessException(CommonErrorCode.E_203001);

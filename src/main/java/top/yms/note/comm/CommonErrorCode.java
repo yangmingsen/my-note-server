@@ -20,6 +20,9 @@ public enum CommonErrorCode implements ErrorCode {
     E_200210(200210,"未登录"),
     E_200211(200211,"当前方法未实现"),
     E_200212(200212,"当前配置不存在"),
+    E_200213(200213,"同步本地笔记异常"),
+    E_200214(200214, "方法未实现"),
+    E_200215(200215, "未找到合适的笔记类型【NoteType】"),
 
 
 
@@ -33,6 +36,10 @@ public enum CommonErrorCode implements ErrorCode {
     E_203007(203007, "非法auth对象"),
     E_203008(203008, "mindMap数据保存出错"),
 
+    E_300001(300001, "异步task类型为空"),
+    E_300002(300002, "执行#异步任务类型为空"),
+    E_300003(300003, "当前执行任务类非DelayExecuteTask"),
+    E_300004(300004, "当前AsyncTask非DelayExecuteAsyncTask"),
 
     /**
      * 未知错误
@@ -42,17 +49,17 @@ public enum CommonErrorCode implements ErrorCode {
     private int code;
     private String desc;
 
+    CommonErrorCode(int code, String desc) {
+        this.code = code;
+        this.desc = desc;
+    }
+
     public int getCode() {
         return code;
     }
 
     public String getDesc() {
         return desc;
-    }
-
-    private CommonErrorCode(int code, String desc) {
-        this.code = code;
-        this.desc = desc;
     }
 
 
