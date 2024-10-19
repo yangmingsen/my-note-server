@@ -96,9 +96,11 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
         searchLog.setUserId(userId);
         noteSearchLogService.add(searchLog);
 
+        Directory directory = null;
+        IndexReader indexReader = null;
         try {
-            Directory directory = FSDirectory.open(Paths.get(indexPath));
-            IndexReader indexReader = DirectoryReader.open(directory);
+            directory = FSDirectory.open(Paths.get(indexPath));
+            indexReader = DirectoryReader.open(directory);
             IndexSearcher indexSearcher = new IndexSearcher(indexReader);
 
             Query userIdQuery = LongPoint.newExactQuery("userId", userId);
@@ -138,12 +140,15 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
 
                 long id = Long.parseLong(hitDoc.getField("id").stringValue());
                 long parentId = hitDoc.getField("parentId").numericValue().longValue();
-                String type = hitDoc.getField("type").stringValue();
+                if (hitDoc.getField("type") != null) {
+                    String type = hitDoc.getField("type").stringValue();
+                    searchResult.setType(type);
+                }
                 String isFile = hitDoc.getField("isFile").stringValue();
                 String encrypted = hitDoc.getField("encrypted").stringValue();
                 searchResult.setId(id);
                 searchResult.setParentId(parentId);
-                searchResult.setType(type);
+
                 searchResult.setIsFile(isFile);
                 searchResult.setEncrypted(encrypted);
 
@@ -169,40 +174,44 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
 
                 searchResults.add(searchResult);
             }
-            indexReader.close();
-            directory.close();
         }catch (Exception e) {
             logger.error("搜索发生错误: ", e);
+        } finally {
+            tryClose(indexReader, directory);
         }
         return searchResults;
     }
 
     @Override
     public void delete(Long id) {
+        Directory directory = null;
+        IndexWriter indexWriter = null;
+
         try {
-            Directory directory = FSDirectory.open(Paths.get(indexPath));
+            directory = FSDirectory.open(Paths.get(indexPath));
             IndexWriterConfig config = new IndexWriterConfig(new IKAnalyzer());
-            IndexWriter indexWriter = new IndexWriter(directory, config);
+            indexWriter = new IndexWriter(directory, config);
 
             Term idTerm = new Term("id", Long.toString(id));
             indexWriter.deleteDocuments(idTerm);
 
             indexWriter.commit();
-            indexWriter.close();
-            directory.close();
-
         } catch (Exception e) {
             logger.error("删除索引失败", e);
             throw new RuntimeException(e);
+        } finally {
+            tryClose( indexWriter, directory);
         }
     }
 
     @Override
     public void delete(List<Long> ids) {
+        Directory directory = null;
+        IndexWriter indexWriter = null;
         try {
-            Directory directory = FSDirectory.open(Paths.get(indexPath));
+            directory = FSDirectory.open(Paths.get(indexPath));
             IndexWriterConfig config = new IndexWriterConfig(new IKAnalyzer());
-            IndexWriter indexWriter = new IndexWriter(directory, config);
+            indexWriter = new IndexWriter(directory, config);
 
             for (Long id : ids) {
                 Term idTerm = new Term("id", Long.toString(id));
@@ -210,13 +219,32 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
             }
 
             indexWriter.commit();
-            indexWriter.close();
-            directory.close();
         } catch (Exception e) {
             logger.error("删除索引失败", e);
             throw new RuntimeException(e);
+        } finally {
+            tryClose(indexWriter, directory);
         }
     }
+
+    private void tryClose(Object ...objs) {
+        for (Object obj : objs) {
+            try {
+                if (obj instanceof Directory) {
+                    ((Directory)obj).close();
+                }
+                if (obj instanceof IndexWriter) {
+                    ((IndexWriter)obj).close();
+                }
+                if (obj instanceof IndexReader) {
+                    ((IndexReader)obj).close();
+                }
+            } catch (Exception ex) {
+                logger.error("tryClose Error", ex);
+            }
+        }
+    }
+
 
     private void deleteDirectory(File dir) {
         if (dir.isDirectory()) {
@@ -233,13 +261,17 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
     }
     @Override
     public void rebuildIndex() {
+
+        Directory directory = null;
+        IndexWriterConfig config;
+        IndexWriter indexWriter = null;
         try {//delete old index
             File rootDir = new File(indexPath);
             deleteDirectory(rootDir);
 
-            Directory directory = FSDirectory.open(Paths.get(indexPath));
-            IndexWriterConfig config = new IndexWriterConfig(new IKAnalyzer());
-            IndexWriter indexWriter = new IndexWriter(directory, config);
+            directory = FSDirectory.open(Paths.get(indexPath));
+            config = new IndexWriterConfig(new IKAnalyzer());
+            indexWriter = new IndexWriter(directory, config);
 
             List<NoteIndex> noteIndexList = noteIndexMapper.findAll();
             for (NoteIndex noteIndex : noteIndexList) {
@@ -252,7 +284,7 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
                 if (!StringUtils.isEmpty(title)) {
                     document.add(new TextField("title", title, Field.Store.YES));
                 }
-                if (noteIndex.getStoreSite().equals("mysql")) {
+                if ("mysql".equals(noteIndex.getStoreSite())) {
                     NoteData noteData = noteDataMapper.selectByPrimaryKey(noteIndex.getId());
                     if (!StringUtils.isEmpty(noteData.getContent())) {
                         if ("wer".equals(noteIndex.getType())) {
@@ -279,7 +311,8 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
                         }
                     }
                 }
-                document.add(new StoredField("type", noteIndex.getType()));
+                if (!StringUtils.isEmpty(noteIndex.getType()))
+                    document.add(new StoredField("type", noteIndex.getType()));
                 document.add(new StoredField("isFile", noteIndex.getIsFile()));
                 document.add(new LongPoint("createDate", noteIndex.getCreateTime().getTime()));
                 document.add(new StoredField("createDate", noteIndex.getCreateTime().getTime()));
@@ -290,22 +323,24 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
             }
 
             indexWriter.commit();
-            indexWriter.close();
-            directory.close();
             logger.info("rebuild index success");
         } catch (Exception e) {
             logger.error("重新建立index失败", e);
             throw new RuntimeException(e);
+        } finally {
+            tryClose(indexWriter, directory);
         }
 
     }
 
 
     private void doListUpdate(List<NoteLuceneIndex> noteLuceneIndexList) {
+        Directory directory = null;
+        IndexWriter indexWriter = null;
         try {
-            Directory directory = FSDirectory.open(Paths.get(indexPath));
+            directory = FSDirectory.open(Paths.get(indexPath));
             IndexWriterConfig config = new IndexWriterConfig(new IKAnalyzer());
-            IndexWriter indexWriter = new IndexWriter(directory, config);
+            indexWriter = new IndexWriter(directory, config);
 
             for (NoteLuceneIndex noteLuceneIndex : noteLuceneIndexList) {
                 Long id = noteLuceneIndex.getId();
@@ -343,13 +378,12 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
 
             indexWriter.commit();
             indexWriter.flush();
-            indexWriter.close();
-            directory.close();
-
             logger.info("index更新完成....");
         } catch (Exception e) {
             logger.error("updateByIds#更新lucene索引失败：", e);
             throw new RuntimeException(e);
+        } finally {
+            tryClose(indexWriter, directory);
         }
     }
 
