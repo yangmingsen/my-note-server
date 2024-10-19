@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * 系统文件存储服务
  */
-public interface FileStore {
+public interface FileStoreService {
 
     /**
      * 根据id取File
@@ -41,6 +41,13 @@ public interface FileStore {
 
 
     boolean delFile(String id);
+
+    /**
+     * 从文件系统获取该文件的文本内容，注意目标必须是文本文件，否则将出现不可预览异常
+     * @param id fileId, 不是noteid
+     * @return
+     */
+    default String getStringContent(String id) {return null;}
 
 
 

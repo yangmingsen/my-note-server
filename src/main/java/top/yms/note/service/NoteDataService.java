@@ -54,7 +54,7 @@ public class NoteDataService {
     private NoteIndexMapper noteIndexMapper;
 
     @Autowired
-    private FileStore fileStore;
+    private FileStoreService fileStoreService;
 
     @Autowired
     @Qualifier(NoteConstants.noteLuceneSearch)
@@ -279,7 +279,7 @@ public class NoteDataService {
             return false;
         }
 
-        AnyFile anyFile = fileStore.loadFile(noteIndex.getSiteId());
+        AnyFile anyFile = fileStoreService.loadFile(noteIndex.getSiteId());
         if (anyFile.getLength() == 0L) {
             log.info("文件id={}, 为空文件", id);
             return false;
@@ -332,7 +332,7 @@ public class NoteDataService {
             if (!checkFileCanPreviewByCache(id)) {
                 throw new BusinessException(NoteIndexErrorCode.E_203113);
             }
-            AnyFile anyFile = fileStore.loadFile(noteIndex.getSiteId());
+            AnyFile anyFile = fileStoreService.loadFile(noteIndex.getSiteId());
 
             StringBuilder contentStr = new StringBuilder("```");
             contentStr.append(noteIndex.getType()).append("\n");

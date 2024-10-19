@@ -56,7 +56,7 @@ public abstract class AbstractNoteType implements NoteType, NoteLuceneDataServic
     NoteFileService noteFileService;
 
     @Autowired
-    protected FileStore fileStore;
+    protected FileStoreService fileStoreService;
 
     @Autowired
     @Qualifier(NoteConstants.noteLuceneSearch)

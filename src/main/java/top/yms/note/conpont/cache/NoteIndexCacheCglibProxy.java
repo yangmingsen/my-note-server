@@ -6,10 +6,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
-import top.yms.note.conpont.NoteCache;
+import top.yms.note.conpont.NoteCacheService;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 
 /**
  * Created by yangmingsen on 2024/4/13.
@@ -21,14 +20,14 @@ public class NoteIndexCacheCglibProxy implements MethodInterceptor, NoteCacheCgl
 
     private Object target;
 
-    private NoteCache noteCache;
+    private NoteCacheService noteCacheService;
 
     public NoteIndexCacheCglibProxy(Object target) {
         this.target = target;
     }
 
-    public void setNoteCache(NoteCache noteCache) {
-        this.noteCache = noteCache;
+    public void setNoteCache(NoteCacheService noteCacheService) {
+        this.noteCacheService = noteCacheService;
     }
 
     public Object getTargetProxy() {
@@ -60,15 +59,15 @@ public class NoteIndexCacheCglibProxy implements MethodInterceptor, NoteCacheCgl
             if (methodName.startsWith("find") || methodName.startsWith("get")) {
                 String cacheId = getCacheKey(proxy, method, args);
                 log.info("findCache: id={}", cacheId);
-                Object data = noteCache.find(cacheId);
+                Object data = noteCacheService.find(cacheId);
                 if (data != null) {
                     return data;
                 }
                 objValue = method.invoke(target, args);
-                noteCache.add(cacheId, objValue);
+                noteCacheService.add(cacheId, objValue);
                 return objValue;
             } else if (updateMehtondCheck(methodName)) {
-                noteCache.clear();
+                noteCacheService.clear();
             }
             objValue = method.invoke(target, args);
             //log.info("返回值为：{}" , objValue);
@@ -97,7 +96,7 @@ public class NoteIndexCacheCglibProxy implements MethodInterceptor, NoteCacheCgl
     }
 
     @Override
-    public void setCache(NoteCache noteCache) {
-        this.noteCache = noteCache;
+    public void setCache(NoteCacheService noteCacheService) {
+        this.noteCacheService = noteCacheService;
     }
 }

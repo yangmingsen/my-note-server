@@ -15,6 +15,7 @@ import top.yms.note.conpont.ComponentSort;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by yangmingsen on 2024/10/2.
@@ -59,6 +60,8 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
         }
 
     }
+
+    private final AtomicInteger workerCount = new AtomicInteger(0);
 
     protected List<AsyncTask> dataList = new LinkedList<>();
 
@@ -176,7 +179,8 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
      * @return
      */
     public boolean isRun() {
-        return StatusEnum.apply(getStatus()) == StatusEnum.Running;
+        return workerCount.get() > 0;
+//        return StatusEnum.apply(getStatus()) == StatusEnum.Running;
     }
 
     /**
@@ -185,12 +189,14 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
     abstract void doRun();
 
     protected boolean beforeRun() {
-        setStatus(StatusEnum.Running.getValue());
+//        setStatus(StatusEnum.Running.getValue());
+        workerCount.getAndIncrement();
         return true;
     }
 
     protected boolean runComplete() {
-        setStatus(StatusEnum.UnRunning.getValue());
+//        setStatus(StatusEnum.UnRunning.getValue());
+        workerCount.decrementAndGet();
         return true;
     }
 }

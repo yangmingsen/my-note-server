@@ -10,7 +10,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
-import top.yms.note.conpont.NoteCache;
+import top.yms.note.conpont.NoteCacheService;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -58,7 +58,7 @@ public class NoteServiceCacheEnHance implements BeanPostProcessor, ApplicationLi
     public void onApplicationEvent(ApplicationEvent event) {
         if (!cached && event.getSource() instanceof AnnotationConfigServletWebServerApplicationContext) {
             ApplicationContext context = (ApplicationContext) event.getSource();
-            NoteCache cache = context.getBean(NoteCache.class);
+            NoteCacheService cache = context.getBean(NoteCacheService.class);
             for(int i = 0; i< listCache.size(); i++) {
                 NoteCacheCglibProxy proxy = listCache.get(i);
                 proxy.setCache(cache);

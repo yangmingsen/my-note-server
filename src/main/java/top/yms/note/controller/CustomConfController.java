@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteAsyncExecuteTaskService;
-import top.yms.note.conpont.NoteCache;
+import top.yms.note.conpont.NoteCacheService;
 import top.yms.note.conpont.task.AsyncTask;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.RestOut;
@@ -42,7 +42,7 @@ public class CustomConfController {
     private IdWorker idWorker;
 
     @Autowired
-    private NoteCache noteCache;
+    private NoteCacheService noteCacheService;
 
     @Autowired
     private NoteIndexService noteIndexService;

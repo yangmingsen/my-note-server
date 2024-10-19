@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
-import top.yms.note.conpont.NoteCache;
+import top.yms.note.conpont.NoteCacheService;
 import top.yms.note.dto.NoteAuth;
 import top.yms.note.dto.NoteAuthPassword;
 import top.yms.note.entity.NoteUser;
@@ -29,7 +29,7 @@ public class NoteAuthService {
 
     @Autowired
     @Qualifier(NoteConstants.defaultNoteCache)
-    private NoteCache noteCache;
+    private NoteCacheService noteCacheService;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -44,7 +44,7 @@ public class NoteAuthService {
             String encryptedStr = DigestUtils.md5DigestAsHex(srcStr.getBytes(StandardCharsets.UTF_8));
             if (noteUser.getPassword().equals(encryptedStr)) {
                 String token = jwtUtil.generateToken(noteUser.getId().toString());
-                noteCache.update(noteUser.getId().toString(), noteUser);
+                noteCacheService.update(noteUser.getId().toString(), noteUser);
                 AuthResult authResult = new AuthResult();
                 authResult.setToken(token);
                 authResult.setUserId(noteUser.getId());

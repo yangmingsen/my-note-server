@@ -1,13 +1,13 @@
 package top.yms.note.conpont.cache;
 
-import top.yms.note.conpont.NoteCache;
+import top.yms.note.conpont.NoteCacheService;
 
 /**
  * Created by yangmingsen on 2024/10/15.
  *
  * 自动检查当前key,是否过期，以及自动删除过期的key
  */
-public class AutoClearMemoryNoteCache implements NoteCache {
+public class AutoClearMemoryNoteCacheService implements NoteCacheService {
     @Override
     public Object find(String id) {
         return null;

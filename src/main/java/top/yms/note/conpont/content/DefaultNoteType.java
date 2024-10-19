@@ -7,8 +7,7 @@ import top.yms.note.exception.BusinessException;
 /**
  * Created by yangmingsen on 2024/8/21.
  */
-@Component
-public class CommonNoteType extends AbstractNoteType {
+public class DefaultNoteType extends AbstractNoteType {
     @Override
     public boolean support(String type) {
         return false;

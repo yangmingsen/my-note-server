@@ -4,18 +4,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteConstants;
-import top.yms.note.conpont.NoteCache;
+import top.yms.note.conpont.NoteCacheService;
 
-import java.util.WeakHashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Created by yangmingsen on 2024/10/13.
+ * Created by yangmingsen on 2024/4/13.
  */
-@Component(NoteConstants.weakMemoryNoteCache)
-public class WeakMemoryNoteCache implements NoteCache {
-    private final static Logger log = LoggerFactory.getLogger(DefaultNoteCacheImpl.class);
+@Component(NoteConstants.defaultNoteCache)
+public class DefaultNoteCacheServiceImpl implements NoteCacheService {
 
-    private final WeakHashMap<String, Object> cacheMap = new WeakHashMap<>();
+    private final static Logger log = LoggerFactory.getLogger(DefaultNoteCacheServiceImpl.class);
+
+    private final Map<String, Object> cacheMap = new ConcurrentHashMap<>();
 
     @Override
     public Object find(String id) {

@@ -58,7 +58,7 @@ public class NoteIndexService {
     private NoteDataVersionMapper noteDataVersionMapper;
 
     @Autowired
-    private FileStore fileStoreService;
+    private FileStoreService fileStoreService;
 
     @Autowired
     private IdWorker idWorker;

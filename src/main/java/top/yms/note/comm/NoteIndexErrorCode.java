@@ -24,8 +24,8 @@ public enum NoteIndexErrorCode implements ErrorCode{
 
 
     E_203333(203333, "Note未知错误");
-    private int code;
-    private String desc;
+    private final int code;
+    private final String desc;
 
     private NoteIndexErrorCode(int code, String desc) {
         this.code = code;

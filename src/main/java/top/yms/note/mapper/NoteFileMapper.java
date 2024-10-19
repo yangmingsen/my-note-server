@@ -37,6 +37,10 @@ public interface NoteFileMapper {
     @Delete("delete from t_note_file where f_note_ref=#{noteRef, jdbcType=BIGINT}")
     int deleteByNoteRef(@Param("noteRef") Long noteRef);
 
+    @Select("select * from t_note_file where f_file_id=#{fileId, jdbcType=VARCHAR}")
+    @ResultMap("BaseResultMap")
+    NoteFile findOneByFileId(@Param("fileId") String fileId);
+
     @Select("select * from t_note_file where f_note_ref=#{noteRef, jdbcType=BIGINT}")
     @ResultMap("BaseResultMap")
     List<NoteFile> selectByNoteRef(@Param("noteRef") Long noteRef);
