@@ -32,6 +32,7 @@ import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.LocalNoteSyncResult;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -311,7 +312,7 @@ public class NoteFileService {
                 noteIndex.setStoreSite(NoteConstants.MYSQL);
                 StringBuilder sb = new StringBuilder();
 
-                try(InputStreamReader isr = new InputStreamReader(new FileInputStream(file))) {
+                try(InputStreamReader isr = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
                     int bufLen = 1024;
                     char [] cBuf = new char[bufLen];
                     int rLen = 0;
