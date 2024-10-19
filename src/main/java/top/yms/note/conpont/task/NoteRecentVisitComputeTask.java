@@ -48,6 +48,12 @@ public class NoteRecentVisitComputeTask extends AbstractAsyncExecuteTask impleme
      */
     private final Map<Long, LruCache> lruCacheMap = new ConcurrentHashMap<>();
 
+
+    public int getSortValue() {
+        return 2;
+    }
+
+
     private LruCache getLruCache(Long userId) {
         LruCache lruCache = lruCacheMap.get(userId);
         if (lruCache == null) {

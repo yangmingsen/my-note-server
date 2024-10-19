@@ -22,6 +22,7 @@ import top.yms.note.entity.NoteIndex;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteIndexMapper;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -89,6 +90,7 @@ public class DefaultNoteStoreServiceImpl implements NoteStoreService, Applicatio
         noteContentTypeList.addAll(
                 BeanFactoryUtils.beansOfTypeIncludingAncestors(
                         context, NoteType.class, true, false).values());
+        Collections.sort(noteContentTypeList);
         log.info("获取到NoteContentTypeList: {}", noteContentTypeList);
     }
 

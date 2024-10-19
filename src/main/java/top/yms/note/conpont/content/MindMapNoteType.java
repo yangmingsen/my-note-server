@@ -22,8 +22,12 @@ import java.util.Date;
  */
 @Component
 public class MindMapNoteType extends AbstractNoteType{
-
     private final static Logger log = LoggerFactory.getLogger(MindMapNoteType.class);
+
+
+    public int getSortValue() {
+        return 3;
+    }
 
     @Override
     public boolean support(String type) {

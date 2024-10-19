@@ -63,13 +63,6 @@ public class NoteIndexService {
     @Autowired
     private IdWorker idWorker;
 
-    @Autowired
-    private NoteSearchLogService noteSearchLogService;
-
-    @Autowired
-    private NoteDataIndexService noteDataIndexService;
-
-
     @Qualifier(NoteConstants.noteLuceneSearch)
     @Autowired
     private NoteSearch noteSearchService;
@@ -416,23 +409,6 @@ public class NoteIndexService {
 
 
             //update index service
-//            if (NoteTypeEnum.File == NoteTypeEnum.apply(note.getIsFile())) {
-//                NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
-//                noteLuceneIndex.setId(genId);
-//                noteLuceneIndex.setUserId(LocalThreadUtils.getUserId());
-//                noteLuceneIndex.setParentId(note.getParentId());
-//                noteLuceneIndex.setTitle(note.getName());
-//                noteLuceneIndex.setIsFile(note.getIsFile());
-//                noteLuceneIndex.setType(note.getType());
-//                noteLuceneIndex.setCreateDate(opTime);
-//                noteLuceneIndex.setEncrypted("0");
-//
-//
-//                noteDataIndexService.update(noteLuceneIndex);
-//
-//                //todo 需要考虑只更新索引没有内容的情况
-//            }
-//
             NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
             noteLuceneIndex.setId(genId);
             noteLuceneIndex.setUserId(LocalThreadUtils.getUserId());
@@ -478,17 +454,6 @@ public class NoteIndexService {
         if (StringUtils.isNotBlank(note.getName())) {
             if (!note.getName().equals(noteIndex.getName())) {
                 //update index service
-//                NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
-//                noteLuceneIndex.setId(id);
-//                noteLuceneIndex.setUserId(LocalThreadUtils.getUserId());
-//                noteLuceneIndex.setParentId(noteIndex.getParentId());
-//                noteLuceneIndex.setTitle(note.getName());
-//
-//                noteLuceneIndex.setIsFile(noteIndex.getIsFile());
-//                noteLuceneIndex.setType(noteIndex.getType());
-//                noteLuceneIndex.setCreateDate(new Date());
-//                noteDataIndexService.update(noteLuceneIndex);
-
                 NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
                 noteLuceneIndex.setId(id);
                 noteLuceneIndex.setUserId(LocalThreadUtils.getUserId());
@@ -736,6 +701,28 @@ public class NoteIndexService {
         list.add(noteIndex);
     }
 
+
+    /**
+     * 给全文索引提供面包线数据
+     * @param noteId 用parentId
+     * @return
+     */
+    public String findBreadcrumbForSearch(Long noteId) {
+        List<NoteIndex> resList = new LinkedList<>();
+        findBreadcrumb(noteId, resList);
+        final StringBuilder tmpPath = new StringBuilder();
+        for(int i=0; i<resList.size(); i++) {
+            if (i+1 == resList.size()) {
+                tmpPath.append(resList.get(i).getName());
+            } else {
+                tmpPath.append(resList.get(i).getName()).append("/");
+            }
+        }
+
+        return tmpPath.toString();
+    }
+
+
     /**
      * 获取一个笔记的信息及存储位置信息
      * @param id
@@ -840,6 +827,10 @@ public class NoteIndexService {
         noteIndexMapper.updateByPrimaryKeySelective(upDao);
     }
 
+    /**
+     * 获取最近访问列表
+     * @return
+     */
     public List<NoteIndex> recentVisitList() {
         return noteRecentVisitService.getRecentVisitList();
     }

@@ -38,7 +38,7 @@ public class CustomConfService {
             Document saveRes = mongoTemplate.save(newDoc, NoteConstants.customConfig);
             //决定是否保存
             ObjectId objId = saveRes.getObjectId("_id");
-//            log.info("updateUserConfig_创建成功");
+            log.debug("updateUserConfig_创建成功");
         } else {
             for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
                 String key = entry.getKey();
@@ -46,7 +46,7 @@ public class CustomConfService {
                 oldDoc.put(key, value);
             }
             mongoTemplate.save(oldDoc,  NoteConstants.customConfig);
-            log.info("updateUserConfig_更新成功: {}", jsonObject);
+            log.debug("updateUserConfig_更新成功: {}", jsonObject);
         }
     }
 
@@ -55,7 +55,6 @@ public class CustomConfService {
         if (doc == null) {
             throw new BusinessException(CommonErrorCode.E_200212);
         }
-        String jsonStr = doc.toJson();
-        return jsonStr;
+        return doc.toJson();
     }
 }

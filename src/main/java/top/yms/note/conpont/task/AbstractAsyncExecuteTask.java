@@ -10,6 +10,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import top.yms.note.comm.NoteConstants;
+import top.yms.note.conpont.ComponentSort;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -32,8 +33,8 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
         UnRunning(0, "未运行中"),
         Running(1, "运行中"),
         ;
-        private int value;
-        private String name;
+        private final int value;
+        private final String name;
 
         StatusEnum(int value, String name) {
             this.value = value;
@@ -67,6 +68,16 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
     @Autowired
     protected MongoTemplate mongoTemplate;
 
+
+    @Override
+    public int compareTo(ComponentSort other) {
+        return this.getSortValue() - other.getSortValue();
+    }
+
+    @Override
+    public int getSortValue() {
+        return 9999;
+    }
 
     @Override
     public synchronized void addTask(AsyncTask task) {

@@ -25,6 +25,11 @@ public class WerNoteType extends AbstractNoteType {
 
     private final static String supportType = "wer";
 
+
+    public int getSortValue() {
+        return 2;
+    }
+
     @Override
     public boolean support(String type) {
         return supportType.equals(type);

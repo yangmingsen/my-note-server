@@ -31,6 +31,10 @@ public class PreviewNoteType extends AbstractNoteType implements NotePreview{
             "cpp","py","bash","conf","ini","sql","cnf"
     };
 
+    public int getSortValue() {
+        return 5;
+    }
+
     private static final Map<String,Boolean> supportMap = new HashMap<>();
 
     static {

@@ -10,10 +10,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
-import top.yms.note.conpont.FileStore;
-import top.yms.note.conpont.NoteAsyncExecuteTaskService;
-import top.yms.note.conpont.NoteDataIndexService;
-import top.yms.note.conpont.NoteLuceneDataService;
+import top.yms.note.conpont.*;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.conpont.task.DelayExecuteAsyncTask;
 import top.yms.note.dto.NoteIndexLuceneUpdateDto;
@@ -73,6 +70,17 @@ public abstract class AbstractNoteType implements NoteType, NoteLuceneDataServic
 
     @Autowired
     private IdWorker idWorker;
+
+    @Override
+    public int compareTo(ComponentSort other) {
+        return this.getSortValue()-other.getSortValue();
+    }
+
+    @Override
+    public int getSortValue() {
+        return 999;
+    }
+
 
     /**
      * 查找noteFile信息

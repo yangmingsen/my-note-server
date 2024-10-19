@@ -22,6 +22,7 @@ import top.yms.note.entity.SearchLog;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteIndexMapper;
+import top.yms.note.service.NoteIndexService;
 import top.yms.note.service.NoteSearchLogService;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.vo.NoteSearchResult;
@@ -66,21 +67,31 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
     private NoteIndexMapper noteIndexMapper;
 
     @Autowired
+    private NoteIndexService noteIndexService;
+
+    @Autowired
     private NoteDataMapper noteDataMapper;
 
     @Autowired
     protected MongoTemplate mongoTemplate;
 
-    @Qualifier(NoteConstants.noteLuceneIndexMemoryQueue)
-    @Autowired
-    private NoteQueue noteQueue;
-
-    private Thread updateIndexTask ;
-
 
     @Qualifier(NoteConstants.noteLuceneDataServiceImpl)
     @Autowired
     private NoteLuceneDataService noteLuceneDataService;
+
+    static String nbsp = "&nbsp;";
+    private String getViewValue(String value) {
+        StringBuilder tmpStr = new StringBuilder();
+        for (int i=0; i<5; i++) {
+            tmpStr.append(nbsp);
+        }
+        tmpStr.append("<span>");
+        tmpStr.append(value);
+        tmpStr.append("</span>");
+
+        return tmpStr.toString();
+    }
 
     @Override
     public List<SearchResult> doSearch(NoteSearchDto noteSearchDto) {
@@ -122,7 +133,6 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
             finalQueryBuilder.add(keywordQuery, BooleanClause.Occur.MUST);
             Query finalQuery = finalQueryBuilder.build();
 
-
             TopDocs topDocs = indexSearcher.search(finalQuery, 10);
             logger.info("本次搜索共找到" + topDocs.totalHits.value + "条数据");
 
@@ -152,6 +162,8 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
                 searchResult.setIsFile(isFile);
                 searchResult.setEncrypted(encrypted);
 
+
+                String notePath = hitDoc.getField("notePath").stringValue();
                 String title = hitDoc.get("title");
                 if (!StringUtils.isEmpty(title)) {
                     // 获取高亮的文本片段
@@ -159,7 +171,7 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
                     String titleFragment = highlighter.getBestFragment(titleTokenStream, title);
 
                     searchResult.setResType(SearchResult.Note_Title_Type);
-                    searchResult.setResult(titleFragment);
+                    searchResult.setResult(titleFragment+getViewValue(notePath));
                 }
 
                 String content = hitDoc.get("content");
@@ -169,7 +181,7 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
                     String contentFragment = highlighter.getBestFragment(contentTokenStream, content);
 
                     searchResult.setResType(SearchResult.Note_Content_Type);
-                    searchResult.setResult(contentFragment);
+                    searchResult.setResult(contentFragment+getViewValue(notePath));
                 }
 
                 searchResults.add(searchResult);
@@ -317,6 +329,11 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
                 document.add(new LongPoint("createDate", noteIndex.getCreateTime().getTime()));
                 document.add(new StoredField("createDate", noteIndex.getCreateTime().getTime()));
                 document.add(new StoredField("encrypted", noteIndex.getEncrypted()));
+                //do path add
+                String breadcrumbStr = noteIndexService.findBreadcrumbForSearch(noteIndex.getParentId());
+                if (!StringUtils.isEmpty(breadcrumbStr)) {
+                    document.add(new StoredField("notePath", breadcrumbStr));
+                }
 
                 //添加文档
                 indexWriter.addDocument(document);
@@ -372,6 +389,12 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
                 document.add(new LongPoint("createDate", createDate.getTime()));
                 document.add(new StoredField("createDate", createDate.getTime()));
                 document.add(new StoredField("encrypted", encrypted));
+
+                String breadcrumbStr = noteIndexService.findBreadcrumbForSearch(parentId);
+                if (!StringUtils.isEmpty(breadcrumbStr)) {
+                    document.add(new StoredField("notePath", breadcrumbStr));
+                }
+
                 //提交更改并关闭IndexWriter
                 indexWriter.updateDocument(idTerm, document);
             }
@@ -394,41 +417,6 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
     }
 
     private NoteLuceneIndex getFromNoteId(Long id) {
-//        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
-//        if (noteIndex == null) {
-//            logger.error("noteIndex目标不存在, 使用id={} 进行查询时", id);
-//            throw new BusinessException(NoteIndexErrorCode.E_203117);
-//        }
-//        NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
-//        if (noteData == null) {
-//            logger.error("noteData目标不存在, 使用id={} 进行查询时", id);
-//            throw new BusinessException(NoteIndexErrorCode.E_203117);
-//        }
-//        String textContent = null;
-//        if (!StringUtils.isEmpty(noteData.getContent())) {
-//            if ("wer".equals(noteIndex.getType())) {
-//                //从mongo中获取
-//                Long noteId = noteIndex.getId();
-//                org.bson.Document mongoDoc = mongoTemplate
-//                        .findOne(org.springframework.data.mongodb.core.query.Query.query(
-//                                        org.springframework.data.mongodb.core.query.Criteria.where(NoteConstants.id).is(noteId)),
-//                                org.bson.Document.class,
-//                                NoteConstants.noteWerTextContent);
-//                if (mongoDoc == null) {
-//                    logger.warn("根据id: {} 从mongo获取Wer数据为空", noteId);
-//                }  else {
-//                   textContent = (String)mongoDoc.get(NoteConstants.textContent);
-//                }
-//
-//            } else {
-//               textContent = noteData.getContent();
-//            }
-//        }
-//
-//        NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
-//        BeanUtils.copyProperties(noteIndex, noteLuceneIndex);
-//        noteLuceneIndex.setContent(textContent);
-
         return noteLuceneDataService.findNoteLuceneDataOne(id);
     }
 
@@ -439,6 +427,9 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
 
     public void update(NoteDataIndex noteDatandex) {
         NoteLuceneIndex noteLuceneIndex = (NoteLuceneIndex)noteDatandex;
+
+        Directory directory = null;
+        IndexWriter indexWriter = null;
         try {
             Long id = noteLuceneIndex.getId();
             Long userId = noteLuceneIndex.getUserId();
@@ -449,9 +440,9 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
             String isFile = noteLuceneIndex.getIsFile();
             Date createDate = noteLuceneIndex.getCreateDate();
 
-            Directory directory = FSDirectory.open(Paths.get(indexPath));
+            directory = FSDirectory.open(Paths.get(indexPath));
             IndexWriterConfig config = new IndexWriterConfig(new IKAnalyzer());
-            IndexWriter indexWriter = new IndexWriter(directory, config);
+            indexWriter = new IndexWriter(directory, config);
 
             Term idTerm = new Term("id", Long.toString(id));
             Document document = new Document();
@@ -471,74 +462,29 @@ public class NoteLuceneService implements NoteSearch, InitializingBean, NoteData
             document.add(new LongPoint("createDate", createDate.getTime()));
             document.add(new StoredField("createDate", createDate.getTime()));
             document.add(new StoredField("encrypted", noteLuceneIndex.getEncrypted()));
+
+
+            String breadcrumbStr = noteIndexService.findBreadcrumbForSearch(parentId);
+            if (!StringUtils.isEmpty(breadcrumbStr)) {
+                document.add(new StoredField("notePath", breadcrumbStr));
+            }
+
             //提交更改并关闭IndexWriter
             indexWriter.updateDocument(idTerm, document);
 
             indexWriter.commit();
-            indexWriter.close();
-            directory.close();
             logger.info("更新完成...{}", id);
         } catch (Exception e) {
             logger.error("更新lucene索引失败：", e);
             throw new RuntimeException(e);
+        } finally {
+            tryClose(indexWriter, directory);
         }
     }
 
-    public void updateIndex(Long id) {
-        try {
-            Directory directory = FSDirectory.open(Paths.get(indexPath));
-            IndexWriterConfig config = new IndexWriterConfig(new IKAnalyzer());
-            IndexWriter indexWriter = new IndexWriter(directory, config);
-
-            Term idTerm = new Term("id", Long.toString(id));
-
-            NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
-            String title = noteIndex.getName();
-            if (StringUtils.isEmpty(noteIndex.getName())) {
-                title = " ";
-            }
-            Document document = new Document();
-            document.add(new StoredField("id", noteIndex.getId()));
-            document.add(new LongPoint("userId", noteIndex.getUserId()));
-            document.add(new StoredField("userId", noteIndex.getUserId()));
-            document.add(new StoredField("parentId", noteIndex.getParentId()));
-            document.add(new TextField("title", title, Field.Store.YES));
-            if (noteIndex.getStoreSite().equals("mysql")) {
-                NoteData noteData = noteDataMapper.selectByPrimaryKey(noteIndex.getId());
-                if (!StringUtils.isEmpty(noteData.getContent())) {
-                    document.add(new TextField("content", noteData.getContent(), Field.Store.YES));
-                }
-            }
-            document.add(new StoredField("type", noteIndex.getType()));
-            document.add(new StoredField("isFile", noteIndex.getIsFile()));
-            document.add(new LongPoint("createDate", noteIndex.getCreateTime().getTime()));
-            document.add(new StoredField("createDate", noteIndex.getCreateTime().getTime()));
-            //提交更改并关闭IndexWriter
-            indexWriter.updateDocument(idTerm, document);
-
-            indexWriter.commit();
-            indexWriter.close();
-            directory.close();
-            logger.info("更新完成...{}", id);
-        } catch (Exception e) {
-            logger.error("updateIndex Error:", e);
-        }
-
-    }
 
     @Override
     public void afterPropertiesSet() throws Exception {
-//        updateIndexTask = new Thread(() -> {
-//            logger.info("启动更新lucene索引线程成功....");
-//            while (true) {
-//                try {
-//                    NoteLuceneIndex noteLuceneIndex = (NoteLuceneIndex)noteQueue.take();
-//                    updateIndex(noteLuceneIndex);
-//                } catch (Exception e) {
-//                    logger.error("更新lucene索引处理错误: ", e);
-//                }
-//            }
-//        });
-//        updateIndexTask.start();
+
     }
 }
