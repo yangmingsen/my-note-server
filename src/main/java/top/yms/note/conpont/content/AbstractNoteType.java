@@ -225,4 +225,8 @@ public abstract class AbstractNoteType implements NoteType, NoteLuceneDataServic
     public NoteLuceneIndex findNoteLuceneDataOne(Long id) {
         throw new BusinessException(CommonErrorCode.E_200214);
     }
+
+    public boolean supportGetLuceneData(String type) {
+        return support(type);
+    }
 }

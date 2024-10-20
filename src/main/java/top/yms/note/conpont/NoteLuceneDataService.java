@@ -14,6 +14,18 @@ public interface NoteLuceneDataService {
 
     default List<NoteLuceneIndex> findNoteLuceneDataAll() {throw new BusinessException(CommonErrorCode.E_200214);}
 
+    /**
+     * 根据noteId获取当前笔记的索引数据
+     * @param id noteId
+     * @return
+     */
     NoteLuceneIndex findNoteLuceneDataOne(Long id);
+
+    /**
+     * 核验当前笔记类型是否支持获取索引数据
+     * @param type 笔记类型（如 md,pdf,wer...)
+     * @return true表示支持，否则false-
+     */
+    boolean supportGetLuceneData(String type);
 
 }

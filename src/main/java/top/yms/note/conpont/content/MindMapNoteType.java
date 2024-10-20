@@ -1,5 +1,7 @@
 package top.yms.note.conpont.content;
 
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -8,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
+import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteIndex;
@@ -92,6 +95,45 @@ public class MindMapNoteType extends AbstractNoteType{
                 mongoTemplate.save(oldDoc, noteMindMap);
             }
             throw new BusinessException(CommonErrorCode.E_203008);
+        }
+    }
+
+    public NoteLuceneIndex findNoteLuceneDataOne(Long id) {
+        NoteLuceneIndex noteLuceneIndex = packNoteIndexForNoteLuceneIndex(id);
+        Object o= doGetContent(id);
+        if (o == null) {
+            return noteLuceneIndex;
+        }
+
+        NoteData noteData = (NoteData)o;
+        JSONObject jsonObject = JSONObject.parseObject(noteData.getContent());
+        StringBuilder contentStr = new StringBuilder();
+        traverseJSONObject(jsonObject, contentStr);
+
+        if (!StringUtils.isBlank(contentStr)) {
+            noteLuceneIndex.setContent(contentStr.toString());
+        }
+
+        return noteLuceneIndex;
+    }
+
+    private void traverseJSONObject(Object dataObj, StringBuilder content) {
+        if (dataObj instanceof JSONObject) {
+            JSONObject jsonObject = (JSONObject) dataObj;
+            for(String key : jsonObject.keySet()) {
+                Object objV = jsonObject.get(key);
+                traverseJSONObject(objV, content);
+            }
+        } else if (dataObj instanceof JSONArray) {
+            JSONArray jsonArray = (JSONArray) dataObj;
+            for (Object o2 : jsonArray) {
+                traverseJSONObject(o2, content);
+            }
+        } else {
+            String stringData = dataObj.toString();
+            if (!stringData.contains("ObjectId")) {
+                content.append(stringData).append(" ");
+            }
         }
     }
 }

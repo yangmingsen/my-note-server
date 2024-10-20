@@ -3,7 +3,7 @@ package top.yms.note.conpont.search;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteConstants;
-import top.yms.note.conpont.NoteSearch;
+import top.yms.note.conpont.NoteSearchService;
 import top.yms.note.dto.NoteSearchDto;
 import top.yms.note.entity.SearchLog;
 import top.yms.note.mapper.NoteIndexMapper;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * Created by yangmingsen on 2024/8/21.
  */
 @Component(NoteConstants.noteDefaultSearch)
-public class NoteDefaultSearch implements NoteSearch {
+public class NoteDefaultSearch implements NoteSearchService {
 
 
     @Autowired

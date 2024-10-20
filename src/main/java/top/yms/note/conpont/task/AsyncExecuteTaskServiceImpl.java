@@ -53,7 +53,7 @@ public class AsyncExecuteTaskServiceImpl implements NoteAsyncExecuteTaskService,
                 executeTask.addTask(task);
                 //开始执行
                 executeTask(task, executeTask);
-                break;
+                return;
             }
         }
         throw new BusinessException(CommonErrorCode.E_200216);

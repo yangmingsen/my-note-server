@@ -65,7 +65,7 @@ public class NoteIndexService {
 
     @Qualifier(NoteConstants.noteLuceneSearch)
     @Autowired
-    private NoteSearch noteSearchService;
+    private NoteSearchService noteSearchService;
 
     @Autowired
     private MongoTemplate mongoTemplate;
