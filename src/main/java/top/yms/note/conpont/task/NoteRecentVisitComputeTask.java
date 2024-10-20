@@ -70,6 +70,11 @@ public class NoteRecentVisitComputeTask extends AbstractAsyncExecuteTask impleme
     }
 
     @Override
+    public void remove(Long id, Long userId) {
+        getLruCache(userId).remove(id);
+    }
+
+    @Override
     public List<NoteIndex> getRecentVisitList(Long userId) {
         return getLruCache(userId).getRecentVisitList();
     }

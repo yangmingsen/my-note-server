@@ -7,11 +7,22 @@ import top.yms.note.exception.BusinessException;
 import java.util.List;
 
 /**
- * 用于获取NoteLuceneIndex数据
+ * 用于从各种笔记类型中获取NoteLuceneIndex数据
  */
 public interface NoteLuceneDataService {
+    /**
+     * 这个与 findNoteLuceneDataAll 方法功能一样，不过是获取指定ids的索引数据
+     * @param ids
+     * @return
+     */
     default List<NoteLuceneIndex> findNoteLuceneDataList(List<Long> ids) {throw new BusinessException(CommonErrorCode.E_200214);}
 
+    /**
+     * 这个是获取某种笔记类型的所有索引数据。
+     *  注意：如果是由NoteLuceneDataServiceImpl实现的，那应该是获取整个系统所有的笔记索引数据。
+     *  这个暂时未实现
+     * @return
+     */
     default List<NoteLuceneIndex> findNoteLuceneDataAll() {throw new BusinessException(CommonErrorCode.E_200214);}
 
     /**
