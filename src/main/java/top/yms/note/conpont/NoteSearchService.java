@@ -8,6 +8,6 @@ import java.util.List;
 /**
  * 全文搜索服务
  */
-public interface NoteSearch {
+public interface NoteSearchService {
     List<SearchResult> doSearch(NoteSearchDto noteSearchDto);
 }

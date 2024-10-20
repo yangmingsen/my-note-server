@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import top.yms.note.conpont.NoteAsyncExecuteTaskService;
-import top.yms.note.conpont.NoteCache;
+import top.yms.note.conpont.NoteCacheService;
 import top.yms.note.conpont.task.AsyncTask;
 import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.dto.NoteListQueryDto;
@@ -48,7 +48,7 @@ public class NoteIndexController {
 
     @Autowired
     @Qualifier(NoteConstants.defaultNoteCache)
-    private NoteCache noteCache;
+    private NoteCacheService noteCacheService;
 
     @Autowired
     private IdWorker idWorker;

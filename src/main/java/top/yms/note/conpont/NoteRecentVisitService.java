@@ -12,4 +12,10 @@ public interface NoteRecentVisitService {
     List<NoteIndex> getRecentVisitList();
 
     List<NoteIndex> getRecentVisitList(Long userId);
+
+    /**
+     *从lruCache中删除某个笔记。比如在某个笔记被删除后，不应该再出现在lru列表中
+     * @param id
+     */
+    default void remove(Long id, Long userId) {}
 }

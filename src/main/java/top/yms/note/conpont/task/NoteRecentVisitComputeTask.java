@@ -48,6 +48,12 @@ public class NoteRecentVisitComputeTask extends AbstractAsyncExecuteTask impleme
      */
     private final Map<Long, LruCache> lruCacheMap = new ConcurrentHashMap<>();
 
+
+    public int getSortValue() {
+        return 2;
+    }
+
+
     private LruCache getLruCache(Long userId) {
         LruCache lruCache = lruCacheMap.get(userId);
         if (lruCache == null) {
@@ -61,6 +67,11 @@ public class NoteRecentVisitComputeTask extends AbstractAsyncExecuteTask impleme
     public List<NoteIndex> getRecentVisitList() {
         Long userId = LocalThreadUtils.getUserId();
         return getRecentVisitList(userId);
+    }
+
+    @Override
+    public void remove(Long id, Long userId) {
+        getLruCache(userId).remove(id);
     }
 
     @Override

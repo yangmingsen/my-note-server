@@ -23,6 +23,10 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
     private final static Logger log = LoggerFactory.getLogger(UserConfigSyncTask.class);
 
 
+    public int getSortValue() {
+        return 1;
+    }
+
     @Override
     boolean needTx() {
         return false;

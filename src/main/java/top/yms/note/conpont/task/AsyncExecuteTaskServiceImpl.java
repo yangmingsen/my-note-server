@@ -15,6 +15,7 @@ import top.yms.note.conpont.NoteAsyncExecuteTaskService;
 import top.yms.note.enums.AsyncExcuteTypeEnum;
 import top.yms.note.exception.BusinessException;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -52,9 +53,10 @@ public class AsyncExecuteTaskServiceImpl implements NoteAsyncExecuteTaskService,
                 executeTask.addTask(task);
                 //开始执行
                 executeTask(task, executeTask);
-                break;
+                return;
             }
         }
+        throw new BusinessException(CommonErrorCode.E_200216);
     }
 
     /**
@@ -102,6 +104,7 @@ public class AsyncExecuteTaskServiceImpl implements NoteAsyncExecuteTaskService,
         asyncExecuteTaskList.addAll(
                 BeanFactoryUtils.beansOfTypeIncludingAncestors(
                         context, AsyncExecuteTask.class, true, false).values());
+        Collections.sort(asyncExecuteTaskList);
         log.info("获取到 AsyncExecuteTask: {}", asyncExecuteTaskList);
 
         //注册定时任务

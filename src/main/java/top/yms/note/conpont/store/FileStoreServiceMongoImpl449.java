@@ -4,8 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.CommonErrorCode;
+import top.yms.note.comm.ComponentErrorCode;
 import top.yms.note.conpont.AnyFile;
-import top.yms.note.conpont.FileStore;
+import top.yms.note.conpont.FileStoreService;
+import top.yms.note.conpont.content.NotePreview;
+import top.yms.note.entity.NoteFile;
 import top.yms.note.enums.FileTypeEnum;
 import top.yms.note.exception.BusinessException;
 
@@ -17,25 +20,34 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import top.yms.note.mapper.NoteFileMapper;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
  * Created by yangmingsen on 2024/4/13.
  */
 @Component("mongoFileStore449")
-public class FileStoreMongoImpl449 implements FileStore {
+public class FileStoreServiceMongoImpl449 implements FileStoreService {
 
-    private final static Logger log = LoggerFactory.getLogger(FileStoreMongoImpl449.class);
+    private final static Logger log = LoggerFactory.getLogger(FileStoreServiceMongoImpl449.class);
 
     @Autowired
     private GridFsTemplate gridFsTemplate;
 
     @Autowired
     private GridFSBucket gridFSBucket;
+
+    @Autowired
+    private NotePreview notePreview;
+
+    @Autowired
+    private NoteFileMapper noteFileMapper;
 
 
     @Override
@@ -101,5 +113,32 @@ public class FileStoreMongoImpl449 implements FileStore {
             log.error("删除mongo文件失败: id="+id, e);
             return false;
         }
+    }
+
+    @Override
+    public String getStringContent(String id) {
+        NoteFile noteFile = noteFileMapper.findOneByFileId(id);
+        if (noteFile.getNoteRef() == 0L) {//这个地方兼容一下老版本时，fileId未与noteId关联的情况
+            log.info("警告: fileId={}, => noteId={}", id, noteFile.getNoteRef());
+            return null;
+        }
+        if (!notePreview.canPreview(noteFile.getNoteRef())) {
+            throw new BusinessException(ComponentErrorCode.E_204001);
+        }
+
+        AnyFile anyFile = loadFile(id);
+        StringBuilder contentStr = new StringBuilder();
+        try(InputStreamReader isr = new InputStreamReader(anyFile.getInputStream(), StandardCharsets.UTF_8)) {
+            int bufLen = 1024;
+            char [] cBuf = new char[bufLen];
+            int rLen;
+            while ((rLen = isr.read(cBuf)) > 0) {
+                contentStr.append(new String(cBuf, 0, rLen));
+            }
+        }catch (Exception e) {
+            log.error("读取mongo文件内容出错", e);
+            throw new RuntimeException(e);
+        }
+        return contentStr.toString();
     }
 }

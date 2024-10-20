@@ -3,7 +3,7 @@ package top.yms.note.conpont;
 /**
  * 系统缓存服务
  */
-public interface NoteCache {
+public interface NoteCacheService {
 
     Object find(String id);
 

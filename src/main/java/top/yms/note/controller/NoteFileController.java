@@ -14,8 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.AnyFile;
-import top.yms.note.conpont.FileStore;
-import top.yms.note.conpont.NoteCache;
+import top.yms.note.conpont.FileStoreService;
+import top.yms.note.conpont.NoteCacheService;
 import top.yms.note.entity.NoteTree;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.enums.FileTypeEnum;
@@ -55,7 +55,7 @@ public class NoteFileController {
     private NoteFileService noteFileService;
 
     @Autowired
-    private FileStore fileStore;
+    private FileStoreService fileStoreService;
 
     @Autowired
     private NoteFileMapper noteFileMapper;
@@ -65,7 +65,7 @@ public class NoteFileController {
 
     @Autowired
     @Qualifier(NoteConstants.defaultNoteCache)
-    private NoteCache noteCache;
+    private NoteCacheService noteCacheService;
 
     @Value("${user.sync_local_note_path}")
     private String syncLocalNotePath;
@@ -118,7 +118,7 @@ public class NoteFileController {
         }
 
         JSONObject resJson = new JSONObject();
-        String fileId = fileStore.saveFile(file);
+        String fileId = fileStoreService.saveFile(file);
         String url = NoteConstants.getBaseUrl()+NoteConstants.getTmpFileViewUrlSuffix(fileId);
         resJson.put("url", url);
         resJson.put("fileId", fileId);
@@ -197,11 +197,11 @@ public class NoteFileController {
                     noteIdRef = tmpNoteIndex.getId();
                 }
                 String cacheId = NoteConstants.tmpReadPasswordToken+noteIdRef;
-                String tmpTokenValue  = (String)noteCache.find(cacheId);
+                String tmpTokenValue  = (String) noteCacheService.find(cacheId);
                 if (StringUtils.isNotBlank(tmpTokenValue)) {
                     if (tmpTokenValue.equals(tmpToken)) {
                         //token正确
-                        noteCache.delete(cacheId);
+                        noteCacheService.delete(cacheId);
                         return true;
                     }
                 }
@@ -242,7 +242,7 @@ public class NoteFileController {
         log.info("tmpView: id={}", id);
         if (StringUtils.isBlank(id)) return;
 
-        AnyFile file = fileStore.loadFile(id);
+        AnyFile file = fileStoreService.loadFile(id);
         resp.setContentType(file.getContentType());
         file.writeTo(resp.getOutputStream());
     }
@@ -271,7 +271,7 @@ public class NoteFileController {
         upCnt.setViewCount(noteFile.getViewCount()+1);
         noteFileMapper.updateByPrimaryKeySelective(upCnt);
 
-        AnyFile file = fileStore.loadFile(id);
+        AnyFile file = fileStoreService.loadFile(id);
         resp.setContentType(file.getContentType());
         file.writeTo(resp.getOutputStream());
     }
@@ -296,7 +296,7 @@ public class NoteFileController {
         upCnt.setDownloadCount(noteFile.getDownloadCount()+1);
         noteFileMapper.updateByPrimaryKeySelective(upCnt);
 
-        AnyFile file = fileStore.loadFile(id);
+        AnyFile file = fileStoreService.loadFile(id);
 
         resp.addHeader("Content-Disposition", "attachment; filename=\"" + URLEncoder.encode(file.getFilename(), "UTF-8") + "\"");
         resp.addHeader("Content-Length", "" + file.getLength());
@@ -407,7 +407,7 @@ public class NoteFileController {
             log.info("开始回滚mongo....");
             for (String fileId : mongoRollBackList) {
                 try {
-                    fileStore.delFile(fileId);
+                    fileStoreService.delFile(fileId);
                 } catch (Exception ex) {
                     log.debug("删除文件【{}】失败", fileId);
                     log.error("回滚错误", ex);
@@ -470,7 +470,7 @@ public class NoteFileController {
             log.debug("回滚mongo...");
             for (String fileId : mongoRollBackList) {
                 try {
-                    fileStore.delFile(fileId);
+                    fileStoreService.delFile(fileId);
                 } catch (Exception ex) {
                     log.debug("删除文件【{}】失败", fileId);
                     log.error("回滚错误", ex);

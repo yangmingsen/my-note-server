@@ -14,7 +14,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
-import top.yms.note.conpont.FileStore;
+import top.yms.note.conpont.FileStoreService;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;
@@ -69,7 +69,7 @@ public class NoteFileService {
     private NoteIndexMapper noteIndexMapper;
 
     @Autowired
-    private FileStore fileStore;
+    private FileStoreService fileStoreService;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -109,7 +109,7 @@ public class NoteFileService {
         String fileId = null;
 
         try {
-            fileId = fileStore.saveFile(file);
+            fileId = fileStoreService.saveFile(file);
             String fileName = file.getOriginalFilename();
             String fileType = file.getContentType();
             long fileSize = file.getSize();
@@ -136,7 +136,7 @@ public class NoteFileService {
             return res;
         } catch (Exception e) {
             if (fileId != null) {
-                fileStore.delFile(fileId);
+                fileStoreService.delFile(fileId);
             }
             log.error("uploadFileForWer Error", e);
             throw new WangEditorUploadException(CommonErrorCode.E_203002);
@@ -197,7 +197,7 @@ public class NoteFileService {
                 handleMarkdown(file, note);
                 return;
             }
-            fileId = fileStore.saveFile(file);
+            fileId = fileStoreService.saveFile(file);
             //先默认上传到mongo
             note.setStoreSite(NoteConstants.MONGO);
             note.setSiteId(fileId);
@@ -220,7 +220,7 @@ public class NoteFileService {
             noteFileMapper.insertSelective(noteFile);
         } catch (Exception e) {
             if (fileId != null) {
-                fileStore.delFile(fileId);
+                fileStoreService.delFile(fileId);
             }
             throw new RuntimeException(e);
         }
@@ -311,7 +311,7 @@ public class NoteFileService {
                 noteIndex.setStoreSite(NoteConstants.MYSQL);
                 StringBuilder sb = new StringBuilder();
 
-                try(InputStreamReader isr = new InputStreamReader(new FileInputStream(file))) {
+                try(InputStreamReader isr = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
                     int bufLen = 1024;
                     char [] cBuf = new char[bufLen];
                     int rLen = 0;
@@ -338,7 +338,7 @@ public class NoteFileService {
                 noteDataMapper.insertSelective(noteData);
 
             } else {
-                String fileId = fileStore.saveFile(file);
+                String fileId = fileStoreService.saveFile(file);
                 mongoRollBackList.add(fileId);
                 //先默认上传到mongo
                 noteIndex.setStoreSite(NoteConstants.MONGO);
@@ -397,7 +397,7 @@ public class NoteFileService {
                 String targetPath = (srcFilePath.substring(0, ch)+"\\"+oldUrl).replace('/', '\\');
 
                 File targetFile = new File(targetPath);
-                String targetFileMongoId = fileStore.saveFile(targetFile);
+                String targetFileMongoId = fileStoreService.saveFile(targetFile);
                 mongoRollBackList.add(targetFileMongoId);
 
                 String vieUrlSuffix = NoteConstants.getFileViewUrlSuffix(targetFileMongoId);
@@ -445,7 +445,7 @@ public class NoteFileService {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         String fileId = null;
         try {
-            fileId = fileStore.saveFile(file);
+            fileId = fileStoreService.saveFile(file);
             String fileName = file.getOriginalFilename();
             String fileType = file.getContentType();
             long fileSize = file.getSize();
@@ -470,7 +470,7 @@ public class NoteFileService {
             return resJson;
         } catch (Exception e) {
             if (fileId != null) {
-                fileStore.delFile(fileId);
+                fileStoreService.delFile(fileId);
             }
             throw new BusinessException(CommonErrorCode.E_203004);
         }
@@ -511,7 +511,7 @@ public class NoteFileService {
             Map<String, Object> optionMap = new HashMap<>();
             optionMap.put("fileName", fileName);
             optionMap.put("fileType", FileTypeEnum.TXT.getValue());
-            fileId = fileStore.saveFile(inputStream, optionMap);
+            fileId = fileStoreService.saveFile(inputStream, optionMap);
             note.setSiteId(fileId);
 
             //t_note_file
@@ -534,7 +534,7 @@ public class NoteFileService {
             resJson.put("id", fileId);
         } catch (Exception e) {
             if (fileId != null) {
-                fileStore.delFile(fileId);
+                fileStoreService.delFile(fileId);
             }
             throw new RuntimeException(e);
         } finally {
@@ -590,7 +590,7 @@ public class NoteFileService {
             Map<String, Object> optionMap = new HashMap<>();
             optionMap.put("fileName", fileName);
             optionMap.put("fileType", FileTypeEnum.PDF.getValue());
-            fileId = fileStore.saveFile(inputStream, optionMap);
+            fileId = fileStoreService.saveFile(inputStream, optionMap);
             note.setSiteId(fileId);
 
             //t_note_file
@@ -610,7 +610,7 @@ public class NoteFileService {
         } catch (Exception e) {
             //删除fileId
             if (fileId != null) {
-                fileStore.delFile(fileId);
+                fileStoreService.delFile(fileId);
             }
             throw new RuntimeException(e);
         } finally {

@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteConstants;
-import top.yms.note.conpont.NoteCache;
+import top.yms.note.conpont.NoteCacheService;
 import top.yms.note.conpont.SysConfigService;
 import top.yms.note.entity.SystemConfig;
 import top.yms.note.mapper.SystemConfigMapper;
@@ -17,17 +17,17 @@ public class NoteConfigServiceImpl implements SysConfigService {
 
     @Autowired
     @Qualifier(NoteConstants.weakMemoryNoteCache)
-    private NoteCache noteCache;
+    private NoteCacheService noteCacheService;
 
     @Autowired
     private SystemConfigMapper systemConfigMapper;
 
     private Object getV(String key) {
-        Object obj = noteCache.find(key);
+        Object obj = noteCacheService.find(key);
         if (obj != null) return obj;
         SystemConfig systemConfig = systemConfigMapper.selectByConfigKey(key);
         String v = systemConfig.getConigValue();
-        noteCache.update(key, v);
+        noteCacheService.update(key, v);
 
         return v;
     }

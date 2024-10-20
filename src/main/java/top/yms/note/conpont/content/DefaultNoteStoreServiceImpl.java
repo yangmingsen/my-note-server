@@ -22,6 +22,7 @@ import top.yms.note.entity.NoteIndex;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteIndexMapper;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -72,23 +73,13 @@ public class DefaultNoteStoreServiceImpl implements NoteStoreService, Applicatio
     }
 
 
-    protected NoteType findCanApplyNoteType(Long id) {
-        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
-        for(NoteType noteType : noteContentTypeList) {
-            if (noteType.support(noteIndex.getType())) {
-                return noteType;
-            }
-        }
-        throw new BusinessException(CommonErrorCode.E_200215);
-    }
-
-
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
         ApplicationContext context = event.getApplicationContext();
         noteContentTypeList.addAll(
                 BeanFactoryUtils.beansOfTypeIncludingAncestors(
                         context, NoteType.class, true, false).values());
+        Collections.sort(noteContentTypeList);
         log.info("获取到NoteContentTypeList: {}", noteContentTypeList);
     }
 

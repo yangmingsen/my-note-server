@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import top.yms.note.comm.NoteConstants;
-import top.yms.note.conpont.NoteCache;
+import top.yms.note.conpont.NoteCacheService;
 import top.yms.note.entity.NoteUser;
 import top.yms.note.service.NoteUserService;
 import top.yms.note.utils.JwtUtil;
@@ -32,7 +32,7 @@ public class JwtInterceptor implements HandlerInterceptor {
 
     @Autowired
     @Qualifier(NoteConstants.defaultNoteCache)
-    private NoteCache noteCache;
+    private NoteCacheService noteCacheService;
 
     @Autowired
     private NoteUserService noteUserService;
@@ -42,13 +42,13 @@ public class JwtInterceptor implements HandlerInterceptor {
 
     private NoteUser updateUserCache(String userId) {
         synchronized (syncObj) {
-            NoteUser noteUser = (NoteUser)noteCache.find(userId);
+            NoteUser noteUser = (NoteUser) noteCacheService.find(userId);
             if (noteUser != null) {
                 return noteUser;
             }
 
             noteUser = noteUserService.findOne(Long.parseLong(userId));
-            noteCache.update(userId, noteUser);
+            noteCacheService.update(userId, noteUser);
             return noteUser;
         }
     }
@@ -63,7 +63,7 @@ public class JwtInterceptor implements HandlerInterceptor {
         }
         if (jwtUtil.validateToken(token)) {
             String userId = jwtUtil.extractUserId(token);
-            NoteUser noteUser = (NoteUser)noteCache.find(userId);
+            NoteUser noteUser = (NoteUser) noteCacheService.find(userId);
             if (noteUser == null) {
 //                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 //                return false;

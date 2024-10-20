@@ -10,10 +10,12 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import top.yms.note.comm.NoteConstants;
+import top.yms.note.conpont.ComponentSort;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by yangmingsen on 2024/10/2.
@@ -32,8 +34,8 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
         UnRunning(0, "未运行中"),
         Running(1, "运行中"),
         ;
-        private int value;
-        private String name;
+        private final int value;
+        private final String name;
 
         StatusEnum(int value, String name) {
             this.value = value;
@@ -59,6 +61,8 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
 
     }
 
+    private final AtomicInteger workerCount = new AtomicInteger(0);
+
     protected List<AsyncTask> dataList = new LinkedList<>();
 
     @Autowired
@@ -67,6 +71,16 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
     @Autowired
     protected MongoTemplate mongoTemplate;
 
+
+    @Override
+    public int compareTo(ComponentSort other) {
+        return this.getSortValue() - other.getSortValue();
+    }
+
+    @Override
+    public int getSortValue() {
+        return 9999;
+    }
 
     @Override
     public synchronized void addTask(AsyncTask task) {
@@ -165,7 +179,8 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
      * @return
      */
     public boolean isRun() {
-        return StatusEnum.apply(getStatus()) == StatusEnum.Running;
+        return workerCount.get() > 0;
+//        return StatusEnum.apply(getStatus()) == StatusEnum.Running;
     }
 
     /**
@@ -174,12 +189,14 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
     abstract void doRun();
 
     protected boolean beforeRun() {
-        setStatus(StatusEnum.Running.getValue());
+//        setStatus(StatusEnum.Running.getValue());
+        workerCount.getAndIncrement();
         return true;
     }
 
     protected boolean runComplete() {
-        setStatus(StatusEnum.UnRunning.getValue());
+//        setStatus(StatusEnum.UnRunning.getValue());
+        workerCount.decrementAndGet();
         return true;
     }
 }

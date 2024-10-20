@@ -21,6 +21,12 @@ public class MarkdownNoteType extends AbstractNoteType {
 
     private final static String supportType = "md";
 
+
+    public int getSortValue() {
+        return 1;
+    }
+
+
     @Override
     public boolean support(String type) {
         return supportType.equals(type);

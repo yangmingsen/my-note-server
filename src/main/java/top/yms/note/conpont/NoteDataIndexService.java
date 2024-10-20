@@ -6,7 +6,7 @@ import top.yms.note.conpont.search.NoteLuceneIndex;
 import java.util.List;
 
 /**
- * 全文索引更新服务
+ * 全文索引服务。 主要是Lucene实现
  */
 public interface NoteDataIndexService {
     /**

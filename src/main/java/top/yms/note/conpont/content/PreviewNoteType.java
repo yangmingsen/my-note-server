@@ -3,10 +3,13 @@ package top.yms.note.conpont.content;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import top.yms.note.comm.CommonErrorCode;
+import top.yms.note.comm.ComponentErrorCode;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.AnyFile;
+import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.exception.BusinessException;
@@ -31,6 +34,10 @@ public class PreviewNoteType extends AbstractNoteType implements NotePreview{
             "cpp","py","bash","conf","ini","sql","cnf"
     };
 
+    public int getSortValue() {
+        return 5;
+    }
+
     private static final Map<String,Boolean> supportMap = new HashMap<>();
 
     static {
@@ -43,6 +50,7 @@ public class PreviewNoteType extends AbstractNoteType implements NotePreview{
     public boolean support(String type) {
         return supportMap.get(type) == Boolean.TRUE;
     }
+
 
     @Override
     public Object doGetContent(Long id) {
@@ -58,7 +66,7 @@ public class PreviewNoteType extends AbstractNoteType implements NotePreview{
         if (!NoteConstants.MONGO.equals(noteIndex.getStoreSite())) {
             throw new BusinessException(NoteIndexErrorCode.E_203119);
         }
-        AnyFile anyFile = fileStore.loadFile(noteIndex.getSiteId());
+        AnyFile anyFile = fileStoreService.loadFile(noteIndex.getSiteId());
         StringBuilder contentStr = new StringBuilder("```");
         contentStr.append(noteIndex.getType()).append("\n");
         try(InputStreamReader isr = new InputStreamReader(anyFile.getInputStream(), StandardCharsets.UTF_8)) {
@@ -87,7 +95,6 @@ public class PreviewNoteType extends AbstractNoteType implements NotePreview{
     public boolean canPreview(Long id) {
         return checkFileCanPreviewByCache(id);
     }
-
 
     private final ConcurrentHashMap<Long, Boolean> canPreviewCache = new ConcurrentHashMap<>();
     public boolean checkFileCanPreviewByCache(Long id) {
@@ -121,7 +128,7 @@ public class PreviewNoteType extends AbstractNoteType implements NotePreview{
             return false;
         }
 
-        AnyFile anyFile = fileStore.loadFile(noteIndex.getSiteId());
+        AnyFile anyFile = fileStoreService.loadFile(noteIndex.getSiteId());
         if (anyFile.getLength() == 0L) {
             log.info("文件id={}, 为空文件", id);
             return false;
@@ -143,4 +150,18 @@ public class PreviewNoteType extends AbstractNoteType implements NotePreview{
 
         return true;
     }
+
+
+    public NoteLuceneIndex findNoteLuceneDataOne(Long id) {
+        NoteLuceneIndex noteLuceneIndex = packNoteIndexForNoteLuceneIndex(id);
+        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        if (StringUtils.isEmpty(noteIndex.getSiteId())) {
+            throw new BusinessException(ComponentErrorCode.E_204000);
+        }
+        String stringContent = fileStoreService.getStringContent(noteIndex.getSiteId());
+        noteLuceneIndex.setContent(stringContent);
+
+        return noteLuceneIndex;
+    }
+
 }

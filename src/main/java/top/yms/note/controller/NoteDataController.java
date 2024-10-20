@@ -42,14 +42,13 @@ public class NoteDataController {
             throw new BusinessException(CommonErrorCode.E_200202);
         }
 
-//        log.info("id = {}, content = {}", id, jsonContent);
+        log.debug("id = {}, content = {}", id, jsonContent);
         NoteDataDto noteDataDto = new NoteDataDto();
         noteDataDto.setId(id);
         noteDataDto.setContent(jsonContent);
 
         noteDataService.save(noteDataDto);
         return RestOut.success("Ok");
-//        return noteDataService.saveMindMapData(id, jsonContent);
     }
 
 
@@ -57,15 +56,11 @@ public class NoteDataController {
     public RestOut<String> addAndUpdate(@RequestBody NoteDataDto noteData) {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         noteData.setUserId(uid);
-//        log.info("addAndUpdate: noteData={}", noteData);
-        if (noteData == null) {
-            throw new BusinessException(CommonErrorCode.E_100101);
-        }
+        log.debug("addAndUpdate: noteData={}", noteData);
         if (noteData.getId() == null) {
             throw new BusinessException(NoteIndexErrorCode.E_203104);
         }
         noteDataService.save(noteData);
-//        noteDataService.addAndUpdate(noteData);
         return RestOut.succeed("ok");
     }
 
@@ -75,7 +70,6 @@ public class NoteDataController {
             throw new BusinessException(CommonErrorCode.E_200202);
         }
         NoteData res = noteDataService.findNoteData(id);
-//        NoteData res = noteDataService.findOne(id);
         return RestOut.success(res);
     }
 
@@ -83,7 +77,6 @@ public class NoteDataController {
     @GetMapping("/checkFileCanPreview")
     public RestOut checkFileCanPreview(@RequestParam("id") Long id) {
         boolean canPreview = notePreview.canPreview(id);
-//        boolean canPreview = noteDataService.checkFileCanPreviewByCache(id);
         if (canPreview) {
             return RestOut.succeed("Ok");
         }

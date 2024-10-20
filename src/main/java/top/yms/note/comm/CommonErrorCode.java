@@ -23,6 +23,7 @@ public enum CommonErrorCode implements ErrorCode {
     E_200213(200213,"同步本地笔记异常"),
     E_200214(200214, "方法未实现"),
     E_200215(200215, "未找到合适的笔记类型【NoteType】"),
+    E_200216(200216, "未找到合适的异步任务类型【AsyncTask】"),
 
 
 
