@@ -1,11 +1,11 @@
 package top.yms.note.utils;
 
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.alibaba.ttl.TransmittableThreadLocal;
 import top.yms.note.comm.NoteConstants;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 记录线程信息

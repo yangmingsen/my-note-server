@@ -7,7 +7,6 @@ import org.springframework.web.client.RestTemplate;
 import top.yms.note.conpont.NoteQueue;
 import top.yms.note.conpont.task.NoteMemoryQueue;
 import top.yms.note.utils.IdWorker;
-import top.yms.note.utils.JwtUtil;
 
 /**
  * Created by yangmingsen on 2024/8/18.

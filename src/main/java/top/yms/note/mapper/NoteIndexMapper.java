@@ -1,10 +1,10 @@
 package top.yms.note.mapper;
 
-import java.util.List;
-
 import org.apache.ibatis.annotations.*;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.NoteIndexExample;
+
+import java.util.List;
 
 @Mapper
 public interface NoteIndexMapper {

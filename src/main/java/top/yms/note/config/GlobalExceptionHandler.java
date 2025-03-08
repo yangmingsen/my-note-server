@@ -3,6 +3,7 @@ package top.yms.note.config;
 /**
  * Created by yangmingsen on 2022/9/30.
  */
+
 import com.alibaba.fastjson2.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import top.yms.note.comm.*;
+import top.yms.note.comm.ErrorCode;
 import top.yms.note.entity.RestOut;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.exception.WangEditorUploadException;

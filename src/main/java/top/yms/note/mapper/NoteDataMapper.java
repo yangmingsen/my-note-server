@@ -1,11 +1,11 @@
 package top.yms.note.mapper;
 
-import java.util.List;
-
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteDataExample;
+
+import java.util.List;
 
 @Mapper
 public interface NoteDataMapper {

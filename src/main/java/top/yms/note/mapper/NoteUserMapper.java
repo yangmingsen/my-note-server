@@ -1,13 +1,13 @@
 package top.yms.note.mapper;
 
-import java.util.List;
-
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.annotations.Select;
 import top.yms.note.entity.NoteUser;
 import top.yms.note.entity.NoteUserExample;
+
+import java.util.List;
 
 @Mapper
 public interface NoteUserMapper {

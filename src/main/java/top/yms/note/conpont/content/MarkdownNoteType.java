@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
-import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;

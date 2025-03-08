@@ -1,5 +1,14 @@
 package top.yms.note.conpont.search;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.document.*;
+import org.apache.lucene.index.*;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.*;
+import org.apache.lucene.search.highlight.*;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -8,12 +17,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
+import org.wltea.analyzer.lucene.IKAnalyzer;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteDataIndexService;
 import top.yms.note.conpont.NoteLuceneDataService;
 import top.yms.note.conpont.NoteSearchService;
 import top.yms.note.dto.NoteSearchDto;
-import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.SearchLog;
 import top.yms.note.mapper.NoteDataMapper;
@@ -23,18 +32,6 @@ import top.yms.note.service.NoteSearchLogService;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.vo.NoteSearchResult;
 import top.yms.note.vo.SearchResult;
-
-
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.document.*;
-import org.apache.lucene.index.*;
-import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.*;
-import org.apache.lucene.search.highlight.*;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
-import org.apache.commons.lang3.StringUtils;
-import org.wltea.analyzer.lucene.IKAnalyzer;
 
 import java.io.File;
 import java.nio.file.Paths;
