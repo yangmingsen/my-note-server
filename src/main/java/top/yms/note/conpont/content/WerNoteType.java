@@ -54,8 +54,8 @@ public class WerNoteType extends AbstractNoteType {
             //更新mongo
             NoteIndex noteIndex = new NoteIndex();
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("id", noteDataDto.getId());
-            jsonObject.put("textConent", noteDataDto.getTextContent());
+            jsonObject.put(NoteConstants.id, noteDataDto.getId());
+            jsonObject.put(NoteConstants.textContent, noteDataDto.getTextContent());
             Document document = Document.parse(jsonObject.toString());
             NoteIndex oldNoteIdx = noteIndexMapper.selectByPrimaryKey(noteData.getId());
             if (StringUtils.isNotBlank(oldNoteIdx.getSiteId())) {
@@ -109,6 +109,10 @@ public class WerNoteType extends AbstractNoteType {
             log.warn("根据id: {} 从mongo获取Wer数据为空", id);
         }  else {
             textContent = (String)mongoDoc.get(NoteConstants.textContent);
+            //兼容之前错误数据
+            if (StringUtils.isBlank(textContent)) {
+                textContent = (String)mongoDoc.get("textConent");
+            }
         }
         noteLuceneIndex.setContent(textContent);
 
