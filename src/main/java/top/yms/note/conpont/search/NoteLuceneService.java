@@ -63,15 +63,12 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
     @Resource
     private NoteIndexServiceImpl noteIndexServiceImpl;
 
-    @Resource
-    private NoteDataMapper noteDataMapper;
-
-    @Resource
-    protected MongoTemplate mongoTemplate;
-
     @Qualifier(NoteConstants.noteLuceneDataServiceImpl)
     @Resource
     private NoteLuceneDataService noteLuceneDataService;
+
+    @Resource
+    private SensitiveContentFilter sensitiveContentFilter;
 
     private static final Object syncObj = new Object();
 
@@ -146,7 +143,7 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
                 String title = hitDoc.get(NoteConstants.IDX_TITLE);
                 if (!StringUtils.isEmpty(title)) {
                     // 获取高亮的文本片段
-                    TokenStream titleTokenStream = TokenSources.getTokenStream("title", indexReader.getTermVectors(hit.doc), title, ikAnalyzer, -1);
+                    TokenStream titleTokenStream = TokenSources.getTokenStream(NoteConstants.IDX_TITLE, indexReader.getTermVectors(hit.doc), title, ikAnalyzer, -1);
                     String titleFragment = highlighter.getBestFragment(titleTokenStream, title);
                     searchResult.setResType(SearchResult.Note_Title_Type);
                     searchResult.setResult(titleFragment+getViewValue(notePath));
@@ -155,7 +152,7 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
                 String content = hitDoc.get(NoteConstants.IDX_CONTENT);
                 if (!StringUtils.isEmpty(content)) {
                     // 获取高亮的文本片段
-                    TokenStream contentTokenStream = TokenSources.getTokenStream("content", indexReader.getTermVectors(hit.doc), content, ikAnalyzer, -1);
+                    TokenStream contentTokenStream = TokenSources.getTokenStream(NoteConstants.IDX_CONTENT, indexReader.getTermVectors(hit.doc), content, ikAnalyzer, -1);
                     String contentFragment = highlighter.getBestFragment(contentTokenStream, content);
                     NoteSearchResult contentSearchResult = new NoteSearchResult();
                     BeanUtils.copyProperties(searchResult, contentSearchResult );
@@ -169,6 +166,8 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
         } finally {
             tryClose(indexReader, directory);
         }
+        //内容过滤
+        searchResults = sensitiveContentFilter.filter(searchResults);
         return searchResults;
     }
 

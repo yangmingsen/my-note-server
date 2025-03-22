@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteConstants;
+import top.yms.note.conpont.INoteCache;
 import top.yms.note.conpont.NoteCacheService;
 
 import java.util.WeakHashMap;
@@ -47,4 +48,5 @@ public class WeakMemoryNoteCacheService implements NoteCacheService {
     public Object update(String id, Object data) {
         return cacheMap.put(id, data);
     }
+
 }

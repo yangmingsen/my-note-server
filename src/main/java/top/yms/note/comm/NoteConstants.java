@@ -70,6 +70,19 @@ public abstract class NoteConstants {
     public final static String IDX_ENCRYPTED = "encrypted";
     public final static String IDX_NOTE_PATH = "notePath";
 
+    /**
+     * 加密标志
+     */
+    public final static String ENCRYPTED_FLAG = "1";
+    public final static String ENCRYPTED_UN_FLAG = "0";
+
+    /**
+     * root目录标志
+     */
+    public final static String ROOT_DIR_FLAG = "0";
+
+
+
 
 
     public static String getFileViewUrlSuffix(String id) {
