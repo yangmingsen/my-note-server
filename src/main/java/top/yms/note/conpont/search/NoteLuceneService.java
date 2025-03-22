@@ -15,7 +15,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 import org.wltea.analyzer.lucene.IKAnalyzer;
 import top.yms.note.comm.NoteConstants;
@@ -25,9 +24,8 @@ import top.yms.note.conpont.NoteSearchService;
 import top.yms.note.dto.NoteSearchDto;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.SearchLog;
-import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteIndexMapper;
-import top.yms.note.service.impl.NoteIndexServiceImpl;
+import top.yms.note.service.NoteIndexService;
 import top.yms.note.service.NoteSearchLogService;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.vo.NoteSearchResult;
@@ -61,17 +59,14 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
     private NoteIndexMapper noteIndexMapper;
 
     @Resource
-    private NoteIndexServiceImpl noteIndexServiceImpl;
-
-    @Resource
-    private NoteDataMapper noteDataMapper;
-
-    @Resource
-    protected MongoTemplate mongoTemplate;
+    private NoteIndexService noteIndexService;
 
     @Qualifier(NoteConstants.noteLuceneDataServiceImpl)
     @Resource
     private NoteLuceneDataService noteLuceneDataService;
+
+    @Resource
+    private SensitiveContentFilter sensitiveContentFilter;
 
     private static final Object syncObj = new Object();
 
@@ -146,7 +141,7 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
                 String title = hitDoc.get(NoteConstants.IDX_TITLE);
                 if (!StringUtils.isEmpty(title)) {
                     // 获取高亮的文本片段
-                    TokenStream titleTokenStream = TokenSources.getTokenStream("title", indexReader.getTermVectors(hit.doc), title, ikAnalyzer, -1);
+                    TokenStream titleTokenStream = TokenSources.getTokenStream(NoteConstants.IDX_TITLE, indexReader.getTermVectors(hit.doc), title, ikAnalyzer, -1);
                     String titleFragment = highlighter.getBestFragment(titleTokenStream, title);
                     searchResult.setResType(SearchResult.Note_Title_Type);
                     searchResult.setResult(titleFragment+getViewValue(notePath));
@@ -155,7 +150,7 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
                 String content = hitDoc.get(NoteConstants.IDX_CONTENT);
                 if (!StringUtils.isEmpty(content)) {
                     // 获取高亮的文本片段
-                    TokenStream contentTokenStream = TokenSources.getTokenStream("content", indexReader.getTermVectors(hit.doc), content, ikAnalyzer, -1);
+                    TokenStream contentTokenStream = TokenSources.getTokenStream(NoteConstants.IDX_CONTENT, indexReader.getTermVectors(hit.doc), content, ikAnalyzer, -1);
                     String contentFragment = highlighter.getBestFragment(contentTokenStream, content);
                     NoteSearchResult contentSearchResult = new NoteSearchResult();
                     BeanUtils.copyProperties(searchResult, contentSearchResult );
@@ -169,6 +164,8 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
         } finally {
             tryClose(indexReader, directory);
         }
+        //内容过滤
+        searchResults = sensitiveContentFilter.filter(searchResults);
         return searchResults;
     }
 
@@ -315,7 +312,7 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
         document.add(new LongPoint(NoteConstants.IDX_CREATE_DATE, createDate.getTime()));
         document.add(new StoredField(NoteConstants.IDX_CREATE_DATE, createDate.getTime()));
         document.add(new StoredField(NoteConstants.IDX_ENCRYPTED, encrypted));
-        String breadcrumbStr = noteIndexServiceImpl.findBreadcrumbForSearch(parentId);
+        String breadcrumbStr = noteIndexService.findBreadcrumbForSearch(parentId);
         if (!StringUtils.isEmpty(breadcrumbStr)) {
             document.add(new StoredField(NoteConstants.IDX_NOTE_PATH, breadcrumbStr));
         }

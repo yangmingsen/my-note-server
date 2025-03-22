@@ -14,7 +14,7 @@ import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.RestOut;
 import top.yms.note.exception.BusinessException;
-import top.yms.note.service.impl.NoteDataServiceImpl;
+import top.yms.note.service.NoteDataService;
 import top.yms.note.utils.LocalThreadUtils;
 
 /**
@@ -27,7 +27,7 @@ public class NoteDataController {
     private static final Logger log = LoggerFactory.getLogger(NoteDataController.class);
 
     @Autowired
-    private NoteDataServiceImpl noteDataServiceImpl;
+    private NoteDataService noteDataService;
 
     @Autowired
     private NoteDataIndexService noteDataIndexService;
@@ -41,13 +41,11 @@ public class NoteDataController {
         if (id == null || StringUtils.isBlank(jsonContent)) {
             throw new BusinessException(CommonErrorCode.E_200202);
         }
-
         log.debug("id = {}, content = {}", id, jsonContent);
         NoteDataDto noteDataDto = new NoteDataDto();
         noteDataDto.setId(id);
         noteDataDto.setContent(jsonContent);
-
-        noteDataServiceImpl.save(noteDataDto);
+        noteDataService.save(noteDataDto);
         return RestOut.success("Ok");
     }
 
@@ -60,7 +58,7 @@ public class NoteDataController {
         if (noteData.getId() == null) {
             throw new BusinessException(NoteIndexErrorCode.E_203104);
         }
-        noteDataServiceImpl.save(noteData);
+        noteDataService.save(noteData);
         return RestOut.succeed("ok");
     }
 
@@ -69,7 +67,7 @@ public class NoteDataController {
         if (id == null) {
             throw new BusinessException(CommonErrorCode.E_200202);
         }
-        NoteData res = noteDataServiceImpl.findNoteData(id);
+        NoteData res = noteDataService.findNoteData(id);
         return RestOut.success(res);
     }
 

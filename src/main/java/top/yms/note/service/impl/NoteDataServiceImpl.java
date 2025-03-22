@@ -348,8 +348,7 @@ public class NoteDataServiceImpl implements NoteDataService {
         return noteData;
     }
 
-
-
+    
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 20)
     public void syncDataSize() {
         Long uid = LocalThreadUtils.getUserId();

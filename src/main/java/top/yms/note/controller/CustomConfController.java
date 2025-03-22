@@ -16,7 +16,7 @@ import top.yms.note.enums.AsyncExcuteTypeEnum;
 import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.service.CustomConfService;
-import top.yms.note.service.impl.NoteIndexServiceImpl;
+import top.yms.note.service.NoteIndexService;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 
@@ -45,7 +45,7 @@ public class CustomConfController {
     private NoteCacheService noteCacheService;
 
     @Resource
-    private NoteIndexServiceImpl noteIndexServiceImpl;
+    private NoteIndexService noteIndexService;
 
     @PostMapping("/update-user-config")
     public RestOut updateUserConfig(@RequestParam("content") String jsonContent) {
@@ -77,7 +77,7 @@ public class CustomConfController {
         if (userConfigJsonData.containsKey(NoteConstants.lastvisit)) {
             JSONObject lastVisitJson = userConfigJsonData.getJSONObject(NoteConstants.lastvisit);
             String noteId = lastVisitJson.getString("id");
-            NoteIndex noteMeta = noteIndexServiceImpl.findOne(Long.valueOf(noteId));
+            NoteIndex noteMeta = noteIndexService.findOne(Long.valueOf(noteId));
             AsyncTask visitComputeTask = AsyncTask.Builder
                     .build()
                     .taskId(idWorker.nextId())
