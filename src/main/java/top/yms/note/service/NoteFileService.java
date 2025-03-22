@@ -27,6 +27,8 @@ import top.yms.note.exception.WangEditorUploadException;
 import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.mapper.NoteIndexMapper;
+import top.yms.note.service.impl.NoteDataServiceImpl;
+import top.yms.note.service.impl.NoteIndexServiceImpl;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.LocalNoteSyncResult;
@@ -57,13 +59,13 @@ public class NoteFileService {
     private NoteFileMapper noteFileMapper;
 
     @Autowired
-    private NoteIndexService noteIndexService;
+    private NoteIndexServiceImpl noteIndexServiceImpl;
 
     @Autowired
     private IdWorker idWorker;
 
     @Autowired
-    private NoteDataService noteDataService;
+    private NoteDataServiceImpl noteDataServiceImpl;
 
     @Autowired
     private NoteIndexMapper noteIndexMapper;
@@ -164,7 +166,7 @@ public class NoteFileService {
         note.setStoreSite(NoteConstants.MYSQL);
         note.setId(genId);
         //存储到t_note_index
-        noteIndexService.add(note);
+        noteIndexServiceImpl.add(note);
 
         StringBuilder sb = new StringBuilder();
         try(InputStreamReader isr = new InputStreamReader(file.getInputStream())) {
@@ -185,7 +187,7 @@ public class NoteFileService {
         noteData.setContent(sb.toString());
 
 //        noteDataService.addAndUpdate(noteData);
-        noteDataService.save(noteData);
+        noteDataServiceImpl.save(noteData);
     }
 
 
@@ -203,7 +205,7 @@ public class NoteFileService {
             note.setSiteId(fileId);
 
             //存储到t_note_index
-            noteIndexService.add(note);
+            noteIndexServiceImpl.add(note);
 
             String tmpViewUrl = NoteConstants.getFileViewUrlSuffix(fileId);
             //store to t_note_file

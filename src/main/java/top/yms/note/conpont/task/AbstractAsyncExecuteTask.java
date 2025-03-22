@@ -103,7 +103,6 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
         if (!beforeRun()) {
             log.warn("beforeRun 异常....");
         }
-
         if (hasData()) {
             if (needTx()) {
                 TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
@@ -122,7 +121,6 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
                 }
             }
         }
-
         if (!runComplete()) {
             log.warn("runComplete 异常....");
         }

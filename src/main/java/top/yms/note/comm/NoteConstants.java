@@ -45,6 +45,7 @@ public abstract class NoteConstants {
     public final static String noteScheduledThreadPoolExecutor = "noteScheduledThreadPoolExecutor";
     public final static String defaultNoteStoreServiceImpl = "defaultNoteStoreServiceImpl";
     public final static String noteLuceneDataServiceImpl = "noteLuceneDataServiceImpl";
+    public final static String noteContentOptimizeServiceImpl = "noteContentOptimizeServiceImpl";
 
 
     public final static String bgImgInfo = "bgImgInfo";
@@ -56,6 +57,20 @@ public abstract class NoteConstants {
     public final static String tmpReadPasswordToken = "tmp_read_password_token";
 
     public final static String token = "token";
+
+    /** lucene index data const ***/
+    public final static String IDX_ID = "id";
+    public final static String IDX_USER_ID = "userId";
+    public final static String IDX_PARENT_ID = "parentId";
+    public final static String IDX_TITLE = "title";
+    public final static String IDX_CONTENT = "content";
+    public final static String IDX_TYPE = "type";
+    public final static String IDX_IS_FILE = "isFile";
+    public final static String IDX_CREATE_DATE = "createDate";
+    public final static String IDX_ENCRYPTED = "encrypted";
+    public final static String IDX_NOTE_PATH = "notePath";
+
+
 
     public static String getFileViewUrlSuffix(String id) {
         return FILE_VIEW_URL+id;

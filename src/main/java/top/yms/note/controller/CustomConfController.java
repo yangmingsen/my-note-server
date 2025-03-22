@@ -4,7 +4,6 @@ import com.alibaba.fastjson2.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
@@ -17,10 +16,11 @@ import top.yms.note.enums.AsyncExcuteTypeEnum;
 import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.service.CustomConfService;
-import top.yms.note.service.NoteIndexService;
+import top.yms.note.service.impl.NoteIndexServiceImpl;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 
+import javax.annotation.Resource;
 import java.util.Date;
 
 /**
@@ -32,20 +32,20 @@ public class CustomConfController {
 
     private final static Logger log = LoggerFactory.getLogger(CustomConfController.class);
 
-    @Autowired
+    @Resource
     private CustomConfService customConfService;
 
-    @Autowired
+    @Resource
     private NoteAsyncExecuteTaskService noteExecuteTaskService;
 
-    @Autowired
+    @Resource
     private IdWorker idWorker;
 
-    @Autowired
+    @Resource
     private NoteCacheService noteCacheService;
 
-    @Autowired
-    private NoteIndexService noteIndexService;
+    @Resource
+    private NoteIndexServiceImpl noteIndexServiceImpl;
 
     @PostMapping("/update-user-config")
     public RestOut updateUserConfig(@RequestParam("content") String jsonContent) {
@@ -77,7 +77,7 @@ public class CustomConfController {
         if (userConfigJsonData.containsKey(NoteConstants.lastvisit)) {
             JSONObject lastVisitJson = userConfigJsonData.getJSONObject(NoteConstants.lastvisit);
             String noteId = lastVisitJson.getString("id");
-            NoteIndex noteMeta = noteIndexService.findOne(Long.valueOf(noteId));
+            NoteIndex noteMeta = noteIndexServiceImpl.findOne(Long.valueOf(noteId));
             AsyncTask visitComputeTask = AsyncTask.Builder
                     .build()
                     .taskId(idWorker.nextId())

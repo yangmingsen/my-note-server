@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.search.NoteLuceneIndex;
+import top.yms.note.dto.INoteData;
 import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteIndex;
@@ -42,7 +43,6 @@ public class MindMapNoteType extends AbstractNoteType{
     @Override
     public Object doGetContent(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
-
         NoteData res = new NoteData();
         Document resDoc = mongoTemplate.findById(noteIndex.getSiteId(), Document.class, noteMindMap);
         if (resDoc == null) {
@@ -56,8 +56,8 @@ public class MindMapNoteType extends AbstractNoteType{
     }
 
     @Override
-    public void save(Object data) throws BusinessException {
-        NoteDataDto noteDataDto = (NoteDataDto) data;
+    public void doSave(INoteData iNoteData) throws BusinessException {
+        NoteDataDto noteDataDto = (NoteDataDto) iNoteData;
         String jsonContent = noteDataDto.getContent();
         Long noteId = noteDataDto.getId();
         ObjectId objId = null;
@@ -76,7 +76,6 @@ public class MindMapNoteType extends AbstractNoteType{
                 document.put("_id", objectId);
                 mongoTemplate.save(document, noteMindMap);
             }
-
             Date opTime = new Date();
             long size = jsonContent.getBytes(StandardCharsets.UTF_8).length;
             //更新index信息
@@ -84,7 +83,6 @@ public class MindMapNoteType extends AbstractNoteType{
             upNoteIndex.setUpdateTime(opTime);
             upNoteIndex.setSize(size);
             noteIndexMapper.updateByPrimaryKeySelective(upNoteIndex);
-
         } catch (Exception e) {
             log.error("MindMapNoteType#save异常", e);
             //回滚mongo数据
@@ -104,16 +102,13 @@ public class MindMapNoteType extends AbstractNoteType{
         if (o == null) {
             return noteLuceneIndex;
         }
-
         NoteData noteData = (NoteData)o;
         JSONObject jsonObject = JSONObject.parseObject(noteData.getContent());
         StringBuilder contentStr = new StringBuilder();
         traverseJSONObject(jsonObject, contentStr);
-
         if (!StringUtils.isBlank(contentStr)) {
             noteLuceneIndex.setContent(contentStr.toString());
         }
-
         return noteLuceneIndex;
     }
 

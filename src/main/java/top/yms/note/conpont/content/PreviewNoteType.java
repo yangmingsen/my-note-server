@@ -10,6 +10,7 @@ import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.search.NoteLuceneIndex;
+import top.yms.note.dto.INoteData;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.exception.BusinessException;
@@ -87,7 +88,7 @@ public class PreviewNoteType extends AbstractNoteType implements NotePreview{
     }
 
     @Override
-    public void save(Object data) throws BusinessException {
+    public void doSave(INoteData iNoteData) throws BusinessException {
         throw new BusinessException(CommonErrorCode.E_200211);
     }
 

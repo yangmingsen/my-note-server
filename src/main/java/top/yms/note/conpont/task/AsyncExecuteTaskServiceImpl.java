@@ -1,5 +1,7 @@
 package top.yms.note.conpont.task;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactoryUtils;
@@ -15,6 +17,7 @@ import top.yms.note.conpont.NoteAsyncExecuteTaskService;
 import top.yms.note.enums.AsyncExcuteTypeEnum;
 import top.yms.note.exception.BusinessException;
 
+import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,12 +32,11 @@ public class AsyncExecuteTaskServiceImpl implements NoteAsyncExecuteTaskService,
 
     private final List<AsyncExecuteTask> asyncExecuteTaskList = new LinkedList<>();
 
-
     /**
      * 执行器
      */
     @Qualifier(NoteConstants.noteScheduledThreadPoolExecutor)
-    @Autowired
+    @Resource
     private NoteScheduledExecutorService noteScheduledExecutorService;
 
 
@@ -70,14 +72,16 @@ public class AsyncExecuteTaskServiceImpl implements NoteAsyncExecuteTaskService,
             log.info("{}#当前任务正在执行...", asyncExecuteTask);
             return;
         }
-
         //没有运行的话，执行任务
         if (task.getExecuteType() == AsyncExcuteTypeEnum.SYNC_TASK) {
+            log.debug("SYNC_TASK={}", JSON.toJSONString(task, JSONWriter.Feature.PrettyFormat));
             noteScheduledExecutorService.execute(asyncExecuteTask);
         } else if (task.getExecuteType() == AsyncExcuteTypeEnum.CALLER_TASK) {
+            log.debug("CALLER_TASK={}", JSON.toJSONString(task, JSONWriter.Feature.PrettyFormat));
             AbstractAsyncExecuteTask abTask = (AbstractAsyncExecuteTask)asyncExecuteTask;
             abTask.run();
         } else if (task.getExecuteType() == AsyncExcuteTypeEnum.DELAY_EXC_TASK) {
+            log.debug("DELAY_EXC_TASK={}", JSON.toJSONString(task, JSONWriter.Feature.PrettyFormat));
             //我希望交给具体执行类，由它决定延时到什么时候执行
             if (asyncExecuteTask instanceof DelayExecuteTask) {
                 if (task instanceof DelayExecuteAsyncTask) {

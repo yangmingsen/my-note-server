@@ -1,6 +1,5 @@
 package top.yms.note.conpont.search;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteSearchService;
@@ -12,6 +11,7 @@ import top.yms.note.utils.IdWorker;
 import top.yms.note.vo.NoteIndexSearchResult;
 import top.yms.note.vo.SearchResult;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,22 +22,18 @@ import java.util.stream.Collectors;
 @Component(NoteConstants.noteDefaultSearch)
 public class NoteDefaultSearch implements NoteSearchService {
 
-
-    @Autowired
+    @Resource
     NoteSearchLogService noteSearchLogService;
 
-    @Autowired
+    @Resource
     IdWorker idWorker;
 
-    @Autowired
+    @Resource
     NoteIndexMapper noteIndexMapper;
-
 
     @Override
     public List<SearchResult> doSearch(NoteSearchDto noteSearchDto) {
-
         final String keyword = noteSearchDto.getKeyword();
-
         Long uid = noteSearchDto.getUserId();
         //add search log
         SearchLog searchLog = new SearchLog();
@@ -46,7 +42,6 @@ public class NoteDefaultSearch implements NoteSearchService {
         searchLog.setCreateTime(new Date());
         searchLog.setUserId(uid);
         noteSearchLogService.add(searchLog);
-
         return noteIndexMapper.searchName(keyword, uid)
                 .stream()
                 .map(noteIndex -> {

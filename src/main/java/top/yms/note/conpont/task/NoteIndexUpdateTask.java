@@ -2,7 +2,6 @@ package top.yms.note.conpont.task;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import top.yms.note.conpont.NoteDataIndexService;
@@ -10,6 +9,7 @@ import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.dto.NoteIndexLuceneUpdateDto;
 import top.yms.note.enums.AsyncTaskEnum;
 
+import javax.annotation.Resource;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +27,7 @@ public class NoteIndexUpdateTask extends AbstractAsyncExecuteTask implements Del
 
     private final TimeUnit timeUnit = TimeUnit.MILLISECONDS;
 
-    @Autowired
+    @Resource
     private NoteDataIndexService noteDataIndexService;
 
     private final static Object obj = new Object();
@@ -45,7 +45,6 @@ public class NoteIndexUpdateTask extends AbstractAsyncExecuteTask implements Del
             List<Long> contentUpdateList = new LinkedList<>();
             List<NoteLuceneIndex> noteIndexList = new LinkedList<>();
             List<Long> deleteList = new LinkedList<>();
-
             for (AsyncTask task : allData) {
                 NoteIndexLuceneUpdateDto idxDto = (NoteIndexLuceneUpdateDto) task.getTaskInfo();
                 if (idxDto.getType() == NoteIndexLuceneUpdateDto.updateNoteContent) {
@@ -58,14 +57,12 @@ public class NoteIndexUpdateTask extends AbstractAsyncExecuteTask implements Del
                     deleteList.addAll((List<Long>)idxDto.getData());
                 }
             }
-
             if (contentUpdateList.size() > 0)
             noteDataIndexService.updateByIds(contentUpdateList);
             noteDataIndexService.update(noteIndexList);
             noteDataIndexService.delete(deleteList);
             log.debug("NoteIndexUpdateTask#更新完成....");
         }
-
     }
 
 
@@ -86,7 +83,6 @@ public class NoteIndexUpdateTask extends AbstractAsyncExecuteTask implements Del
                 deleteList.addAll((List<Long>)idxDto.getData());
             }
         }
-
         noteDataIndexService.updateByIds(contentUpdateList);
         noteDataIndexService.update(noteIndexList);
         noteDataIndexService.delete(deleteList);

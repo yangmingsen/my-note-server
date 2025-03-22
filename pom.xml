@@ -135,6 +135,19 @@
             <artifactId>IKAnalyzer-lucene</artifactId>
             <version>8.0.0</version>
         </dependency>
+<!--         Lucene Analysis for Tokenization -->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.lucene</groupId>-->
+<!--            <artifactId>lucene-analyzers-common</artifactId>-->
+<!--            <version>8.9.0</version>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+            <version>3.6.1</version>
+        </dependency>
+        <!-- Apache Commons Math 用于计算余弦相似度 -->
+
         <dependency>
             <groupId>net.sourceforge.javacsv</groupId>
             <artifactId>javacsv</artifactId>

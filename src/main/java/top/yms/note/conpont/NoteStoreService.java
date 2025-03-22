@@ -1,6 +1,8 @@
 package top.yms.note.conpont;
 
 
+import top.yms.note.dto.INoteData;
+
 /**
  * note内容获取服务+更新
  *
@@ -19,12 +21,12 @@ public interface NoteStoreService {
      * 新建+更新
      * @param note
      */
-    void save(Object note);
+    void save(INoteData iNoteData);
 
     /**
      * 不适用
      * @param note
      */
     @Deprecated
-    void update(Object note);
+    void update(INoteData iNoteData);
 }

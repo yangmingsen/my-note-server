@@ -24,8 +24,9 @@ public enum CommonErrorCode implements ErrorCode {
     E_200214(200214, "方法未实现"),
     E_200215(200215, "未找到合适的笔记类型【NoteType】"),
     E_200216(200216, "未找到合适的异步任务类型【AsyncTask】"),
-
-
+    E_200217(200217, "数据insert失败"),
+    E_200218(200218, "数据update失败"),
+    E_200219(200219, "数据delete失败"),
 
     E_203000(203000, "Note parentId不能为空"),
     E_203001(203001, "Note Id不能为空"),
@@ -41,6 +42,7 @@ public enum CommonErrorCode implements ErrorCode {
     E_300002(300002, "执行#异步任务类型为空"),
     E_300003(300003, "当前执行任务类非DelayExecuteTask"),
     E_300004(300004, "当前AsyncTask非DelayExecuteAsyncTask"),
+
 
     /**
      * 未知错误
@@ -72,4 +74,5 @@ public enum CommonErrorCode implements ErrorCode {
         }
         return null;
     }
+
 }

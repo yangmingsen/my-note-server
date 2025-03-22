@@ -1,6 +1,7 @@
 package top.yms.note.conpont.content;
 
 import top.yms.note.conpont.ComponentSort;
+import top.yms.note.dto.INoteData;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.exception.BusinessException;
 
@@ -33,10 +34,18 @@ public interface NoteType extends  ComponentSort, Comparable<ComponentSort>{
 
     /**
      * 支持当前类型的数据保存
-     * @param data
+     * @param iNoteData
      * @throws BusinessException
      */
-    default void save(Object data) throws BusinessException {
+    default void save(INoteData iNoteData) throws BusinessException {
 
+    }
+
+    /**
+     * 是否支持数据版本
+     * @return true 支持 , false 不支持
+     */
+    default boolean supportVersion() {
+        return false;
     }
 }

@@ -12,7 +12,9 @@ import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.*;
 import top.yms.note.conpont.search.NoteLuceneIndex;
+import top.yms.note.conpont.task.AsyncTask;
 import top.yms.note.conpont.task.DelayExecuteAsyncTask;
+import top.yms.note.dto.INoteData;
 import top.yms.note.dto.NoteIndexLuceneUpdateDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteDataVersion;
@@ -27,6 +29,7 @@ import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.mapper.NoteIndexMapper;
 import top.yms.note.service.NoteFileService;
 import top.yms.note.utils.IdWorker;
+import top.yms.note.utils.IdWorkerUtils;
 import top.yms.note.utils.LocalThreadUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -201,9 +204,32 @@ public abstract class AbstractNoteType implements NoteType, NoteLuceneDataServic
         dataVersion.setCreateTime(new Date());
         noteDataVersionMapper.insertSelective(dataVersion);
     }
+    protected boolean beforeSave(INoteData iNoteData) {
+        return true;
+    }
 
-    public abstract void save(Object data) throws BusinessException ;
+    public  void save(INoteData iNoteData) throws BusinessException  {
+        if (!beforeSave(iNoteData)) {  return;  }
+        doSave(iNoteData);
+        afterSave(iNoteData);
+    }
 
+    protected void afterSave(INoteData iNoteData) {
+        if (supportVersion()) {
+            AsyncTask asyncTask = AsyncTask.Builder.build()
+                    .taskId(IdWorkerUtils.getId())
+                    .executeType(AsyncExcuteTypeEnum.SYNC_TASK)
+                    .type(AsyncTaskEnum.NOTE_CONTENT_VERSION_OPTIMIZE)
+                    .taskName(AsyncTaskEnum.NOTE_CONTENT_VERSION_OPTIMIZE.getName())
+                    .createTime(new Date())
+                    .userId(LocalThreadUtils.getUserId())
+                    .taskInfo(iNoteData.getId())
+                    .get();
+            noteAsyncExecuteTaskService.addTask(asyncTask);
+        }
+    }
+
+    public abstract void doSave(INoteData iNoteData) throws BusinessException;
 
     protected NoteLuceneIndex packNoteIndexForNoteLuceneIndex(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
@@ -211,13 +237,12 @@ public abstract class AbstractNoteType implements NoteType, NoteLuceneDataServic
             log.error("noteIndex目标不存在, 使用id={} 进行查询时", id);
             throw new BusinessException(NoteIndexErrorCode.E_203117);
         }
-
         NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
         BeanUtils.copyProperties(noteIndex, noteLuceneIndex);
-
         //NoteIndex中的创建时间是 createTime， 而NoteLuceneIndex中是createDate。要注意
         noteLuceneIndex.setCreateDate(noteIndex.getCreateTime());
-
+        //bug 2025-03-22 没有设置title
+        noteLuceneIndex.setTitle(noteIndex.getName());
         return noteLuceneIndex;
     }
 

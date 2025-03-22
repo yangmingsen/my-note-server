@@ -1,8 +1,6 @@
 package top.yms.note.mapper;
 
-import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.*;
 import top.yms.note.entity.NoteDataVersion;
 import top.yms.note.entity.NoteDataVersionExample;
 
@@ -34,4 +32,8 @@ public interface NoteDataVersionMapper {
 
     @Delete("delete from t_note_data_version where f_note_id=#{noteId, jdbcType=BIGINT}")
     int deleteByNoteId(@Param("noteId") Long noteId);
+
+    @Select("select * from t_note_data_version where f_note_id=#{noteId, jdbcType=BIGINT}")
+    @ResultMap("BaseResultMap")
+    List<NoteDataVersion> selectByNoteId(@Param("noteId") Long noteId);
 }

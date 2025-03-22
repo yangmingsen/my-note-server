@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.search.NoteLuceneIndex;
+import top.yms.note.dto.INoteData;
 import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteIndex;
@@ -25,7 +26,6 @@ public class WerNoteType extends AbstractNoteType {
 
     private final static String supportType = "wer";
 
-
     public int getSortValue() {
         return 2;
     }
@@ -37,8 +37,8 @@ public class WerNoteType extends AbstractNoteType {
 
 
     @Override
-    public void save(Object data) throws BusinessException {
-        NoteDataDto noteDataDto = (NoteDataDto) data;
+    public void doSave(INoteData iNoteData) throws BusinessException {
+        NoteDataDto noteDataDto = (NoteDataDto) iNoteData;
         ObjectId objId = null;
         Document oldDoc = null;
         try {
@@ -47,10 +47,8 @@ public class WerNoteType extends AbstractNoteType {
             if (StringUtils.isBlank(noteDataDto.getTextContent())) {
                 throw new BusinessException(NoteIndexErrorCode.E_203118);
             }
-
             //更新笔记内容
             updateNoteData(noteData);
-
             //更新mongo
             NoteIndex noteIndex = new NoteIndex();
             JSONObject jsonObject = new JSONObject();
@@ -68,13 +66,10 @@ public class WerNoteType extends AbstractNoteType {
                 objId = saveRes.getObjectId("_id");
                 noteIndex.setSiteId(objId.toString());
             }
-
             //update index
             updateNoteIndex(noteIndex, noteData);
-
             //更新全局搜索索引
             saveSearchIndex(oldNoteIdx, noteDataDto.getTextContent());
-
             //版本记录
             saveDataVersion(noteData);
         } catch (Exception e) {
@@ -90,10 +85,8 @@ public class WerNoteType extends AbstractNoteType {
 
     }
 
-
     public NoteLuceneIndex findNoteLuceneDataOne(Long id) {
         NoteLuceneIndex noteLuceneIndex = packNoteIndexForNoteLuceneIndex(id);
-
         NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
         if (noteData == null) {
             log.error("noteData目标不存在, 使用id={} 进行查询时", id);
@@ -115,7 +108,11 @@ public class WerNoteType extends AbstractNoteType {
             }
         }
         noteLuceneIndex.setContent(textContent);
-
         return noteLuceneIndex;
+    }
+
+    @Override
+    public boolean supportVersion() {
+        return true;
     }
 }

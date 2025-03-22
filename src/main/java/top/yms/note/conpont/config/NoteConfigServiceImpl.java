@@ -9,17 +9,19 @@ import top.yms.note.conpont.SysConfigService;
 import top.yms.note.entity.SystemConfig;
 import top.yms.note.mapper.SystemConfigMapper;
 
+import javax.annotation.Resource;
+
 /**
  * Created by yangmingsen on 2024/10/13.
  */
 @Component
 public class NoteConfigServiceImpl implements SysConfigService {
 
-    @Autowired
+    @Resource
     @Qualifier(NoteConstants.weakMemoryNoteCache)
     private NoteCacheService noteCacheService;
 
-    @Autowired
+    @Resource
     private SystemConfigMapper systemConfigMapper;
 
     private Object getV(String key) {

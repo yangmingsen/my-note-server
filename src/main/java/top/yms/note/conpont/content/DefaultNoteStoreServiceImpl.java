@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteStoreService;
+import top.yms.note.dto.INoteData;
 import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.exception.BusinessException;
@@ -47,15 +48,12 @@ public class DefaultNoteStoreServiceImpl implements NoteStoreService, Applicatio
     }
 
     @Override
-    public void save(Object note) {
-        Long id = null;
-        if (note instanceof NoteDataDto) {
-            id = ((NoteDataDto) note).getId();
-        }
+    public void save(INoteData iNoteData) {
+        Long id = iNoteData.getId();
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
         for(NoteType noteType : noteContentTypeList) {
             if (noteType.support(noteIndex.getType())) {
-                noteType.save(note);
+                noteType.save(iNoteData);
                 return;
             }
         }
@@ -63,8 +61,8 @@ public class DefaultNoteStoreServiceImpl implements NoteStoreService, Applicatio
     }
 
     @Override
-    public void update(Object note) {
-        save(note);
+    public void update(INoteData iNoteData) {
+        save(iNoteData);
     }
 
 

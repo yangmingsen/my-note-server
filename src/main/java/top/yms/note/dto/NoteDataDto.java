@@ -3,7 +3,7 @@ package top.yms.note.dto;
 /**
  * Created by yangmingsen on 2024/9/21.
  */
-public class NoteDataDto {
+public class NoteDataDto implements INoteData{
     private Long id;
     private Long userId;
 
