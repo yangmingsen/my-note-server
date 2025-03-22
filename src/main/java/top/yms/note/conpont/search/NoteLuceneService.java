@@ -15,7 +15,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 import org.wltea.analyzer.lucene.IKAnalyzer;
 import top.yms.note.comm.NoteConstants;
@@ -25,9 +24,8 @@ import top.yms.note.conpont.NoteSearchService;
 import top.yms.note.dto.NoteSearchDto;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.SearchLog;
-import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteIndexMapper;
-import top.yms.note.service.impl.NoteIndexServiceImpl;
+import top.yms.note.service.NoteIndexService;
 import top.yms.note.service.NoteSearchLogService;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.vo.NoteSearchResult;
@@ -61,7 +59,7 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
     private NoteIndexMapper noteIndexMapper;
 
     @Resource
-    private NoteIndexServiceImpl noteIndexServiceImpl;
+    private NoteIndexService noteIndexService;
 
     @Qualifier(NoteConstants.noteLuceneDataServiceImpl)
     @Resource
@@ -314,7 +312,7 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
         document.add(new LongPoint(NoteConstants.IDX_CREATE_DATE, createDate.getTime()));
         document.add(new StoredField(NoteConstants.IDX_CREATE_DATE, createDate.getTime()));
         document.add(new StoredField(NoteConstants.IDX_ENCRYPTED, encrypted));
-        String breadcrumbStr = noteIndexServiceImpl.findBreadcrumbForSearch(parentId);
+        String breadcrumbStr = noteIndexService.findBreadcrumbForSearch(parentId);
         if (!StringUtils.isEmpty(breadcrumbStr)) {
             document.add(new StoredField(NoteConstants.IDX_NOTE_PATH, breadcrumbStr));
         }

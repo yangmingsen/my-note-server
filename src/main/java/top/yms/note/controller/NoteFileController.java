@@ -26,7 +26,7 @@ import top.yms.note.exception.BusinessException;
 import top.yms.note.exception.WangEditorUploadException;
 import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.service.NoteFileService;
-import top.yms.note.service.impl.NoteIndexServiceImpl;
+import top.yms.note.service.NoteIndexService;
 import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.LocalNoteSyncResult;
 
@@ -69,6 +69,9 @@ public class NoteFileController {
 
     @Value("${user.sync_local_note_path}")
     private String syncLocalNotePath;
+
+    @Autowired
+    private NoteIndexService noteIndexService;
 
     /**
      * 目前用于wangeditor的图片上传
@@ -182,9 +185,9 @@ public class NoteFileController {
     private boolean checkIsEncryptedNote(NoteFile noteFile, HttpServletRequest req, HttpServletResponse response, String msg) {
         NoteIndex noteIndex = null;
         if (noteFile.getNoteRef() != 0L) {
-            noteIndex = noteIndexServiceImpl.findOne(noteFile.getNoteRef());
+            noteIndex = noteIndexService.findOne(noteFile.getNoteRef());
         } else {
-            noteIndex = noteIndexServiceImpl.findBySiteId(noteFile.getFileId());
+            noteIndex = noteIndexService.findBySiteId(noteFile.getFileId());
         }
 
         if ("1".equals(noteIndex.getEncrypted())) {
@@ -193,7 +196,7 @@ public class NoteFileController {
                 Long noteIdRef = noteFile.getNoteRef();
                 if (noteIdRef == 0L) {
                     String fileId = noteFile.getFileId();
-                    NoteIndex tmpNoteIndex = noteIndexServiceImpl.findBySiteId(fileId);
+                    NoteIndex tmpNoteIndex = noteIndexService.findBySiteId(fileId);
                     noteIdRef = tmpNoteIndex.getId();
                 }
                 String cacheId = NoteConstants.tmpReadPasswordToken+noteIdRef;
@@ -233,8 +236,7 @@ public class NoteFileController {
         return true;
     }
 
-    @Autowired
-    private NoteIndexServiceImpl noteIndexServiceImpl;
+
 
 
     @GetMapping("/tmpView")
@@ -374,7 +376,7 @@ public class NoteFileController {
 
     @GetMapping("/syncAll")
     public RestOut syncAllFromLocalFs() throws Exception {
-        NoteTree rootNoteTree = noteIndexServiceImpl.findCurUserRootNoteTree();
+        NoteTree rootNoteTree = noteIndexService.findCurUserRootNoteTree();
         Map<String, NoteTree> fileNameMap = rootNoteTree.getChildren().stream().collect(Collectors.toMap(NoteTree::getLabel, Function.identity(), (k1, k2) -> k1));
         File baseDir = new File(syncLocalNotePath);
         if (!baseDir.isDirectory()) {
@@ -441,7 +443,7 @@ public class NoteFileController {
 
 
     private RestOut syncNoteFromLocalFS(String syncName) throws Exception {
-        NoteTree rootNoteTree = noteIndexServiceImpl.findCurUserRootNoteTree();
+        NoteTree rootNoteTree = noteIndexService.findCurUserRootNoteTree();
         if (StringUtils.isBlank(syncName)) {
             throw new RuntimeException("syncName is empty");
         }

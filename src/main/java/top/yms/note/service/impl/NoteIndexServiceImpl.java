@@ -166,7 +166,6 @@ public class NoteIndexServiceImpl implements NoteIndexService {
         return new NoteSearchVo(noteSearchService.doSearch(noteSearchDto));
     }
 
-
     /**
      * 查找当当前用户的笔记树.
      *  只查未删除掉的，但要注意只是未标记删除的
@@ -183,7 +182,6 @@ public class NoteIndexServiceImpl implements NoteIndexService {
         }
         return null;
     }
-
 
     private List<NoteTree> transferNoteTree(List<NoteIndex> noteIndexList) {
         //列表转换为结构树
@@ -213,7 +211,6 @@ public class NoteIndexServiceImpl implements NoteIndexService {
         }
         return resList;
     }
-
 
     /**
      * 查找目录树
@@ -284,7 +281,7 @@ public class NoteIndexServiceImpl implements NoteIndexService {
         if (noteTree == null) return null;
         List<AntTreeNode> antTreeNodeList = new LinkedList<>();
         if (noteTree.getChildren() != null) {
-            if (noteTreeMap.get(noteTree.getId()).getEncrypted().equals("0")) {
+            if (noteTreeMap.get(noteTree.getId()).getEncrypted().equals(NoteConstants.ENCRYPTED_UN_FLAG)) {
                 for (NoteTree nTree : noteTree.getChildren()) {
                     antTreeNodeList.add(transferToAntTree(nTree, noteTreeMap));
                 }
@@ -301,7 +298,6 @@ public class NoteIndexServiceImpl implements NoteIndexService {
         }
         return new AntTreeNode(noteTree.getLabel(), noteTree.getId().toString(), antTreeNodeList);
     }
-
 
     //处理加密的文件夹, 去除掉子目录
 

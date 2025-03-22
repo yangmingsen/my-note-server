@@ -22,7 +22,7 @@ import top.yms.note.entity.*;
 import top.yms.note.enums.AsyncExcuteTypeEnum;
 import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.exception.BusinessException;
-import top.yms.note.service.impl.NoteIndexServiceImpl;
+import top.yms.note.service.NoteIndexService;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.MenuListVo;
@@ -44,7 +44,7 @@ public class NoteIndexController {
     private Logger log = LoggerFactory.getLogger(NoteIndexController.class);
 
     @Autowired
-    private NoteIndexServiceImpl noteIndexServiceImpl;
+    private NoteIndexService noteIndexService;
 
     @Autowired
     @Qualifier(NoteConstants.defaultNoteCache)
@@ -61,7 +61,7 @@ public class NoteIndexController {
     public RestOut<List<NoteIndex>> findByUid() {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         log.info("findByUid: {}", uid);
-        List<NoteIndex> noteList = noteIndexServiceImpl.findByUserId(uid);
+        List<NoteIndex> noteList = noteIndexService.findByUserId(uid);
 //        log.info("findByUid: {} , count: {}", uid, noteList.size());
         return RestOut.success(noteList);
     }
@@ -70,7 +70,7 @@ public class NoteIndexController {
     public RestOut findNoteTreeByUid() {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         log.info("findNoteTreeByUid: {}", uid);
-        List<NoteTree> noteTreeList = noteIndexServiceImpl.findNoteTreeByUid(uid);
+        List<NoteTree> noteTreeList = noteIndexService.findNoteTreeByUid(uid);
 //        log.info("findByUid: {} , count: {}", uid, noteTreeList.size());
         return RestOut.success(noteTreeList);
     }
@@ -79,7 +79,7 @@ public class NoteIndexController {
     public RestOut findAntTree() {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         log.info("antTree: {}", uid);
-        List<AntTreeNode> antTreeList = noteIndexServiceImpl.findAntTreeExcludeEncrypted(uid);
+        List<AntTreeNode> antTreeList = noteIndexService.findAntTreeExcludeEncrypted(uid);
 //        log.info("antTree: {} , count: {}", uid, antTreeList.size());
         return RestOut.success(antTreeList);
     }
@@ -98,7 +98,7 @@ public class NoteIndexController {
             throw new BusinessException(CommonErrorCode.E_100101);
         }
 //        log.info("findSubBy: uid= {}, parentId={}", uid, parentId);
-        List<NoteIndex> resList =  handleSortBy(noteListQueryDto, noteIndexServiceImpl.findSubBy(parentId, uid));
+        List<NoteIndex> resList =  handleSortBy(noteListQueryDto, noteIndexService.findSubBy(parentId, uid));
 //        log.info("findSubBy: uid= {}, parentId={}, count:{}", uid, parentId, resList.size());
         return RestOut.success(resList);
     }
@@ -147,7 +147,7 @@ public class NoteIndexController {
 
     @GetMapping("/findRoot")
     public RestOut<NoteIndex> findRootNoteIndex() {
-        return RestOut.success(noteIndexServiceImpl.findRoot());
+        return RestOut.success(noteIndexService.findRoot());
     }
 
     /**
@@ -161,7 +161,7 @@ public class NoteIndexController {
         if (id == null) {
             throw new BusinessException(NoteIndexErrorCode.E_203104);
         }
-        List<NoteIndex> resList =  noteIndexServiceImpl.findBackParentDir(id);
+        List<NoteIndex> resList =  noteIndexService.findBackParentDir(id);
         log.info("findBackParentDir: id= {},  count:{}", id, resList.size());
 
         return RestOut.success(resList);
@@ -172,7 +172,7 @@ public class NoteIndexController {
         if (id == null) {
             throw new BusinessException(NoteIndexErrorCode.E_203104);
         }
-        NoteIndex res = noteIndexServiceImpl.findOne(id);
+        NoteIndex res = noteIndexService.findOne(id);
 //        log.info("findOne: id= {},  count:{}", id, res);
 
         return RestOut.success(res);
@@ -187,7 +187,7 @@ public class NoteIndexController {
         if (StringUtils.isBlank(searchCondition.getSearchContent())) {
             return RestOut.success(NoteSearchVo.getEmpty());
         }
-        return RestOut.success(noteIndexServiceImpl.findNoteByCondition(searchCondition));
+        return RestOut.success(noteIndexService.findNoteByCondition(searchCondition));
     }
 
 
@@ -200,7 +200,7 @@ public class NoteIndexController {
     @GetMapping("/menuList")
     public RestOut<MenuListVo> findMenuList(@RequestParam("nid") Long nid) {
         //0->dir(menu); 1->file(content)
-        Map<String, List<NoteIndex>>  mapList = Optional.ofNullable(noteIndexServiceImpl.findSubBy(nid, LocalThreadUtils.getUserId())).orElse(Collections.emptyList()).stream().collect(Collectors.groupingBy(NoteIndex::getIsFile));
+        Map<String, List<NoteIndex>>  mapList = Optional.ofNullable(noteIndexService.findSubBy(nid, LocalThreadUtils.getUserId())).orElse(Collections.emptyList()).stream().collect(Collectors.groupingBy(NoteIndex::getIsFile));
         MenuListVo res = new MenuListVo();
         res.setMenuList(mapList.get("0"));
         res.setNoteContentMenuList(mapList.get("1"));
@@ -222,7 +222,7 @@ public class NoteIndexController {
         if ("1".equals(note.getIsFile()) && StringUtils.isBlank(note.getType())) {
             throw new BusinessException(NoteIndexErrorCode.E_203103);
         }
-        noteIndexServiceImpl.add(note);
+        noteIndexService.add(note);
 
         return RestOut.success(note);
     }
@@ -238,7 +238,7 @@ public class NoteIndexController {
         if (note.getId() == null) {
             throw new BusinessException(CommonErrorCode.E_203001);
         }
-        noteIndexServiceImpl.update(note);
+        noteIndexService.update(note);
         return RestOut.succeed("ok");
     }
 
@@ -249,7 +249,7 @@ public class NoteIndexController {
         if (parentId == null) {
             throw new BusinessException(CommonErrorCode.E_203000);
         }
-        noteIndexServiceImpl.delDir(parentId);
+        noteIndexService.delDir(parentId);
         return RestOut.succeed("ok");
     }
 
@@ -263,14 +263,14 @@ public class NoteIndexController {
             throw new BusinessException(CommonErrorCode.E_203001);
         }
 
-        noteIndexServiceImpl.delNote(note.getId());
+        noteIndexService.delNote(note.getId());
         return RestOut.succeed("ok");
     }
 
     @GetMapping("/destroyNote")
     public RestOut<String> destroyNote(@RequestParam("id") Long id) {
         log.info("destroyNote id= {}", id);
-        noteIndexServiceImpl.destroyNote(id);
+        noteIndexService.destroyNote(id);
         return RestOut.succeed("ok");
     }
 
@@ -280,7 +280,7 @@ public class NoteIndexController {
         if (query == null) {
             throw new BusinessException(CommonErrorCode.E_100101);
         }
-        List<NoteIndex> resList = noteIndexServiceImpl.findBy(query);
+        List<NoteIndex> resList = noteIndexService.findBy(query);
 
 //        log.info("findBy Result: 共{}条", resList.size());
         return RestOut.success(resList);
@@ -298,7 +298,7 @@ public class NoteIndexController {
             throw new BusinessException(CommonErrorCode.E_203001);
         }
         List<NoteIndex> res = new LinkedList<>();
-        noteIndexServiceImpl.findBreadcrumb(id, res);
+        noteIndexService.findBreadcrumb(id, res);
 //        log.info("findBreadcrumb Result: 共{}条", res.size());
         return RestOut.success(res);
     }
@@ -308,14 +308,14 @@ public class NoteIndexController {
         if (id == null) {
             throw new BusinessException(CommonErrorCode.E_203001);
         }
-        NoteInfoVo res = noteIndexServiceImpl.getNoteAndSite(id);
+        NoteInfoVo res = noteIndexService.getNoteAndSite(id);
         return RestOut.success(res);
     }
 
     @PostMapping("/getRecentFiles")
     public RestOut<List<NoteIndex>> getRecentFiles(NoteListQueryDto noteListQueryDto) {
         log.info("getRecentFiles => {}", noteListQueryDto);
-        List<NoteIndex> resList = handleSortBy(noteListQueryDto, noteIndexServiceImpl.getRecentFiles());
+        List<NoteIndex> resList = handleSortBy(noteListQueryDto, noteIndexService.getRecentFiles());
 //        log.info("getRecentFiles Result: 共{}条", resList.size());
 
         return RestOut.success(resList);
@@ -324,7 +324,7 @@ public class NoteIndexController {
     @PostMapping("/getDeletedFiles")
     public RestOut<List<NoteIndex>> getDeletedFiles(NoteListQueryDto noteListQueryDto) {
         log.info("getDeletedFiles => {}", noteListQueryDto);
-        List<NoteIndex> resList = handleSortBy(noteListQueryDto, noteIndexServiceImpl.getDeletedFiles());
+        List<NoteIndex> resList = handleSortBy(noteListQueryDto, noteIndexService.getDeletedFiles());
 //        log.info("getDeletedFiles Result: 共{}条", resList.size());
 
         return RestOut.success(resList);
@@ -332,13 +332,13 @@ public class NoteIndexController {
 
     @GetMapping("/recentVisitList")
     public RestOut recentVisitList() {
-        List<NoteIndex> recentVisits = noteIndexServiceImpl.recentVisitList();
+        List<NoteIndex> recentVisits = noteIndexService.recentVisitList();
         return RestOut.success(recentVisits);
     }
 
     @GetMapping("/treeClick")
     public RestOut treeClick(@RequestParam("id") Long id) {
-        NoteIndex noteMeta = noteIndexServiceImpl.findOne(id);
+        NoteIndex noteMeta = noteIndexService.findOne(id);
         AsyncTask visitComputeTask = AsyncTask.Builder
                 .build()
                 .taskId(idWorker.nextId())
@@ -356,14 +356,14 @@ public class NoteIndexController {
 
     @GetMapping("/allDestroy")
     public RestOut allDestroy() {
-        int cnt = noteIndexServiceImpl.allDestroy();
+        int cnt = noteIndexService.allDestroy();
         log.info("allDestroy: {}", cnt);
         return RestOut.succeed("OK");
     }
 
     @GetMapping("/allRecover")
     public RestOut allRecover() {
-        int cnt = noteIndexServiceImpl.allRecover();
+        int cnt = noteIndexService.allRecover();
         log.info("allRecover: {}", cnt);
         return RestOut.succeed("OK");
     }
@@ -378,7 +378,7 @@ public class NoteIndexController {
         if (noteMoveDto.getFromId() == null || noteMoveDto.getToId() == null) {
             throw new BusinessException(CommonErrorCode.E_200202);
         }
-        noteIndexServiceImpl.updateMove(noteMoveDto);
+        noteIndexService.updateMove(noteMoveDto);
         return RestOut.succeed("ok");
     }
 
@@ -401,7 +401,7 @@ public class NoteIndexController {
         String srcStr = noteUser.getId().toString()+"_"+password;
         String encryptedStr = DigestUtils.md5DigestAsHex(srcStr.getBytes(StandardCharsets.UTF_8));
         if (encryptedStr.equals(noteUser.getPassword())) {
-            NoteIndex noteIndex = noteIndexServiceImpl.findOne(id);
+            NoteIndex noteIndex = noteIndexService.findOne(id);
             NoteIndexVo resVo = new NoteIndexVo();
             BeanUtils.copyProperties(noteIndex, resVo);
 
@@ -428,7 +428,7 @@ public class NoteIndexController {
      */
     @GetMapping("/encrypted-read-note")
     public RestOut encryptedReadNote(@RequestParam("id") Long id) {
-        noteIndexServiceImpl.encryptedReadNote(id);
+        noteIndexService.encryptedReadNote(id);
 
         return RestOut.succeed("ok");
     }
@@ -440,7 +440,7 @@ public class NoteIndexController {
         if (!authResult.isSuccess()) {
             return authResult;
         }
-        noteIndexServiceImpl.unEncryptedReadNote(id);
+        noteIndexService.unEncryptedReadNote(id);
 
         return authResult;
     }
