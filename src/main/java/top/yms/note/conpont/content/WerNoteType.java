@@ -113,6 +113,6 @@ public class WerNoteType extends AbstractNoteType {
 
     @Override
     public boolean supportVersion() {
-        return true;
+        return false;
     }
 }
