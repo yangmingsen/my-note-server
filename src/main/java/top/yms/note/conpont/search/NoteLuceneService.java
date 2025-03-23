@@ -26,7 +26,7 @@ import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.SearchLog;
 import top.yms.note.mapper.NoteIndexMapper;
 import top.yms.note.service.NoteIndexService;
-import top.yms.note.service.NoteSearchLogService;
+import top.yms.note.service.impl.NoteSearchLogServiceImpl;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.vo.NoteSearchResult;
 import top.yms.note.vo.SearchResult;
@@ -50,7 +50,7 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
     private String indexPath;
 
     @Resource
-    NoteSearchLogService noteSearchLogService;
+    NoteSearchLogServiceImpl noteSearchLogServiceImpl;
 
     @Resource
     IdWorker idWorker;
@@ -93,7 +93,7 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
         searchLog.setSearchContent(noteSearchDto.getKeyword());
         searchLog.setCreateTime(new Date());
         searchLog.setUserId(userId);
-        noteSearchLogService.add(searchLog);
+        noteSearchLogServiceImpl.add(searchLog);
         Directory directory = null;
         IndexReader indexReader = null;
         try {

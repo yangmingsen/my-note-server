@@ -59,6 +59,6 @@ public class MarkdownNoteType extends AbstractNoteType {
 
     @Override
     public boolean supportVersion() {
-        return false;
+        return true;
     }
 }

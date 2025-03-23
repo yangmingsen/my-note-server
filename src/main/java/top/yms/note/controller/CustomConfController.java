@@ -15,7 +15,7 @@ import top.yms.note.entity.RestOut;
 import top.yms.note.enums.AsyncExcuteTypeEnum;
 import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.exception.BusinessException;
-import top.yms.note.service.CustomConfService;
+import top.yms.note.service.impl.CustomConfServiceImpl;
 import top.yms.note.service.NoteIndexService;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
@@ -33,7 +33,7 @@ public class CustomConfController {
     private final static Logger log = LoggerFactory.getLogger(CustomConfController.class);
 
     @Resource
-    private CustomConfService customConfService;
+    private CustomConfServiceImpl customConfServiceImpl;
 
     @Resource
     private NoteAsyncExecuteTaskService noteExecuteTaskService;
@@ -97,6 +97,6 @@ public class CustomConfController {
 
     @GetMapping("/find-user-conf")
     public RestOut<Object> findUserConfig() {
-        return RestOut.success(customConfService.findUserConfig(LocalThreadUtils.getUserId()));
+        return RestOut.success(customConfServiceImpl.findUserConfig(LocalThreadUtils.getUserId()));
     }
 }

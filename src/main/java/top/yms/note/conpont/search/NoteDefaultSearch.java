@@ -6,7 +6,7 @@ import top.yms.note.conpont.NoteSearchService;
 import top.yms.note.dto.NoteSearchDto;
 import top.yms.note.entity.SearchLog;
 import top.yms.note.mapper.NoteIndexMapper;
-import top.yms.note.service.NoteSearchLogService;
+import top.yms.note.service.impl.NoteSearchLogServiceImpl;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.vo.NoteIndexSearchResult;
 import top.yms.note.vo.SearchResult;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class NoteDefaultSearch implements NoteSearchService {
 
     @Resource
-    NoteSearchLogService noteSearchLogService;
+    NoteSearchLogServiceImpl noteSearchLogServiceImpl;
 
     @Resource
     IdWorker idWorker;
@@ -41,7 +41,7 @@ public class NoteDefaultSearch implements NoteSearchService {
         searchLog.setSearchContent(noteSearchDto.getKeyword());
         searchLog.setCreateTime(new Date());
         searchLog.setUserId(uid);
-        noteSearchLogService.add(searchLog);
+        noteSearchLogServiceImpl.add(searchLog);
         return noteIndexMapper.searchName(keyword, uid)
                 .stream()
                 .map(noteIndex -> {

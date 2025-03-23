@@ -1,4 +1,4 @@
-package top.yms.note.service;
+package top.yms.note.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -11,7 +11,7 @@ import top.yms.note.utils.IdWorker;
  * Created by yangmingsen on 2024/8/17.
  */
 @Service
-public class NoteSearchLogService {
+public class NoteSearchLogServiceImpl {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;

@@ -46,7 +46,7 @@ public class NoteContentOptimizeServiceImpl implements NoteContentOptimizeServic
             ids = getRemoveVersionIds(dataVersionList);
             log.info("noteId={}, delList={}", id, ids);
             for (Long ndvId : ids) {
-                noteDataService.deleteDataVersion(ndvId);
+                //noteDataService.deleteDataVersion(ndvId);
             }
         } catch (Exception e) {
             log.error("removeOneUnnecessaryVersion 发生异常", e);
@@ -75,7 +75,7 @@ public class NoteContentOptimizeServiceImpl implements NoteContentOptimizeServic
      * 相似度 = 0 → 说明两个文本完全不同
      * </p>
      */
-    private double SIMILARITY_THRESHOLD = 0.9; // 设定相似度阈值
+    private double SIMILARITY_THRESHOLD = 0.95; // 设定相似度阈值
 
     public List<Long> getRemoveVersionIds(List<NoteDataVersion> noteDataVersions) throws IOException {
         // 1. 先用 IKAnalyzer 进行分词
@@ -87,15 +87,34 @@ public class NoteContentOptimizeServiceImpl implements NoteContentOptimizeServic
         Map<Integer, Map<String, Double>> tfidfVectors = computeTFIDFVectors(tokenizedVersions);
         // 3. 计算相似度并优化版本
         List<Long> optimizedIds = new ArrayList<>();
-        for (int i = 0; i < noteDataVersions.size() - 1; i++) {
-            NoteDataVersion noteDataVersion = noteDataVersions.get(i);
-            NoteDataVersion noteDataVersion2 = noteDataVersions.get(i+1);
-            double similarity = cosineSimilarity(tfidfVectors.get(i), tfidfVectors.get(i + 1));
-            log.info("noteId={}, 版本={} 和版本={} 相似度={}",
-                    noteDataVersion.getNoteId(), noteDataVersion.getId(), noteDataVersion2.getId(), similarity);
-            if (similarity > SIMILARITY_THRESHOLD) {
-                //相似度较高，删除这个版本
-                optimizedIds.add(noteDataVersion.getId());
+//        for (int i = 0; i < noteDataVersions.size() - 1; i++) {
+//            NoteDataVersion noteDataVersion = noteDataVersions.get(i);
+//            NoteDataVersion noteDataVersion2 = noteDataVersions.get(i+1);
+//            double similarity = cosineSimilarity(tfidfVectors.get(i), tfidfVectors.get(i + 1));
+//            log.info("noteId={}, 版本={} 和版本={} 相似度={}",
+//                    noteDataVersion.getNoteId(), noteDataVersion.getId(), noteDataVersion2.getId(), similarity);
+//            if (similarity > SIMILARITY_THRESHOLD) {
+//                optimizedIds.add(noteDataVersion.getId());
+//            }
+//        }
+        int len = noteDataVersions.size();
+        int e = 1;
+        if (len > 3) {
+            for (int i = len-1; i > e; ) {
+                Map<String, Double> imap = tfidfVectors.get(i);
+                NoteDataVersion indv = noteDataVersions.get(i);
+                for (i=i-1; i > e ; i--) {
+                    Map<String, Double> jmap = tfidfVectors.get(i);
+                    NoteDataVersion jndv = noteDataVersions.get(i);
+                    double similarity = cosineSimilarity(imap, jmap);
+                    log.info("noteId={}, 版本={} 和版本={} 相似度={}",
+                            indv.getNoteId(), indv.getId(), jndv.getId(), similarity);
+                    if (similarity > SIMILARITY_THRESHOLD) {
+                        optimizedIds.add(jndv.getId());
+                    } else {
+                        break;
+                    }
+                }
             }
         }
         return optimizedIds;
