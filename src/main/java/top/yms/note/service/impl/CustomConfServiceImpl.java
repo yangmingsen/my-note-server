@@ -1,4 +1,4 @@
-package top.yms.note.service;
+package top.yms.note.service.impl;
 
 import com.alibaba.fastjson2.JSONObject;
 import org.bson.Document;
@@ -21,9 +21,9 @@ import java.util.Map;
  * Created by yangmingsen on 2024/9/27.
  */
 @Service
-public class CustomConfService {
+public class CustomConfServiceImpl {
 
-    private static final Logger log = LoggerFactory.getLogger(CustomConfService.class);
+    private static final Logger log = LoggerFactory.getLogger(CustomConfServiceImpl.class);
 
     @Autowired
     private MongoTemplate mongoTemplate;
