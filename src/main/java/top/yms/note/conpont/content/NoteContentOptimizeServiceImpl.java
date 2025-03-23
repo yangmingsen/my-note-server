@@ -5,6 +5,7 @@ import org.apache.commons.math3.linear.RealVector;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.eclipse.jgit.diff.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -19,8 +20,10 @@ import top.yms.note.service.NoteDataService;
 import top.yms.note.service.NoteIndexService;
 
 import javax.annotation.Resource;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Component(NoteConstants.noteContentOptimizeServiceImpl)
@@ -107,8 +110,9 @@ public class NoteContentOptimizeServiceImpl implements NoteContentOptimizeServic
                     Map<String, Double> jmap = tfidfVectors.get(i);
                     NoteDataVersion jndv = noteDataVersions.get(i);
                     double similarity = cosineSimilarity(imap, jmap);
-                    log.info("noteId={}, 版本={} 和版本={} 相似度={}",
-                            indv.getNoteId(), indv.getId(), jndv.getId(), similarity);
+                    double jgitChange = calculateTextDifference(indv.getContent(), jndv.getContent());
+                    log.info("noteId={}, 版本={} 和版本={} cos相似度={}, jgitChange={}",
+                            indv.getNoteId(), indv.getId(), jndv.getId(), similarity, jgitChange);
                     if (similarity > SIMILARITY_THRESHOLD) {
                         optimizedIds.add(jndv.getId());
                     } else {
@@ -119,6 +123,55 @@ public class NoteContentOptimizeServiceImpl implements NoteContentOptimizeServic
         }
         return optimizedIds;
     }
+
+
+
+
+
+
+
+
+    // 计算两个文本的变更比例
+
+    /**
+     * 值的范围：
+     *
+     * 0.0 → 两个文本完全相同
+     *
+     * 1.0 → 两个文本完全不一样
+     *
+     * 0.1 ~ 0.5 → 两个文本部分修改
+     *
+     * > 0.5 → 改动较大
+     * @param oldText
+     * @param newText
+     * @return
+     */
+    public static double calculateTextDifference(String oldText, String newText) {
+        RawText rawOld = new RawText(oldText.getBytes(StandardCharsets.UTF_8));
+        RawText rawNew = new RawText(newText.getBytes(StandardCharsets.UTF_8));
+
+        HistogramDiff diffAlgorithm = new HistogramDiff();
+        EditList editList = diffAlgorithm.diff(RawTextComparator.DEFAULT, rawOld, rawNew);
+
+        int totalChanges = 0;
+        for (Edit edit : editList) {
+            totalChanges += edit.getLengthA() + edit.getLengthB(); // 统计改动的字符数
+        }
+
+        //其中：
+        //
+        //totalChanges：表示 新增 + 删除 的字符总数
+        //
+        //totalLength：是 旧文本和新文本的总字符数
+        int totalLength = oldText.length() + newText.length();
+        if (totalLength == 0) return 0; // 避免除零错误
+        return (double) totalChanges / totalLength;
+    }
+
+
+
+
 
     // IKAnalyzer 分词
     public  List<String> tokenizeChinese(String text) throws IOException {
