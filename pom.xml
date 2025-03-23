@@ -154,6 +154,13 @@
             <version>${javacsv.version}</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.eclipse.jgit/org.eclipse.jgit -->
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
+            <version>5.13.0.202109080827-r</version>
+        </dependency>
+
     </dependencies>
 
     <build>
