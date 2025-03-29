@@ -37,7 +37,7 @@ public class DefaultNoteStoreServiceImpl implements NoteStoreService, Applicatio
     protected NoteIndexMapper noteIndexMapper;
 
     @Override
-    public Object findOne(Long id) {
+    public INoteData findOne(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
         for(NoteType noteType : noteContentTypeList) {
             if (noteType.support(noteIndex.getType())) {

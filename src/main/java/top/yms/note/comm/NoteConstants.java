@@ -81,6 +81,12 @@ public abstract class NoteConstants {
      */
     public final static String ROOT_DIR_FLAG = "0";
 
+    /**
+     * mongo id标志
+     */
+    public final static String _id = "_id";
+
+
 
 
 

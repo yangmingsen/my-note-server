@@ -42,8 +42,6 @@ public class MarkdownNoteType extends AbstractNoteType {
         //更新全局搜索索引
         NoteIndex oldNoteIdx = noteIndexMapper.selectByPrimaryKey(noteData.getId());
         saveSearchIndex(oldNoteIdx, noteDataDto.getContent());
-        //版本记录
-        saveDataVersion(noteData);
     }
 
     public NoteLuceneIndex findNoteLuceneDataOne(Long id) {

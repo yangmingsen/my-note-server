@@ -49,6 +49,4 @@ public interface FileStoreService {
      */
     default String getStringContent(String id) {return null;}
 
-
-
 }

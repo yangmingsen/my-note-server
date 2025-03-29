@@ -54,7 +54,7 @@ public class PreviewNoteType extends AbstractNoteType implements NotePreview{
 
 
     @Override
-    public Object doGetContent(Long id) {
+    public INoteData doGetContent(Long id) {
         //前提,当前文件要可预览, 目前使用markdown预览
         //因此 文本内容前后加了 " ```xxx  内容  ```` "
         if (!checkFileCanPreviewByCache(id)) {

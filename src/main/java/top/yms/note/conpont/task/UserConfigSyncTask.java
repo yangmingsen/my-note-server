@@ -22,7 +22,6 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
 
     private final static Logger log = LoggerFactory.getLogger(UserConfigSyncTask.class);
 
-
     public int getSortValue() {
         return 1;
     }
@@ -45,7 +44,6 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
                 userConfig.put(key, value);
             }
         }
-
         Long userId = allData.get(0).getUserId();
         Document oldDoc = mongoTemplate.findOne(Query.query(Criteria.where(NoteConstants.userid).is(userId)), Document.class, NoteConstants.customConfig);
         if (oldDoc == null) {
@@ -61,7 +59,6 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
             mongoTemplate.save(oldDoc,  NoteConstants.customConfig);
             log.info("updateUserConfig_更新成功: {}", oldDoc.toJson());
         }
-
     }
 
     @Override

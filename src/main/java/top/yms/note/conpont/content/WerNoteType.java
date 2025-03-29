@@ -59,23 +59,21 @@ public class WerNoteType extends AbstractNoteType {
             if (StringUtils.isNotBlank(oldNoteIdx.getSiteId())) {
                 oldDoc = mongoTemplate.findById(oldNoteIdx.getSiteId(), Document.class, NoteConstants.noteWerTextContent);
                 ObjectId objectId = new ObjectId(oldNoteIdx.getSiteId());
-                document.put("_id", objectId);
+                document.put(NoteConstants._id, objectId);
                 mongoTemplate.save(document,  NoteConstants.noteWerTextContent);
             } else {
                 Document saveRes = mongoTemplate.save(document, NoteConstants.noteWerTextContent);
-                objId = saveRes.getObjectId("_id");
+                objId = saveRes.getObjectId(NoteConstants._id);
                 noteIndex.setSiteId(objId.toString());
             }
             //update index
             updateNoteIndex(noteIndex, noteData);
             //更新全局搜索索引
             saveSearchIndex(oldNoteIdx, noteDataDto.getTextContent());
-            //版本记录
-            saveDataVersion(noteData);
         } catch (Exception e) {
             log.error("save失败", e);
             if (objId != null) {
-                mongoTemplate.remove(new Document("_id", objId), NoteConstants.noteWerTextContent);
+                mongoTemplate.remove(new Document(NoteConstants._id, objId), NoteConstants.noteWerTextContent);
             }
             if (oldDoc != null) {
                 mongoTemplate.save(oldDoc, NoteConstants.noteWerTextContent);

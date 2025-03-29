@@ -20,7 +20,7 @@ public class DefaultNoteType extends AbstractNoteType implements NoteTikaService
     }
 
     @Override
-    public Object doGetContent(Long id) {
+    public INoteData doGetContent(Long id) {
         throw new BusinessException(CommonErrorCode.E_200211);
     }
 
