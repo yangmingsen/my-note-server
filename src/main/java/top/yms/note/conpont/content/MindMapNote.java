@@ -25,8 +25,8 @@ import java.util.Date;
  * Created by yangmingsen on 2024/9/24.
  */
 @Component
-public class MindMapNoteType extends AbstractNoteType{
-    private final static Logger log = LoggerFactory.getLogger(MindMapNoteType.class);
+public class MindMapNote extends AbstractNote {
+    private final static Logger log = LoggerFactory.getLogger(MindMapNote.class);
 
 
     public int getSortValue() {

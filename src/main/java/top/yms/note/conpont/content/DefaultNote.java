@@ -13,7 +13,7 @@ import java.io.InputStream;
  * Created by yangmingsen on 2024/8/21.
  */
 @Component
-public class DefaultNoteType extends AbstractNoteType implements NoteTikaService {
+public class DefaultNote extends AbstractNote implements NoteTikaService {
     @Override
     public boolean support(String type) {
         return false;

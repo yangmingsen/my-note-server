@@ -13,7 +13,6 @@ import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteStoreService;
 import top.yms.note.dto.INoteData;
-import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteIndexMapper;
@@ -31,7 +30,7 @@ public class DefaultNoteStoreServiceImpl implements NoteStoreService, Applicatio
 
     private static  final Logger log = LoggerFactory.getLogger(DefaultNoteStoreServiceImpl.class);
 
-    protected final List<NoteType> noteContentTypeList = new LinkedList<>();
+    protected final List<Note> noteContentTypeList = new LinkedList<>();
 
     @Autowired
     protected NoteIndexMapper noteIndexMapper;
@@ -39,9 +38,9 @@ public class DefaultNoteStoreServiceImpl implements NoteStoreService, Applicatio
     @Override
     public INoteData findOne(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
-        for(NoteType noteType : noteContentTypeList) {
-            if (noteType.support(noteIndex.getType())) {
-                return noteType.getContent(id);
+        for(Note note : noteContentTypeList) {
+            if (note.support(noteIndex.getType())) {
+                return note.getContent(id);
             }
         }
         throw new BusinessException(CommonErrorCode.E_200215);
@@ -51,9 +50,9 @@ public class DefaultNoteStoreServiceImpl implements NoteStoreService, Applicatio
     public void save(INoteData iNoteData) {
         Long id = iNoteData.getId();
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
-        for(NoteType noteType : noteContentTypeList) {
-            if (noteType.support(noteIndex.getType())) {
-                noteType.save(iNoteData);
+        for(Note note : noteContentTypeList) {
+            if (note.support(noteIndex.getType())) {
+                note.save(iNoteData);
                 return;
             }
         }
@@ -71,10 +70,13 @@ public class DefaultNoteStoreServiceImpl implements NoteStoreService, Applicatio
         ApplicationContext context = event.getApplicationContext();
         noteContentTypeList.addAll(
                 BeanFactoryUtils.beansOfTypeIncludingAncestors(
-                        context, NoteType.class, true, false).values());
+                        context, Note.class, true, false).values());
         Collections.sort(noteContentTypeList);
         log.info("获取到NoteContentTypeList: {}", noteContentTypeList);
     }
 
-
+    @Override
+    public void destroy(Long id) {
+        
+    }
 }

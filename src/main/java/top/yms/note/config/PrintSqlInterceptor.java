@@ -21,7 +21,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import top.yms.note.comm.NoteConstants;
+import top.yms.note.comm.NoteSystemErrorCode;
+import top.yms.note.comm.NoteSystemException;
+import top.yms.note.conpont.SysConfigService;
 
+import javax.annotation.Resource;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
@@ -44,7 +49,7 @@ public class PrintSqlInterceptor implements Interceptor {
 
     private static final Logger log = LoggerFactory.getLogger(PrintSqlInterceptor.class);
 
-    @Value("${sys.sql-show}")
+    @Value("${system.sql-show}")
     private String sqlShow;
 
     @Override
@@ -63,7 +68,16 @@ public class PrintSqlInterceptor implements Interceptor {
         if (StringUtils.isNotBlank(sqlShow) && sqlShow.contains("true")) {
             showSql(configuration, boundSql, time, sqlId);
         }
-
+        if (returnValue instanceof Integer) {
+            int rows = (Integer) returnValue;
+            MappedStatement ms = (MappedStatement) invocation.getArgs()[0];
+            String methodId = ms.getId(); // 获取具体是哪个 Mapper 方法
+            if (rows == 0) {
+                log.info("数据库操作无效：" + methodId + " 未影响任何行");
+                throw new NoteSystemException( NoteSystemErrorCode.E_400000);
+            }
+            log.info("methodId={} affected rows= {}", methodId, rows);
+        }
         return returnValue;
     }
 
@@ -119,7 +133,7 @@ public class PrintSqlInterceptor implements Interceptor {
                 .append(" Time：").append(time)
                 .append(" ms - ID：").append(sqlId)
                 .append("\n").append("Execute SQL：")
-                .append(sql).append("\n");
+                .append(sql);//.append("\n");
         log.info(sb.toString());
     }
 

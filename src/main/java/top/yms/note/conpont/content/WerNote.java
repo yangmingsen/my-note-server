@@ -21,8 +21,8 @@ import top.yms.note.exception.BusinessException;
  * Created by yangmingsen on 2024/8/21.
  */
 @Component
-public class WerNoteType extends AbstractNoteType {
-    private final static Logger log = LoggerFactory.getLogger(WerNoteType.class);
+public class WerNote extends AbstractNote {
+    private final static Logger log = LoggerFactory.getLogger(WerNote.class);
 
     private final static String supportType = "wer";
 

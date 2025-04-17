@@ -4,10 +4,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import top.yms.note.comm.CommonErrorCode;
-import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.*;
 import top.yms.note.conpont.search.NoteLuceneIndex;
@@ -39,9 +37,9 @@ import java.util.List;
 /**
  * Created by yangmingsen on 2024/8/21.
  */
-public abstract class AbstractNoteType implements NoteType, NoteLuceneDataService, NoteExport, NoteVersion {
+public abstract class AbstractNote implements Note, NoteLuceneDataService, NoteExport, NoteVersion {
 
-    private final static Logger log = LoggerFactory.getLogger(AbstractNoteType.class);
+    private final static Logger log = LoggerFactory.getLogger(AbstractNote.class);
 
     @Resource
     protected NoteDataMapper noteDataMapper;

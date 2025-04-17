@@ -15,9 +15,9 @@ import top.yms.note.exception.BusinessException;
  * Created by yangmingsen on 2024/8/21.
  */
 @Component
-public class MarkdownNoteType extends AbstractNoteType {
+public class MarkdownNote extends AbstractNote {
 
-    private final static Logger log = LoggerFactory.getLogger(MarkdownNoteType.class);
+    private final static Logger log = LoggerFactory.getLogger(MarkdownNote.class);
 
     private final static String supportType = "md";
 

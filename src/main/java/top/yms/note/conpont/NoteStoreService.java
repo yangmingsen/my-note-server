@@ -29,4 +29,10 @@ public interface NoteStoreService {
      */
     @Deprecated
     void update(INoteData iNoteData);
+
+    /**
+     * 删除笔记
+     * @param id
+     */
+    void destroy(Long id);
 }

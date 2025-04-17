@@ -31,8 +31,8 @@ public class NoteLuceneDataServiceImpl extends DefaultNoteStoreServiceImpl imple
      */
     private NoteLuceneDataService findCanApplyNoteIndexNoteType(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
-        for(NoteType noteType : noteContentTypeList) {
-            NoteLuceneDataService noteLuceneDataService = (NoteLuceneDataService) noteType;
+        for(Note note : noteContentTypeList) {
+            NoteLuceneDataService noteLuceneDataService = (NoteLuceneDataService) note;
             if (noteLuceneDataService.supportGetLuceneData(noteIndex.getType())) {
                 return noteLuceneDataService;
             }

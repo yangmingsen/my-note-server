@@ -8,7 +8,7 @@ import top.yms.note.exception.BusinessException;
 /**
  * 笔记类型抽象接口
  */
-public interface NoteType extends  ComponentSort, Comparable<ComponentSort>{
+public interface Note extends  ComponentSort, Comparable<ComponentSort>{
     /**
      * 是否支持当前类型(type)的内容获取或者保存
      * @param type
@@ -40,5 +40,7 @@ public interface NoteType extends  ComponentSort, Comparable<ComponentSort>{
     default void save(INoteData iNoteData) throws BusinessException {
 
     }
+
+    default void destroy(Long id){}
 
 }

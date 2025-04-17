@@ -76,7 +76,7 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
         for (int i=0; i<5; i++) {
             tmpStr.append(nbsp);
         }
-        tmpStr.append("<span>");
+        tmpStr.append("<span style=\"font-size: x-small;\">");
         tmpStr.append(value);
         tmpStr.append("</span>");
         return tmpStr.toString();

@@ -26,9 +26,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by yangmingsen on 2024/9/27.
  */
 @Component
-public class PreviewNoteType extends AbstractNoteType implements NotePreview{
+public class PreviewNote extends AbstractNote implements NotePreview{
 
-    private final static Logger log = LoggerFactory.getLogger(PreviewNoteType.class);
+    private final static Logger log = LoggerFactory.getLogger(PreviewNote.class);
 
     private static final String [] SUPPORT_View_FILE = {
             "txt","java","xml","go","html","css","js","ts","vue","json","c","scala","yml",
