@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 队列服务
+ * <p>目前未使用</p>
  */
 public interface NoteQueue {
 

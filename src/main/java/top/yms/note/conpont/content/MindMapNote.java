@@ -25,8 +25,8 @@ import java.util.Date;
  * Created by yangmingsen on 2024/9/24.
  */
 @Component
-public class MindMapNoteType extends AbstractNoteType{
-    private final static Logger log = LoggerFactory.getLogger(MindMapNoteType.class);
+public class MindMapNote extends AbstractNote {
+    private final static Logger log = LoggerFactory.getLogger(MindMapNote.class);
 
 
     public int getSortValue() {
@@ -41,7 +41,7 @@ public class MindMapNoteType extends AbstractNoteType{
     final String noteMindMap = NoteConstants.noteMindMap;
 
     @Override
-    public Object doGetContent(Long id) {
+    public INoteData doGetContent(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
         NoteData res = new NoteData();
         Document resDoc = mongoTemplate.findById(noteIndex.getSiteId(), Document.class, noteMindMap);
@@ -51,7 +51,6 @@ public class MindMapNoteType extends AbstractNoteType{
         res.setUserId(LocalThreadUtils.getUserId());
         res.setId(id);
         res.setContent(resDoc.toJson());
-
         return res;
     }
 
@@ -68,12 +67,12 @@ public class MindMapNoteType extends AbstractNoteType{
             NoteIndex noteIndex1 = noteIndexMapper.selectByPrimaryKey(noteId);
             if (StringUtils.isBlank(noteIndex1.getSiteId())) {
                 Document saveRes = mongoTemplate.save(document, noteMindMap);
-                objId = saveRes.getObjectId("_id");
+                objId = saveRes.getObjectId(NoteConstants._id);
                 upNoteIndex.setSiteId(objId.toString());
             } else {
                 oldDoc = mongoTemplate.findById(noteIndex1.getSiteId(), Document.class, noteMindMap);
                 ObjectId objectId = new ObjectId(noteIndex1.getSiteId());
-                document.put("_id", objectId);
+                document.put(NoteConstants._id, objectId);
                 mongoTemplate.save(document, noteMindMap);
             }
             Date opTime = new Date();
@@ -87,7 +86,7 @@ public class MindMapNoteType extends AbstractNoteType{
             log.error("MindMapNoteType#save异常", e);
             //回滚mongo数据
             if (objId != null) {
-                mongoTemplate.remove(new Document("_id", objId), noteMindMap);
+                mongoTemplate.remove(new Document(NoteConstants._id, objId), noteMindMap);
             }
             if (oldDoc != null) {
                 mongoTemplate.save(oldDoc, noteMindMap);

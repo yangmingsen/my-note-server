@@ -124,7 +124,6 @@ public class FileStoreServiceMongoImpl449 implements FileStoreService {
         if (!notePreview.canPreview(noteFile.getNoteRef())) {
             throw new BusinessException(ComponentErrorCode.E_204001);
         }
-
         AnyFile anyFile = loadFile(id);
         StringBuilder contentStr = new StringBuilder();
         try(InputStreamReader isr = new InputStreamReader(anyFile.getInputStream(), StandardCharsets.UTF_8)) {

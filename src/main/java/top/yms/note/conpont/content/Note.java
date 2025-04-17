@@ -8,7 +8,7 @@ import top.yms.note.exception.BusinessException;
 /**
  * 笔记类型抽象接口
  */
-public interface NoteType extends  ComponentSort, Comparable<ComponentSort>{
+public interface Note extends  ComponentSort, Comparable<ComponentSort>{
     /**
      * 是否支持当前类型(type)的内容获取或者保存
      * @param type
@@ -21,14 +21,14 @@ public interface NoteType extends  ComponentSort, Comparable<ComponentSort>{
      * @param id
      * @return
      */
-    default Object getContent(Long id) {return null;}
+    default INoteData getContent(Long id) {return null;}
 
     /**
      * 根据noteIdex对象获取，暂时未实现。 请用 getContent(id)
      * @param noteIndex
      * @return
      */
-    default Object getContent(NoteIndex noteIndex) {
+    default INoteData getContent(NoteIndex noteIndex) {
         return null;
     }
 
@@ -41,11 +41,6 @@ public interface NoteType extends  ComponentSort, Comparable<ComponentSort>{
 
     }
 
-    /**
-     * 是否支持数据版本
-     * @return true 支持 , false 不支持
-     */
-    default boolean supportVersion() {
-        return false;
-    }
+    default void destroy(Long id){}
+
 }

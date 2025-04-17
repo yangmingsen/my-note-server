@@ -15,18 +15,24 @@ public interface NoteStoreService {
      * @param id
      * @return
      */
-    Object findOne(Long id);
+    INoteData findOne(Long id);
 
     /**
      * 新建+更新
-     * @param note
+     * @param
      */
     void save(INoteData iNoteData);
 
     /**
      * 不适用
-     * @param note
+     * @param
      */
     @Deprecated
     void update(INoteData iNoteData);
+
+    /**
+     * 删除笔记
+     * @param id
+     */
+    void destroy(Long id);
 }

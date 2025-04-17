@@ -26,9 +26,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by yangmingsen on 2024/9/27.
  */
 @Component
-public class PreviewNoteType extends AbstractNoteType implements NotePreview{
+public class PreviewNote extends AbstractNote implements NotePreview{
 
-    private final static Logger log = LoggerFactory.getLogger(PreviewNoteType.class);
+    private final static Logger log = LoggerFactory.getLogger(PreviewNote.class);
 
     private static final String [] SUPPORT_View_FILE = {
             "txt","java","xml","go","html","css","js","ts","vue","json","c","scala","yml",
@@ -54,7 +54,7 @@ public class PreviewNoteType extends AbstractNoteType implements NotePreview{
 
 
     @Override
-    public Object doGetContent(Long id) {
+    public INoteData doGetContent(Long id) {
         //前提,当前文件要可预览, 目前使用markdown预览
         //因此 文本内容前后加了 " ```xxx  内容  ```` "
         if (!checkFileCanPreviewByCache(id)) {

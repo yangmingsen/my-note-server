@@ -399,17 +399,18 @@ public class NoteIndexServiceImpl implements NoteIndexService {
             noteLuceneIndex.setType(note.getType());
             noteLuceneIndex.setCreateDate(opTime);
             noteLuceneIndex.setEncrypted("0");
-            DelayExecuteAsyncTask indexUpdateDelayTask = DelayExecuteAsyncTask.Builder
-                    .build()
-                    .type(AsyncTaskEnum.SYNC_Note_Index_UPDATE)
-                    .executeType(AsyncExcuteTypeEnum.DELAY_EXC_TASK)
-                    .taskId(idWorker.nextId())
-                    .taskName(AsyncTaskEnum.SYNC_Note_Index_UPDATE.getName())
-                    .createTime(new Date())
-                    .userId(LocalThreadUtils.getUserId())
-                    .taskInfo(NoteIndexLuceneUpdateDto.Builder.build().type(NoteIndexLuceneUpdateDto.updateNoteIndex).data(noteLuceneIndex).get())
-                    .get();
-            noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
+            noteAsyncExecuteTaskService.addTask(
+                    DelayExecuteAsyncTask.Builder
+                            .build()
+                            .type(AsyncTaskEnum.SYNC_Note_Index_UPDATE)
+                            .executeType(AsyncExcuteTypeEnum.DELAY_EXC_TASK)
+                            .taskId(idWorker.nextId())
+                            .taskName(AsyncTaskEnum.SYNC_Note_Index_UPDATE.getName())
+                            .createTime(new Date())
+                            .userId(LocalThreadUtils.getUserId())
+                            .taskInfo(NoteIndexLuceneUpdateDto.Builder.build().type(NoteIndexLuceneUpdateDto.updateNoteIndex).data(noteLuceneIndex).get())
+                            .get()
+            );
         } catch (Exception e) {
             log.error("add失败", e);
             if (mindMapMongoId != null) {
@@ -452,7 +453,6 @@ public class NoteIndexServiceImpl implements NoteIndexService {
                         .userId(LocalThreadUtils.getUserId())
                         .taskInfo(NoteIndexLuceneUpdateDto.Builder.build().type(NoteIndexLuceneUpdateDto.updateNoteIndex).data(noteLuceneIndex).get())
                         .get();
-
                 noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
             }
         }

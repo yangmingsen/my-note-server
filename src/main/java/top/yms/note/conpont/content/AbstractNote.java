@@ -4,11 +4,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import top.yms.note.comm.CommonErrorCode;
-import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.*;
 import top.yms.note.conpont.search.NoteLuceneIndex;
@@ -32,6 +29,7 @@ import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.IdWorkerUtils;
 import top.yms.note.utils.LocalThreadUtils;
 
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
@@ -39,39 +37,35 @@ import java.util.List;
 /**
  * Created by yangmingsen on 2024/8/21.
  */
-public abstract class AbstractNoteType implements NoteType, NoteLuceneDataService, NoteExport {
+public abstract class AbstractNote implements Note, NoteLuceneDataService, NoteExport, NoteVersion {
 
-    private final static Logger log = LoggerFactory.getLogger(AbstractNoteType.class);
+    private final static Logger log = LoggerFactory.getLogger(AbstractNote.class);
 
-    @Autowired
+    @Resource
     protected NoteDataMapper noteDataMapper;
 
-    @Autowired
+    @Resource
     protected NoteDataVersionMapper noteDataVersionMapper;
 
-    @Autowired
+    @Resource
     protected NoteIndexMapper noteIndexMapper;
 
-    @Autowired
+    @Resource
     protected NoteFileMapper noteFileMapper;
 
-    @Autowired
+    @Resource
     NoteFileService noteFileService;
 
-    @Autowired
+    @Resource
     protected FileStoreService fileStoreService;
 
-    @Autowired
-    @Qualifier(NoteConstants.noteLuceneSearch)
-    protected NoteDataIndexService noteDataIndexService;
-
-    @Autowired
+    @Resource
     protected MongoTemplate mongoTemplate;
 
-    @Autowired
+    @Resource
     private NoteAsyncExecuteTaskService noteAsyncExecuteTaskService;
 
-    @Autowired
+    @Resource
     private IdWorker idWorker;
 
     @Override
@@ -99,17 +93,16 @@ public abstract class AbstractNoteType implements NoteType, NoteLuceneDataServic
         return noteFileService.findOne(noteIndex.getSiteId());
     }
 
-    public Object getContent(Long id) {
+    public INoteData getContent(Long id) {
         //修改访问时间
         NoteIndex upNoteIndex = new NoteIndex();
         upNoteIndex.setId(id);
         upNoteIndex.setViewTime(new Date());
         noteIndexMapper.updateByPrimaryKeySelective(upNoteIndex);
-
         return doGetContent(id);
     }
 
-    protected Object doGetContent(Long id) {
+    protected INoteData doGetContent(Long id) {
         return noteDataMapper.selectByPrimaryKey(id);
     }
 
@@ -166,9 +159,7 @@ public abstract class AbstractNoteType implements NoteType, NoteLuceneDataServic
             noteSize+=noteFile.getSize();
         }
         noteIndex.setSize(noteSize);
-
         noteIndexMapper.updateByPrimaryKeySelective(noteIndex);
-
     }
 
     /**
@@ -193,9 +184,9 @@ public abstract class AbstractNoteType implements NoteType, NoteLuceneDataServic
 
     /**
      * add版本记录
-     * @param noteData
      */
-    protected void saveDataVersion(NoteData noteData) {
+    protected void saveDataVersion(INoteData inoteData) {
+        NoteData noteData = (NoteData)inoteData;
         //版本记录
         NoteDataVersion dataVersion = new NoteDataVersion();
         dataVersion.setNoteId(noteData.getId());
@@ -216,6 +207,9 @@ public abstract class AbstractNoteType implements NoteType, NoteLuceneDataServic
 
     protected void afterSave(INoteData iNoteData) {
         if (supportVersion()) {
+            //添加笔记版本
+            addNoteVersion(iNoteData);
+            //笔记版本优化
             AsyncTask asyncTask = AsyncTask.Builder.build()
                     .taskId(IdWorkerUtils.getId())
                     .executeType(AsyncExcuteTypeEnum.SYNC_TASK)
@@ -227,6 +221,8 @@ public abstract class AbstractNoteType implements NoteType, NoteLuceneDataServic
                     .get();
             noteAsyncExecuteTaskService.addTask(asyncTask);
         }
+        //todo 更新noteIndex信息
+        //todo 更新全局搜索信息
     }
 
     public abstract void doSave(INoteData iNoteData) throws BusinessException;
@@ -253,5 +249,15 @@ public abstract class AbstractNoteType implements NoteType, NoteLuceneDataServic
 
     public boolean supportGetLuceneData(String type) {
         return support(type);
+    }
+
+    @Override
+    public boolean supportVersion() {
+        return false;
+    }
+
+    @Override
+    public void addNoteVersion(INoteData iNoteData) {
+        saveDataVersion(iNoteData);
     }
 }
