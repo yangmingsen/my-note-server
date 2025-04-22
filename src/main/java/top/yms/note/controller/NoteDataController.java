@@ -38,6 +38,7 @@ public class NoteDataController {
 
     @PostMapping("/mindmapSave")
     public RestOut mindMapSave(@RequestParam("id") Long id, @RequestParam("content") String jsonContent) {
+        Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         if (id == null || StringUtils.isBlank(jsonContent)) {
             throw new BusinessException(CommonErrorCode.E_200202);
         }
@@ -45,6 +46,7 @@ public class NoteDataController {
         NoteDataDto noteDataDto = new NoteDataDto();
         noteDataDto.setId(id);
         noteDataDto.setContent(jsonContent);
+        noteDataDto.setUserId(uid);
         noteDataService.save(noteDataDto);
         return RestOut.success("Ok");
     }

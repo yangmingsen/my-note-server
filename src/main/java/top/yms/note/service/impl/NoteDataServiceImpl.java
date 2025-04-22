@@ -23,6 +23,7 @@ import top.yms.note.conpont.NoteStoreService;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dao.NoteIndexQuery;
+import top.yms.note.dto.INoteData;
 import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.*;
 import top.yms.note.enums.FileTypeEnum;
@@ -119,8 +120,8 @@ public class NoteDataServiceImpl implements NoteDataService {
     }
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
-    public void save(NoteDataDto noteDataDto) {
-        noteStoreService.save(noteDataDto);
+    public void save(INoteData iNoteData) {
+        noteStoreService.save(iNoteData);
     }
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)

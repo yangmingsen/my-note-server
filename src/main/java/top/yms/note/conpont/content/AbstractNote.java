@@ -146,15 +146,15 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService, NoteE
     /**
      * 更新笔记元数据
      * @param noteIndex
-     * @param noteData
+     * @param iNoteData
      */
-    protected void updateNoteIndex(NoteIndex noteIndex, NoteData noteData) {
+    protected void updateNoteIndex(NoteIndex noteIndex, INoteData iNoteData) {
         if (noteIndex == null) noteIndex = new NoteIndex();
-        noteIndex.setId(noteData.getId());
+        noteIndex.setId(iNoteData.getId());
         noteIndex.setUpdateTime(new Date());
         //更新大小
-        long noteSize = noteData.getContent().getBytes(StandardCharsets.UTF_8).length;
-        List<NoteFile> noteFiles = noteFileMapper.selectByNoteRef(noteData.getId());
+        long noteSize = iNoteData.getContent().getBytes(StandardCharsets.UTF_8).length;
+        List<NoteFile> noteFiles = noteFileMapper.selectByNoteRef(iNoteData.getId());
         for(NoteFile noteFile : noteFiles) {
             noteSize+=noteFile.getSize();
         }
@@ -186,12 +186,11 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService, NoteE
      * add版本记录
      */
     protected void saveDataVersion(INoteData inoteData) {
-        NoteData noteData = (NoteData)inoteData;
         //版本记录
         NoteDataVersion dataVersion = new NoteDataVersion();
-        dataVersion.setNoteId(noteData.getId());
-        dataVersion.setContent(noteData.getContent());
-        dataVersion.setUserId(noteData.getUserId());
+        dataVersion.setNoteId(inoteData.getId());
+        dataVersion.setContent(inoteData.getContent());
+        dataVersion.setUserId(inoteData.getUserId());
         dataVersion.setCreateTime(new Date());
         noteDataVersionMapper.insertSelective(dataVersion);
     }
