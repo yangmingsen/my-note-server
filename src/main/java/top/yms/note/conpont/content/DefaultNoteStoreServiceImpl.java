@@ -38,6 +38,9 @@ public class DefaultNoteStoreServiceImpl implements NoteStoreService, Applicatio
     @Override
     public INoteData findOne(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        if (noteIndex == null) {
+            throw new BusinessException(CommonErrorCode.E_200201);
+        }
         for(Note note : noteContentTypeList) {
             if (note.support(noteIndex.getType())) {
                 return note.getContent(id);

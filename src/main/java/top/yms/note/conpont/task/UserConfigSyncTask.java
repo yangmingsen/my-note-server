@@ -53,7 +53,7 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
             }
             JSONObject lastV = tmpJson.getJSONObject(lastvisit);
             if (lastV != null) {
-                String lastVid = lastV.getString(NoteConstants._id);
+                String lastVid = lastV.getString(NoteConstants.id);
                 if (StringUtils.isNotBlank(lastVid))  {
                     if (sensitiveService.isSensitive(Long.parseLong(lastVid))) {
                         //命中敏感内容
