@@ -4,4 +4,6 @@ public interface INoteData {
     Long getId();
 
     String getContent();
+
+    Long getUserId();
 }

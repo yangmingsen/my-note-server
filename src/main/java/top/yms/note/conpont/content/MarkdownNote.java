@@ -32,16 +32,15 @@ public class MarkdownNote extends AbstractNote {
 
     @Override
     public void doSave(INoteData iNoteData) throws BusinessException {
-        NoteDataDto noteDataDto = (NoteDataDto) iNoteData;
         NoteData noteData = new NoteData();
-        BeanUtils.copyProperties(noteDataDto, noteData);
+        BeanUtils.copyProperties(iNoteData, noteData);
         //更新笔记内容
         updateNoteData(noteData);
         //update noteIndex meta
-        updateNoteIndex(null, noteData);
+        updateNoteIndex(null, iNoteData);
         //更新全局搜索索引
-        NoteIndex oldNoteIdx = noteIndexMapper.selectByPrimaryKey(noteData.getId());
-        saveSearchIndex(oldNoteIdx, noteDataDto.getContent());
+        NoteIndex oldNoteIdx = noteIndexMapper.selectByPrimaryKey(iNoteData.getId());
+        saveSearchIndex(oldNoteIdx, iNoteData.getContent());
     }
 
     public NoteLuceneIndex findNoteLuceneDataOne(Long id) {

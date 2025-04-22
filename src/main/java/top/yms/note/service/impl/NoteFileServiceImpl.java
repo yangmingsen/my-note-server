@@ -34,6 +34,7 @@ import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.LocalNoteSyncResult;
 
+import javax.annotation.Resource;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -56,28 +57,28 @@ public class NoteFileServiceImpl implements NoteFileService {
 
     private static final Logger log = LoggerFactory.getLogger(NoteFileServiceImpl.class);
 
-    @Autowired
+    @Resource
     private NoteFileMapper noteFileMapper;
 
-    @Autowired
+    @Resource
     private NoteIndexService noteIndexService;
 
-    @Autowired
+    @Resource
     private IdWorker idWorker;
 
-    @Autowired
+    @Resource
     private NoteDataService noteDataService;
 
-    @Autowired
+    @Resource
     private NoteIndexMapper noteIndexMapper;
 
-    @Autowired
+    @Resource
     private FileStoreService fileStoreService;
 
-    @Autowired
+    @Resource
     private RestTemplate restTemplate;
 
-    @Autowired
+    @Resource
     private NoteDataMapper noteDataMapper;
 
     /**
@@ -180,14 +181,10 @@ public class NoteFileServiceImpl implements NoteFileService {
         }catch (Exception e) {
             log.error("读取mongo文件内容出错", e);
         }
-
-
         NoteDataDto noteData = new NoteDataDto();
         noteData.setId(genId);
         noteData.setUserId(note.getUserId());
         noteData.setContent(sb.toString());
-
-//        noteDataService.addAndUpdate(noteData);
         noteDataService.save(noteData);
     }
 

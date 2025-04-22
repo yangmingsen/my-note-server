@@ -37,7 +37,7 @@ public class NoteServiceCacheEnHance implements BeanPostProcessor, ApplicationLi
                 NoteCacheCglibProxy noteCglibProxy = new NoteIndexCacheCglibProxy(bean);
                 listCache.add(noteCglibProxy);
                 return noteCglibProxy.getTargetProxy();
-            } else if  (beanName.equals("noteFileService")) {
+            } else if  (beanName.equals("noteFileServiceImpl")) {
                 log.info("started NoteFileCacheCglibProxy");
                 NoteCacheCglibProxy noteCglibProxy = new NoteFileCacheCglibProxy(bean);
                 listCache.add(noteCglibProxy);

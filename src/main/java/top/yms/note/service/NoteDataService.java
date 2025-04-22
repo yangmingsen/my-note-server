@@ -1,5 +1,6 @@
 package top.yms.note.service;
 
+import top.yms.note.dto.INoteData;
 import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteDataVersion;
@@ -21,7 +22,7 @@ public interface NoteDataService {
      */
     void deleteDataVersion(Long id);
 
-    void save(NoteDataDto noteDataDto);
+    void save(INoteData iNoteData);
 
     NoteData findNoteData(Long id);
 

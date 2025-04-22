@@ -12,6 +12,7 @@ import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.dto.INoteData;
+import top.yms.note.dto.INoteDataExt;
 import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteIndex;
@@ -38,13 +39,13 @@ public class WerNote extends AbstractNote {
 
     @Override
     public void doSave(INoteData iNoteData) throws BusinessException {
-        NoteDataDto noteDataDto = (NoteDataDto) iNoteData;
+        INoteDataExt iNoteDataExt = (INoteDataExt) iNoteData;
         ObjectId objId = null;
         Document oldDoc = null;
         try {
             NoteData noteData = new NoteData();
-            BeanUtils.copyProperties(noteDataDto, noteData);
-            if (StringUtils.isBlank(noteDataDto.getTextContent())) {
+            BeanUtils.copyProperties(iNoteDataExt, noteData);
+            if (StringUtils.isBlank(iNoteDataExt.getTextContent())) {
                 throw new BusinessException(NoteIndexErrorCode.E_203118);
             }
             //更新笔记内容
@@ -52,10 +53,10 @@ public class WerNote extends AbstractNote {
             //更新mongo
             NoteIndex noteIndex = new NoteIndex();
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put(NoteConstants.id, noteDataDto.getId());
-            jsonObject.put(NoteConstants.textContent, noteDataDto.getTextContent());
+            jsonObject.put(NoteConstants.id, iNoteDataExt.getId());
+            jsonObject.put(NoteConstants.textContent, iNoteDataExt.getTextContent());
             Document document = Document.parse(jsonObject.toString());
-            NoteIndex oldNoteIdx = noteIndexMapper.selectByPrimaryKey(noteData.getId());
+            NoteIndex oldNoteIdx = noteIndexMapper.selectByPrimaryKey(iNoteData.getId());
             if (StringUtils.isNotBlank(oldNoteIdx.getSiteId())) {
                 oldDoc = mongoTemplate.findById(oldNoteIdx.getSiteId(), Document.class, NoteConstants.noteWerTextContent);
                 ObjectId objectId = new ObjectId(oldNoteIdx.getSiteId());
@@ -67,9 +68,9 @@ public class WerNote extends AbstractNote {
                 noteIndex.setSiteId(objId.toString());
             }
             //update index
-            updateNoteIndex(noteIndex, noteData);
+            updateNoteIndex(noteIndex, iNoteData);
             //更新全局搜索索引
-            saveSearchIndex(oldNoteIdx, noteDataDto.getTextContent());
+            saveSearchIndex(oldNoteIdx, iNoteDataExt.getTextContent());
         } catch (Exception e) {
             log.error("save失败", e);
             if (objId != null) {
