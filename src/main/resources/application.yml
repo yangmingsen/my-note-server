@@ -64,4 +64,4 @@ sys:
   session-expire-time: 30m
   note-interceptor: true
   sql-show: false
-  enable-service-cache: false
+  enable-service-cache: true

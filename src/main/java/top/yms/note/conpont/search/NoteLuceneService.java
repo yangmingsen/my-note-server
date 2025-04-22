@@ -66,7 +66,7 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
     private NoteLuceneDataService noteLuceneDataService;
 
     @Resource
-    private SensitiveContentFilter sensitiveContentFilter;
+    private SearchContentFilter searchContentFilter;
 
     private static final Object syncObj = new Object();
 
@@ -165,7 +165,7 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
             tryClose(indexReader, directory);
         }
         //内容过滤
-        searchResults = sensitiveContentFilter.filter(searchResults);
+        searchResults = searchContentFilter.filter(searchResults);
         return searchResults;
     }
 

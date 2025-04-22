@@ -32,7 +32,7 @@ public class NoteServiceCacheEnHance implements BeanPostProcessor, ApplicationLi
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         if (enableCache) {
-            if (beanName.equals("noteIndexService")) {
+            if (beanName.equals("noteIndexServiceImpl")) {
                 log.info("started NoteIndexCacheCglibProxy");
                 NoteCacheCglibProxy noteCglibProxy = new NoteIndexCacheCglibProxy(bean);
                 listCache.add(noteCglibProxy);

@@ -53,7 +53,6 @@ public class CustomConfController {
             throw new BusinessException(CommonErrorCode.E_200202);
         }
         log.info("updateUserConfig: jsonContent={}", jsonContent);
-
         JSONObject userConfigJsonData = JSONObject.parseObject(jsonContent);
         AsyncTask asyncTask = AsyncTask.Builder
                 .build()
@@ -65,14 +64,11 @@ public class CustomConfController {
                 .executeType(AsyncExcuteTypeEnum.TIMED_TASK)
                 .taskInfo(userConfigJsonData)
                 .get();
-
         //如果使用bg更换需要,需要使用调用者线程
         if (userConfigJsonData.containsKey(NoteConstants.bgImgInfo)) {
             asyncTask.setExecuteType(AsyncExcuteTypeEnum.CALLER_TASK);
         }
-
         noteExecuteTaskService.addTask(asyncTask);
-
         //关于lru计算
         if (userConfigJsonData.containsKey(NoteConstants.lastvisit)) {
             JSONObject lastVisitJson = userConfigJsonData.getJSONObject(NoteConstants.lastvisit);
@@ -90,8 +86,6 @@ public class CustomConfController {
                     .get();
             noteExecuteTaskService.addTask(visitComputeTask);
         }
-
-
         return RestOut.succeed("Ok");
     }
 

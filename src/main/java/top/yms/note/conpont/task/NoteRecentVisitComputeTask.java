@@ -2,10 +2,12 @@ package top.yms.note.conpont.task;
 
 import org.springframework.stereotype.Component;
 import top.yms.note.conpont.NoteRecentVisitService;
+import top.yms.note.conpont.SensitiveService;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.utils.LocalThreadUtils;
 
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -14,6 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Component
 public class NoteRecentVisitComputeTask extends AbstractAsyncExecuteTask implements NoteRecentVisitService {
+
+    @Resource
+    private SensitiveService sensitiveService;
 
     /**
      * LruCache缓存， 缓存每个用户最近访问情况，
@@ -89,7 +94,10 @@ public class NoteRecentVisitComputeTask extends AbstractAsyncExecuteTask impleme
         for (AsyncTask at : allData) {
             Long userId = at.getUserId();
             NoteIndex ni = (NoteIndex) at.getTaskInfo();
-            getLruCache(userId).put(ni);
+            if (!sensitiveService.isSensitive(ni.getId())) {
+                //没有命中敏感内容
+                getLruCache(userId).put(ni);
+            }
         }
     }
 
