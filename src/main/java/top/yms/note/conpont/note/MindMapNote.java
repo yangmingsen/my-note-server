@@ -1,4 +1,4 @@
-package top.yms.note.conpont.content;
+package top.yms.note.conpont.note;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
@@ -38,7 +38,12 @@ public class MindMapNote extends AbstractNote {
         return NoteConstants.mindmapSuffix.equals(type);
     }
 
-    final String noteMindMap = NoteConstants.noteMindMap;
+    private final String noteMindMap = NoteConstants.noteMindMap;
+
+    @Override
+    public boolean supportSave() {
+        return true;
+    }
 
     @Override
     public INoteData doGetContent(Long id) {

@@ -88,6 +88,9 @@ public abstract class NoteConstants {
 
 
 
+    public final static String PDF = "pdf";
+    public final static String DOCX = "docx";
+
 
 
 

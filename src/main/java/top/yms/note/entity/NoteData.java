@@ -1,6 +1,5 @@
 package top.yms.note.entity;
 
-import top.yms.note.conpont.search.NoteIndexData;
 import top.yms.note.dto.INoteData;
 
 import java.util.Date;

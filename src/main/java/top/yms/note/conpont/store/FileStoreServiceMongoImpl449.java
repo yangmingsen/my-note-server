@@ -15,7 +15,7 @@ import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.ComponentErrorCode;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStoreService;
-import top.yms.note.conpont.content.NotePreview;
+import top.yms.note.conpont.note.NotePreview;
 import top.yms.note.entity.NoteFile;
 import top.yms.note.enums.FileTypeEnum;
 import top.yms.note.exception.BusinessException;
@@ -101,6 +101,12 @@ public class FileStoreServiceMongoImpl449 implements FileStoreService {
         fis.close();
 
         return fileId.toString();
+    }
+
+    public String saveFile(String localPath) throws Exception{
+        File file = new File(localPath);
+        String fileId = saveFile(file);
+        return fileId;
     }
 
     @Override

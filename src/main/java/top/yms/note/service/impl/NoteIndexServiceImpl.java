@@ -15,18 +15,12 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
-import top.yms.note.conpont.FileStoreService;
-import top.yms.note.conpont.NoteAsyncExecuteTaskService;
-import top.yms.note.conpont.NoteRecentVisitService;
-import top.yms.note.conpont.NoteSearchService;
+import top.yms.note.conpont.*;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.conpont.task.DelayExecuteAsyncTask;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dao.NoteIndexQuery;
-import top.yms.note.dto.NoteIndexLuceneUpdateDto;
-import top.yms.note.dto.NoteMoveDto;
-import top.yms.note.dto.NoteSearchCondition;
-import top.yms.note.dto.NoteSearchDto;
+import top.yms.note.dto.*;
 import top.yms.note.entity.*;
 import top.yms.note.enums.*;
 import top.yms.note.exception.BusinessException;
@@ -81,6 +75,14 @@ public class NoteIndexServiceImpl implements NoteIndexService {
 
     @Resource
     private NoteAsyncExecuteTaskService noteAsyncExecuteTaskService;
+
+    @Resource
+    private NoteStoreService noteStoreService;
+
+    @Resource
+    private NoteService noteService;
+
+
 
     public List<NoteIndex> findByUserId(Long userid) {
         return Optional.of(findNoteList(userid, 1)).orElse(Collections.emptyList());
@@ -772,6 +774,8 @@ public class NoteIndexServiceImpl implements NoteIndexService {
         upDao.setEncrypted("1");
         upDao.setId(id);
         noteIndexMapper.updateByPrimaryKeySelective(upDao);
+        //加密内容
+        noteService.encryptNote(id);
     }
 
     /**
@@ -784,6 +788,8 @@ public class NoteIndexServiceImpl implements NoteIndexService {
         upDao.setEncrypted("0");
         upDao.setId(id);
         noteIndexMapper.updateByPrimaryKeySelective(upDao);
+        //解密
+        noteService.decryptNote(id);
     }
 
     /**

@@ -141,20 +141,22 @@
             <version>3.6.1</version>
         </dependency>
         <!-- Apache Commons Math 用于计算余弦相似度 -->
-
         <dependency>
             <groupId>net.sourceforge.javacsv</groupId>
             <artifactId>javacsv</artifactId>
             <version>${javacsv.version}</version>
         </dependency>
-
         <!-- https://mvnrepository.com/artifact/org.eclipse.jgit/org.eclipse.jgit -->
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
             <version>5.13.0.202109080827-r</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark-all</artifactId>
+            <version>0.62.2</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -169,7 +171,7 @@
                             <goal>repackage</goal>
                         </goals>
                         <configuration>
-                            <classifier>spring-boot</classifier>
+<!--                            <classifier>spring-boot</classifier>-->
                             <mainClass>
                                 top.yms.note.MyNoteApplication
                             </mainClass>

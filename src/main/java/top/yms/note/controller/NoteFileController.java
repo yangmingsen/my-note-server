@@ -5,7 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -30,11 +29,11 @@ import top.yms.note.service.NoteIndexService;
 import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.LocalNoteSyncResult;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.PrintWriter;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -51,26 +50,26 @@ public class NoteFileController {
 
     private static final Logger  log = LoggerFactory.getLogger(NoteFileController.class);
 
-    @Autowired
+    @Resource
     private NoteFileService noteFileService;
 
-    @Autowired
+    @Resource
     private FileStoreService fileStoreService;
 
-    @Autowired
+    @Resource
     private NoteFileMapper noteFileMapper;
 
-    @Autowired
+    @Resource
     private MongoTemplate mongoTemplate;
 
-    @Autowired
+    @Resource
     @Qualifier(NoteConstants.defaultNoteCache)
     private NoteCacheService noteCacheService;
 
     @Value("${user.sync_local_note_path}")
     private String syncLocalNotePath;
 
-    @Autowired
+    @Resource
     private NoteIndexService noteIndexService;
 
     /**
@@ -281,29 +280,7 @@ public class NoteFileController {
     @GetMapping("/download")
     public void download(@RequestParam("id") String id, HttpServletRequest req, HttpServletResponse resp)  throws Exception{
         log.info("download: id={}", id);
-        if (StringUtils.isBlank(id)) {
-            throw new BusinessException(CommonErrorCode.E_203001);
-        }
-
-        NoteFile noteFile = noteFileService.findOne(id);
-//        log.info("download: noteFile:{}", noteFile);
-        if (noteFile == null) return ;
-
-//        if (!checkIsEncryptedNote(noteFile, req, resp, "加密笔记不可下载")) {
-//            return;
-//        }
-
-        NoteFile upCnt = new NoteFile();
-        upCnt.setId(noteFile.getId());
-        upCnt.setDownloadCount(noteFile.getDownloadCount()+1);
-        noteFileMapper.updateByPrimaryKeySelective(upCnt);
-
-        AnyFile file = fileStoreService.loadFile(id);
-
-        resp.addHeader("Content-Disposition", "attachment; filename=\"" + URLEncoder.encode(file.getFilename(), "UTF-8") + "\"");
-        resp.addHeader("Content-Length", "" + file.getLength());
-        resp.setContentType(file.getContentType());
-        file.writeTo(resp.getOutputStream());
+        noteFileService.download(id, req, resp);
     }
 
 

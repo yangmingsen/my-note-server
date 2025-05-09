@@ -39,4 +39,6 @@ public interface NoteLuceneDataService {
      */
     boolean supportGetLuceneData(String type);
 
+    default boolean supportGetEncryptDataForLucene() {return true;};
+
 }

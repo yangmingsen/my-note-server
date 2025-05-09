@@ -1,10 +1,10 @@
 package top.yms;
 
-import org.apache.commons.math3.linear.*;
+import org.apache.commons.math3.linear.ArrayRealVector;
+import org.apache.commons.math3.linear.RealVector;
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-
-import org.apache.lucene.analysis.Analyzer;
 import org.wltea.analyzer.lucene.IKAnalyzer;
 
 import java.io.IOException;

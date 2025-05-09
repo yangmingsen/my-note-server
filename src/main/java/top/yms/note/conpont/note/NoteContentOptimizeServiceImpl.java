@@ -1,4 +1,4 @@
-package top.yms.note.conpont.content;
+package top.yms.note.conpont.note;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealVector;
@@ -15,12 +15,10 @@ import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteSystemException;
 import top.yms.note.conpont.NoteContentOptimizeService;
 import top.yms.note.entity.NoteDataVersion;
-import top.yms.note.exception.BusinessException;
 import top.yms.note.service.NoteDataService;
 import top.yms.note.service.NoteIndexService;
 
 import javax.annotation.Resource;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;

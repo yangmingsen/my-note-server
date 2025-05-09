@@ -1,4 +1,4 @@
-package top.yms.note.conpont.content;
+package top.yms.note.conpont.note;
 
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.CommonErrorCode;
@@ -12,7 +12,7 @@ import top.yms.note.exception.BusinessException;
  * Created by yangmingsen on 2024/10/13.
  */
 @Component(NoteConstants.noteLuceneDataServiceImpl)
-public class NoteLuceneDataServiceImpl extends DefaultNoteStoreServiceImpl implements NoteLuceneDataService {
+public class NoteLuceneDataServiceImpl extends DefaultNoteServiceImpl implements NoteLuceneDataService {
 
     /**
      * 这个服务不支持获取
@@ -31,7 +31,7 @@ public class NoteLuceneDataServiceImpl extends DefaultNoteStoreServiceImpl imple
      */
     private NoteLuceneDataService findCanApplyNoteIndexNoteType(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
-        for(Note note : noteContentTypeList) {
+        for(Note note : noteComponentList) {
             NoteLuceneDataService noteLuceneDataService = (NoteLuceneDataService) note;
             if (noteLuceneDataService.supportGetLuceneData(noteIndex.getType())) {
                 return noteLuceneDataService;

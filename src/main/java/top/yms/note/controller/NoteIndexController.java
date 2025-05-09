@@ -4,15 +4,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
 import top.yms.note.conpont.NoteAsyncExecuteTaskService;
-import top.yms.note.conpont.NoteCacheService;
 import top.yms.note.conpont.task.AsyncTask;
 import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.dto.NoteListQueryDto;
@@ -30,6 +27,7 @@ import top.yms.note.vo.NoteIndexVo;
 import top.yms.note.vo.NoteInfoVo;
 import top.yms.note.vo.NoteSearchVo;
 
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,20 +39,16 @@ import java.util.stream.Collectors;
 @RequestMapping("/note-index")
 public class NoteIndexController {
 
-    private Logger log = LoggerFactory.getLogger(NoteIndexController.class);
+    private final static Logger log = LoggerFactory.getLogger(NoteIndexController.class);
 
-    @Autowired
+    @Resource
     private NoteIndexService noteIndexService;
 
-    @Autowired
-    @Qualifier(NoteConstants.defaultNoteCache)
-    private NoteCacheService noteCacheService;
-
-    @Autowired
+    @Resource
     private IdWorker idWorker;
 
 
-    @Autowired
+    @Resource
     private NoteAsyncExecuteTaskService noteExecuteTaskService;
 
     @GetMapping("/list")
@@ -429,10 +423,15 @@ public class NoteIndexController {
     @GetMapping("/encrypted-read-note")
     public RestOut encryptedReadNote(@RequestParam("id") Long id) {
         noteIndexService.encryptedReadNote(id);
-
         return RestOut.succeed("ok");
     }
 
+    /**
+     * 解除加密
+     * @param id
+     * @param password
+     * @return
+     */
     @PostMapping("/unencrypted-read-note")
     public RestOut unEncryptedReadNote(@RequestParam("id") Long id,
                                        @RequestParam("password") String password) {
@@ -441,7 +440,6 @@ public class NoteIndexController {
             return authResult;
         }
         noteIndexService.unEncryptedReadNote(id);
-
         return authResult;
     }
 

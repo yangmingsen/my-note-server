@@ -1,4 +1,4 @@
-package top.yms.note.conpont.content;
+package top.yms.note.conpont.note;
 
 import top.yms.note.conpont.ComponentSort;
 import top.yms.note.dto.INoteData;
@@ -8,9 +8,9 @@ import top.yms.note.exception.BusinessException;
 /**
  * 笔记类型抽象接口
  */
-public interface Note extends  ComponentSort, Comparable<ComponentSort>{
+public interface Note extends NoteExport, NoteEncrypt, NoteVersion, ComponentSort, Comparable<ComponentSort>{
     /**
-     * 是否支持当前类型(type)的内容获取或者保存
+     * 是否支持当前类型(type)的内容
      * @param type
      * @return
      */
@@ -40,6 +40,12 @@ public interface Note extends  ComponentSort, Comparable<ComponentSort>{
     default void save(INoteData iNoteData) throws BusinessException {
 
     }
+
+    /**
+     * 是否支持数据保存
+     * @return true-是 , - false
+     */
+    boolean supportSave();
 
     default void destroy(Long id){}
 

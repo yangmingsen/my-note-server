@@ -1,13 +1,16 @@
-package top.yms.note.conpont.content;
+package top.yms.note.conpont.note;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import top.yms.note.comm.CommonErrorCode;
-import top.yms.note.comm.NoteIndexErrorCode;
-import top.yms.note.conpont.*;
+import top.yms.note.comm.*;
+import top.yms.note.conpont.ComponentSort;
+import top.yms.note.conpont.FileStoreService;
+import top.yms.note.conpont.NoteAsyncExecuteTaskService;
+import top.yms.note.conpont.NoteLuceneDataService;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.conpont.task.AsyncTask;
 import top.yms.note.conpont.task.DelayExecuteAsyncTask;
@@ -20,14 +23,9 @@ import top.yms.note.entity.NoteIndex;
 import top.yms.note.enums.AsyncExcuteTypeEnum;
 import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.exception.BusinessException;
-import top.yms.note.mapper.NoteDataMapper;
-import top.yms.note.mapper.NoteDataVersionMapper;
-import top.yms.note.mapper.NoteFileMapper;
-import top.yms.note.mapper.NoteIndexMapper;
+import top.yms.note.mapper.*;
 import top.yms.note.service.NoteFileService;
-import top.yms.note.utils.IdWorker;
-import top.yms.note.utils.IdWorkerUtils;
-import top.yms.note.utils.LocalThreadUtils;
+import top.yms.note.utils.*;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
@@ -37,9 +35,15 @@ import java.util.List;
 /**
  * Created by yangmingsen on 2024/8/21.
  */
-public abstract class AbstractNote implements Note, NoteLuceneDataService, NoteExport, NoteVersion {
+public abstract class AbstractNote implements Note, NoteLuceneDataService {
 
     private final static Logger log = LoggerFactory.getLogger(AbstractNote.class);
+
+    @Value("${note.export.tmp-path}")
+    protected String tmpExportPath;
+
+    @Value("${note.encrypted.key}")
+    private String encryptedKey;
 
     @Resource
     protected NoteDataMapper noteDataMapper;
@@ -54,7 +58,10 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService, NoteE
     protected NoteFileMapper noteFileMapper;
 
     @Resource
-    NoteFileService noteFileService;
+    protected NoteExportMapper noteExportMapper;
+
+    @Resource
+    protected NoteFileService noteFileService;
 
     @Resource
     protected FileStoreService fileStoreService;
@@ -63,10 +70,10 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService, NoteE
     protected MongoTemplate mongoTemplate;
 
     @Resource
-    private NoteAsyncExecuteTaskService noteAsyncExecuteTaskService;
+    protected NoteAsyncExecuteTaskService noteAsyncExecuteTaskService;
 
     @Resource
-    private IdWorker idWorker;
+    protected IdWorker idWorker;
 
     @Override
     public int compareTo(ComponentSort other) {
@@ -78,6 +85,26 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService, NoteE
         return 999;
     }
 
+    protected String getEncryptedKey() {
+        String key = Base64Util.encodeBase64Str(encryptedKey);
+        log.debug("getEncryptedKey={}", key);
+        return key;
+    }
+
+    @Override
+    public boolean supportEncrypt() {
+        return false;
+    }
+
+    @Override
+    public boolean supportGetEncryptDataForLucene() {
+        return true;
+    }
+
+    @Override
+    public boolean supportSave() {
+        return false;
+    }
 
     /**
      * 查找noteFile信息
@@ -103,7 +130,13 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService, NoteE
     }
 
     protected INoteData doGetContent(Long id) {
-        return noteDataMapper.selectByPrimaryKey(id);
+        INoteData iNoteData = noteDataMapper.selectByPrimaryKey(id);
+        NoteIndex noteMeta = noteIndexMapper.selectByPrimaryKey(id);
+        if (NoteConstants.ENCRYPTED_FLAG.equals(noteMeta.getEncrypted())) {
+            String content = decryptContent(iNoteData.getContent());
+            iNoteData.setContent(content);
+        }
+        return iNoteData;
     }
 
     private static final String [] ILLEGAL_LIST = {
@@ -125,9 +158,10 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService, NoteE
 
     /**
      * 更新笔记内容
-     * @param noteData
+     * @param iNoteData
      */
-    protected void updateNoteData(NoteData noteData) {
+    protected void updateNoteData(INoteData iNoteData) {
+        NoteData noteData = (NoteData)iNoteData;
         Long id = noteData.getId();
         NoteData dbNote = noteDataMapper.findById(id);
         if (checkContent(noteData.getContent())) {
@@ -148,7 +182,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService, NoteE
      * @param noteIndex
      * @param iNoteData
      */
-    protected void updateNoteIndex(NoteIndex noteIndex, INoteData iNoteData) {
+    protected void updateNoteMetaInfo(NoteIndex noteIndex, INoteData iNoteData) {
         if (noteIndex == null) noteIndex = new NoteIndex();
         noteIndex.setId(iNoteData.getId());
         noteIndex.setUpdateTime(new Date());
@@ -165,9 +199,8 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService, NoteE
     /**
      * 更新全局搜索索引
      * @param noteIndex
-     * @param indexContent
      */
-    protected void saveSearchIndex(NoteIndex noteIndex, String indexContent) {
+    protected void updateNoteMetaToLuceneSearch(NoteIndex noteIndex) {
         DelayExecuteAsyncTask indexUpdateDelayTask = DelayExecuteAsyncTask.Builder
                 .build()
                 .type(AsyncTaskEnum.SYNC_Note_Index_UPDATE)
@@ -178,7 +211,6 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService, NoteE
                 .userId(LocalThreadUtils.getUserId())
                 .taskInfo(NoteIndexLuceneUpdateDto.Builder.build().type(NoteIndexLuceneUpdateDto.updateNoteContent).data(noteIndex.getId()).get())
                 .get();
-
         noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
     }
 
@@ -194,17 +226,43 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService, NoteE
         dataVersion.setCreateTime(new Date());
         noteDataVersionMapper.insertSelective(dataVersion);
     }
+
     protected boolean beforeSave(INoteData iNoteData) {
+        if (!supportSave()) {
+            log.info("当前组件不支持该类型数据保存");
+            return false;
+        }
+        //加密处理
+        if (supportEncrypt()) {
+            Long id = iNoteData.getId();
+            NoteIndex noteMeta = noteIndexMapper.selectByPrimaryKey(id);
+            if (NoteConstants.ENCRYPTED_FLAG.equals(noteMeta.getEncrypted())) {
+                //设置加密内容
+                String content = iNoteData.getContent();
+                //加密
+                String encryptContent = encryptContent(content);
+                iNoteData.setContent(encryptContent);
+            }
+        }
         return true;
     }
 
     public  void save(INoteData iNoteData) throws BusinessException  {
+        //执行前检查
         if (!beforeSave(iNoteData)) {  return;  }
+        //执行保存
         doSave(iNoteData);
+        //保存后处理
         afterSave(iNoteData);
     }
 
     protected void afterSave(INoteData iNoteData) {
+        //更新笔记元数据
+        NoteIndex noteMeta = noteIndexMapper.selectByPrimaryKey(iNoteData.getId());
+        updateNoteMetaInfo(noteMeta, iNoteData);
+        //更新全局搜索
+        updateNoteMetaToLuceneSearch(noteMeta);
+        //版本支持
         if (supportVersion()) {
             //添加笔记版本
             addNoteVersion(iNoteData);
@@ -220,11 +278,9 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService, NoteE
                     .get();
             noteAsyncExecuteTaskService.addTask(asyncTask);
         }
-        //todo 更新noteIndex信息
-        //todo 更新全局搜索信息
     }
 
-    public abstract void doSave(INoteData iNoteData) throws BusinessException;
+    abstract void doSave(INoteData iNoteData) throws BusinessException ;
 
     protected NoteLuceneIndex packNoteIndexForNoteLuceneIndex(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
@@ -258,5 +314,64 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService, NoteE
     @Override
     public void addNoteVersion(INoteData iNoteData) {
         saveDataVersion(iNoteData);
+    }
+
+    @Override
+    public boolean supportExport(String noteType, String exportType) {
+        throw new BusinessException(CommonErrorCode.E_200214);
+    }
+
+    @Override
+    public String export(Long noteId, String exportType) {
+        throw new BusinessException(CommonErrorCode.E_200214);
+    }
+
+    /**
+     * 笔记内容解密
+     * @param content content
+     * @return
+     */
+    protected String decryptContent(String content) {
+        try {
+            content = AESCipher.decrypt(content, getEncryptedKey());
+            log.debug("解密后:\n{}", content);
+        } catch (Exception ex) {
+            log.error("decrypt error", ex);
+            throw new NoteSystemException(NoteSystemErrorCode.E_400002);
+        }
+        return content;
+    }
+    /**
+     * 笔记内容加密
+     * @param content content
+     * @return
+     */
+    protected String encryptContent(String content) {
+        try {
+            content = AESCipher.encrypt(content, getEncryptedKey());
+            log.debug("加密后:\n{}", content);
+        } catch (Exception ex) {
+            log.error("encrypt error", ex);
+            throw new NoteSystemException(NoteSystemErrorCode.E_400001);
+        }
+        return content;
+    }
+
+    @Override
+    public boolean noteDecrypt(Long id) {
+        if (!supportEncrypt()) {
+            log.info("当前组件不支持解密");
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean noteEncrypt(Long id) {
+        if (!supportEncrypt()) {
+            log.info("当前组件不支持加密");
+            return false;
+        }
+        return true;
     }
 }

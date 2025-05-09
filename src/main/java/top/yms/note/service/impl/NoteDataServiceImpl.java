@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.comm.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.comm.NoteIndexErrorCode;
-import top.yms.note.comm.NoteSystemException;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStoreService;
 import top.yms.note.conpont.NoteDataIndexService;

@@ -1,7 +1,5 @@
 package top.yms.note.aop;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONWriter;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -26,7 +24,6 @@ public class NoteControllerAspect {
     public Object doAroundController(ProceedingJoinPoint joinPoint) {
         try {
             Object resVal = joinPoint.proceed();
-//            log.info("resVal = {}", JSON.toJSONString(resVal, JSONWriter.Feature.PrettyFormat));
             if (resVal instanceof RestOut) {
                 return resVal;
             }
@@ -41,7 +38,7 @@ public class NoteControllerAspect {
             String desc = errorCode.getDesc();
             return RestOut.error(code, desc);
         } catch (Throwable e) {
-            log.error("系统异常：",e);
+            log.error("系统未知异常：",e);
             //统一定义为99999系统未知错误
             return  RestOut.error(999999, e.getMessage()) ;
         }

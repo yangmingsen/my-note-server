@@ -1,4 +1,4 @@
-package top.yms.note.conpont.content;
+package top.yms.note.conpont.note;
 
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.CommonErrorCode;

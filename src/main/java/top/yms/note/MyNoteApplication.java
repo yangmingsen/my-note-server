@@ -17,6 +17,5 @@ public class MyNoteApplication {
         SpringApplication app  = new SpringApplication(MyNoteApplication.class);
         app.addListeners(new ConfigureListener());
         app.run(args);
-
     }
 }
