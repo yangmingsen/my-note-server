@@ -73,4 +73,6 @@ public interface NoteIndexService {
 
     List<NoteIndex> recentVisitList();
 
+    void autoScanEncrypt();
+
 }

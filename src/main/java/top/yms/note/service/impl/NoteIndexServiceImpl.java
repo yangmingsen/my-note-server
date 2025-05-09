@@ -792,6 +792,19 @@ public class NoteIndexServiceImpl implements NoteIndexService {
         noteService.decryptNote(id);
     }
 
+    @Override
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
+    public void autoScanEncrypt() {
+        Long userId = LocalThreadUtils.getUserId();
+        NoteIndex qry = new NoteIndex();
+        qry.setUserId(userId);
+        qry.setEncrypted(NoteConstants.ENCRYPTED_FLAG);
+        List<NoteIndex> encryptedList = noteIndexMapper.selectByCondition(qry);
+        for (NoteIndex noteMeta : encryptedList) {
+            noteService.encryptNote(noteMeta.getId());
+        }
+    }
+
     /**
      * 获取最近访问列表
      * @return

@@ -443,6 +443,10 @@ public class NoteIndexController {
         return authResult;
     }
 
-
+    @GetMapping("/autoScanEncrypt")
+    public RestOut autoScanEncrypt() {
+         noteIndexService.autoScanEncrypt();
+         return RestOut.succeed("ok");
+    }
 
 }

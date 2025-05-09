@@ -16,7 +16,7 @@ import java.io.InputStream;
 public class DefaultNote extends AbstractNote implements NoteTikaService {
     @Override
     public boolean support(String type) {
-        return false;
+        return true;
     }
 
     @Override
@@ -30,7 +30,7 @@ public class DefaultNote extends AbstractNote implements NoteTikaService {
     }
 
     public boolean supportGetLuceneData(String type) {
-        return true;
+        return false;
     }
 
     public NoteLuceneIndex findNoteLuceneDataOne(Long id) {

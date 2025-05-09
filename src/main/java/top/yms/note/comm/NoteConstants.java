@@ -76,6 +76,11 @@ public abstract class NoteConstants {
     public final static String ENCRYPTED_FLAG = "1";
     public final static String ENCRYPTED_UN_FLAG = "0";
 
+    public final static String FILE_FLAG = "1";
+    public final static String DIR_FLAG = "0";
+
+
+
     /**
      * root目录标志
      */
