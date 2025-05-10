@@ -1,7 +1,7 @@
 package top.yms.note.conpont.note;
 
 import org.springframework.stereotype.Component;
-import top.yms.note.comm.CommonErrorCode;
+import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.conpont.NoteTikaService;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.dto.INoteData;

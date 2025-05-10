@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.comm.NoteConstants;
-import top.yms.note.comm.NoteIndexErrorCode;
+import top.yms.note.msgcd.NoteIndexErrorCode;
 import top.yms.note.conpont.*;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.conpont.task.DelayExecuteAsyncTask;

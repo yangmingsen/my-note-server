@@ -1,4 +1,6 @@
-package top.yms.note.comm;
+package top.yms.note.exception;
+
+import top.yms.note.msgcd.ErrorCode;
 
 public class NoteSystemException extends RuntimeException {
     private ErrorCode errorCode;

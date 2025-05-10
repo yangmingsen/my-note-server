@@ -4,9 +4,10 @@ import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteDataVersion;
 import top.yms.note.entity.NoteIndex;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class NoteDataExtendDto implements INoteData{
+public class NoteDataExtendDto implements INoteData, Serializable {
     private Long userId;
 
     private NoteIndex noteIndex;

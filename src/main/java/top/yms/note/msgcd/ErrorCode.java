@@ -1,4 +1,4 @@
-package top.yms.note.comm;
+package top.yms.note.msgcd;
 
 public interface ErrorCode {
 

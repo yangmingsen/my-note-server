@@ -1,4 +1,4 @@
-package top.yms.note.comm;
+package top.yms.note.msgcd;
 
 /**
  * Created by yangmingsen on 2024/10/19.

@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-import top.yms.note.comm.CommonErrorCode;
+import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStoreService;

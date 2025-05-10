@@ -1,13 +1,18 @@
 package top.yms.note.conpont.export;
 
+import com.vladsch.flexmark.ext.toc.TocExtension;
+import com.vladsch.flexmark.pdf.converter.PdfConverterExtension;
+import com.vladsch.flexmark.profile.pegdown.Extensions;
+import com.vladsch.flexmark.profile.pegdown.PegdownOptionsAdapter;
+import com.vladsch.flexmark.util.data.DataHolder;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import top.yms.note.comm.BusinessErrorCode;
+import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.comm.NoteConstants;
-import top.yms.note.comm.NoteSystemErrorCode;
-import top.yms.note.comm.NoteSystemException;
+import top.yms.note.msgcd.NoteSystemErrorCode;
+import top.yms.note.exception.NoteSystemException;
 import top.yms.note.conpont.ComponentSort;
 import top.yms.note.conpont.FileStoreService;
 import top.yms.note.dto.INoteData;
@@ -53,6 +58,12 @@ public abstract class AbstractNoteConvert implements NoteConvert{
     @Value("${note.export.tmp-path}")
     private String tmpExportPath;
 
+    protected static final DataHolder HTML_TO_PDF_OPTIONS = PegdownOptionsAdapter.flexmarkOptions(
+                    Extensions.ALL & ~(Extensions.ANCHORLINKS | Extensions.EXTANCHORLINKS_WRAP)
+                    , TocExtension.create()).toMutable()
+            .set(TocExtension.LIST_CLASS, PdfConverterExtension.DEFAULT_TOC_LIST_CLASS)
+            .toImmutable();
+
     @Override
     public int compareTo(@NotNull ComponentSort o) {
         return this.getSortValue()-o.getSortValue();
@@ -85,9 +96,11 @@ public abstract class AbstractNoteConvert implements NoteConvert{
         if (!beforeConvert(nte)) {
             throw new BusinessException(BusinessErrorCode.E_204001);
         }
+        //获取本地存储路径
         String localPath = geExportLocalPath();
         //处理转换
         doConvert(localPath, nte);
+        //上传
         String fileId = uploadConvertFile(localPath, nte);
         //后置处理
         afterConvert(nte);
@@ -158,4 +171,67 @@ public abstract class AbstractNoteConvert implements NoteConvert{
     abstract void doConvert(String localPath, INoteData iNoteData) throws BusinessException;
 
     protected void afterConvert(INoteData iNoteData) {}
+
+    protected String getHtml(String body) {
+        // add embedded fonts for non-latin character set rendering
+        // change file:///usr/local/fonts/ to your system's path for font installation Unix path or
+        // on windows the path should start with `file:/X:/...` where `X:/...` is the drive
+        // letter followed by the full installation path.
+        //
+        // Google Noto fonts can be downloaded from https://www.google.com/get/noto/
+        // `arialuni.ttf` from https://www.wfonts.com/font/arial-unicode-ms
+        String nonLatinFonts = "" +
+                "<style>\n" +
+                "@font-face {\n" +
+                "  font-family: 'noto-cjk';\n" +
+                "  src: url('file:/C:/Windows/Fonts/STKAITI.TTF');\n" +
+                "  font-weight: normal;\n" +
+                "  font-style: normal;\n" +
+                "}\n" +
+                "\n" +
+                "@font-face {\n" +
+                "  font-family: 'noto-serif';\n" +
+                "  src: url('file:/C:/Windows/Fonts/STKAITI.TTF');\n" +
+                "  font-weight: normal;\n" +
+                "  font-style: normal;\n" +
+                "}\n" +
+                "\n" +
+                "@font-face {\n" +
+                "  font-family: 'noto-sans';\n" +
+                "  src: url('file:/C:/Windows/Fonts/STKAITI.TTF');\n" +
+                "  font-weight: normal;\n" +
+                "  font-style: normal;\n" +
+                "}\n" +
+                "\n" +
+                "@font-face {\n" +
+                "  font-family: 'noto-mono';\n" +
+                "  src: url('file:/C:/Windows/Fonts/STKAITI.TTF');\n" +
+                "  font-weight: normal;\n" +
+                "  font-style: normal;\n" +
+                "}\n" +
+                "\n" +
+                "body {\n" +
+                "    font-family: 'noto-sans', 'noto-cjk', sans-serif;\n" +
+                "    overflow: hidden;\n" +
+                "    word-wrap: break-word;\n" +
+                "    font-size: 14px;\n" +
+                "}\n" +
+                "\n" +
+                "var,\n" +
+                "code,\n" +
+                "kbd,\n" +
+                "pre {\n" +
+                "    font: 0.9em 'noto-mono', Consolas, \"Liberation Mono\", Menlo, Courier, monospace;\n" +
+                "}\n" +
+                "</style>\n" +
+                "";
+        String htmlStr = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">\n" +
+                "" +  // add your stylesheets, scripts styles etc.
+                // uncomment line below for adding style for custom embedded fonts
+                nonLatinFonts +
+                "</head><body>" + body + "\n" +
+                "</body></html>";
+
+        return htmlStr;
+    }
 }

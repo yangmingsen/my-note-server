@@ -1,4 +1,4 @@
-package top.yms.note.comm;
+package top.yms.note.msgcd;
 
 public enum BusinessErrorCode implements ErrorCode {
     E_204000(204000, "加密内容禁止进入lucene"),

@@ -4,8 +4,8 @@ import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.plugin.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import top.yms.note.comm.NoteSystemErrorCode;
-import top.yms.note.comm.NoteSystemException;
+import top.yms.note.msgcd.NoteSystemErrorCode;
+import top.yms.note.exception.NoteSystemException;
 
 import java.util.Properties;
 import java.util.concurrent.Executor;

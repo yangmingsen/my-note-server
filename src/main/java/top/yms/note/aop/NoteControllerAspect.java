@@ -7,7 +7,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import top.yms.note.comm.ErrorCode;
+import top.yms.note.msgcd.ErrorCode;
 import top.yms.note.entity.RestOut;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.exception.WangEditorUploadException;
@@ -36,6 +36,7 @@ public class NoteControllerAspect {
             int code = errorCode.getCode();
             //错误信息
             String desc = errorCode.getDesc();
+            log.error("BusinessException", be);
             return RestOut.error(code, desc);
         } catch (Throwable e) {
             log.error("系统未知异常：",e);

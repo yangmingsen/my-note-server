@@ -1,4 +1,6 @@
-package top.yms.note.comm;
+package top.yms.note.exception;
+
+import top.yms.note.msgcd.ErrorCode;
 
 /**
  * Created by yangmingsen on 2022/10/15.

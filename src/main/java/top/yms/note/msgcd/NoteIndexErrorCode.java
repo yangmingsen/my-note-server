@@ -1,4 +1,4 @@
-package top.yms.note.comm;
+package top.yms.note.msgcd;
 
 public enum NoteIndexErrorCode implements ErrorCode{
     E_203100(203100, "目录名称不能为空"),

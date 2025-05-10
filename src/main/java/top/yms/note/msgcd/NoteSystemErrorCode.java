@@ -1,4 +1,4 @@
-package top.yms.note.comm;
+package top.yms.note.msgcd;
 
 public enum NoteSystemErrorCode implements ErrorCode{
     E_400000(400000, "数据库更新失败"),

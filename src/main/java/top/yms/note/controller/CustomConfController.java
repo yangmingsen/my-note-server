@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
-import top.yms.note.comm.CommonErrorCode;
+import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteAsyncExecuteTaskService;
 import top.yms.note.conpont.NoteCacheService;

@@ -1,7 +1,7 @@
 package top.yms.note.dto;
 
 
-import top.yms.note.comm.CommonErrorCode;
+import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteDataVersion;
 import top.yms.note.entity.NoteIndex;

@@ -24,18 +24,16 @@ public class NoteExportController {
     private NoteFileService noteFileService;
 
     @GetMapping("/pdf")
-    public RestOut<String> exportPdf(@RequestParam("noteId") Long noteId,
-                             HttpServletRequest request, HttpServletResponse response) throws Exception{
+    public RestOut<String> exportPdf(@RequestParam("noteId") Long noteId) throws Exception{
         String fileId = noteExportService.export(noteId, NoteConstants.PDF);
-        noteFileService.download(fileId, request, response);
-        return RestOut.succeed("ok");
+        String url = NoteConstants.getBaseUrl()+NoteConstants.getFileDownloadUrlSuffix(fileId);
+        return RestOut.success(url);
     }
 
     @GetMapping("/docx")
-    public RestOut<String> exportDocx(@RequestParam("noteId") Long noteId,
-                                      HttpServletRequest request, HttpServletResponse response)throws Exception{
+    public RestOut<String> exportDocx(@RequestParam("noteId") Long noteId)throws Exception{
         String fileId = noteExportService.export(noteId, NoteConstants.DOCX);
-        noteFileService.download(fileId, request, response);
-        return RestOut.succeed("ok");
+        String url = NoteConstants.getBaseUrl()+NoteConstants.getFileDownloadUrlSuffix(fileId);
+        return RestOut.success(url);
     }
 }

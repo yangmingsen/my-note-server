@@ -36,7 +36,7 @@ public class DirNote implements Note{
 
     @Override
     public boolean supportEncrypt() {
-        return false;
+        return true;
     }
 
     @Override

@@ -8,10 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
-import top.yms.note.comm.BusinessErrorCode;
-import top.yms.note.comm.CommonErrorCode;
+import top.yms.note.msgcd.BusinessErrorCode;
+import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
-import top.yms.note.comm.NoteIndexErrorCode;
+import top.yms.note.msgcd.NoteIndexErrorCode;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.dto.INoteData;
 import top.yms.note.dto.INoteDataExt;
@@ -232,5 +232,16 @@ public class WerNote extends AbstractNote {
     @Override
     public boolean supportVersion() {
         return true;
+    }
+
+    @Override
+    public boolean supportExport(String noteType, String exportType) {
+        boolean supportExport = StringUtils.equalsAny(exportType, NoteConstants.PDF);
+        return support(noteType) && supportExport;
+    }
+
+    @Override
+    public String export(Long noteId, String exportType) {
+        return noteFileExport.noteExport(noteId, NoteConstants.WER, exportType);
     }
 }

@@ -7,7 +7,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
-import top.yms.note.comm.CommonErrorCode;
+import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.exception.BusinessException;
 
 import java.util.Collections;
@@ -28,7 +28,7 @@ public class DefaultNoteFileExportImpl implements NoteFileExport, ApplicationLis
                 return noteConvert.convert(id);
             }
         }
-        throw new BusinessException(CommonErrorCode.E_200221);
+        throw new BusinessException(CommonErrorCode.E_200222);
     }
 
     @Override
