@@ -116,9 +116,8 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
     public String export(Long noteId, String exportType) {
         NoteIndex noteMeta = getNoteMeta(noteId);
         for(Note note : noteComponentList) {
-            NoteExport noteExport = (NoteExport) note;
-            if (noteExport.supportExport(noteMeta.getType(), exportType)) {
-                return noteExport.export(noteId, exportType);
+            if (note.supportExport(noteMeta.getType(), exportType)) {
+                return note.export(noteId, exportType);
             }
         }
         throw new BusinessException(CommonErrorCode.E_200220);

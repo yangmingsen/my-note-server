@@ -8,6 +8,7 @@ import top.yms.note.entity.NoteTag;
 import top.yms.note.service.NoteTagService;
 
 import javax.annotation.Resource;
+import java.util.LinkedList;
 import java.util.List;
 
 @RestController
@@ -31,5 +32,14 @@ public class NoteTagController {
     @GetMapping("/findByTag")
     List<NoteIndex> findByTag(Long tagId) {
         return noteTagService.findByTag(tagId);
+    }
+
+    @GetMapping("/test")
+    public List<String> list() {
+        List<String> list = new LinkedList<>();
+        for (int i=0; i< 10; i++) {
+            list.add(i+"_"+i);
+        }
+        return list;
     }
 }

@@ -28,6 +28,7 @@
         <javacsv.version>2.0</javacsv.version>
         <mybatis-spring-boot.version>2.0.0</mybatis-spring-boot.version>
         <transmittable-thread-local.version>2.10.1</transmittable-thread-local.version>
+        <flexmark.version>0.62.2</flexmark.version>
     </properties>
     <dependencies>
         <dependency>
@@ -155,7 +156,12 @@
         <dependency>
             <groupId>com.vladsch.flexmark</groupId>
             <artifactId>flexmark-all</artifactId>
-            <version>0.62.2</version>
+            <version>${flexmark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark-docx-converter</artifactId>
+            <version>${flexmark.version}</version>
         </dependency>
     </dependencies>
 

@@ -11,6 +11,7 @@ import top.yms.note.conpont.ComponentSort;
 import top.yms.note.conpont.FileStoreService;
 import top.yms.note.conpont.NoteAsyncExecuteTaskService;
 import top.yms.note.conpont.NoteLuceneDataService;
+import top.yms.note.conpont.export.NoteFileExport;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.conpont.task.AsyncTask;
 import top.yms.note.conpont.task.DelayExecuteAsyncTask;
@@ -74,6 +75,9 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
 
     @Resource
     protected IdWorker idWorker;
+
+    @Resource
+    protected NoteFileExport noteFileExport;
 
     @Override
     public int compareTo(ComponentSort other) {
@@ -276,7 +280,10 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
                     .userId(LocalThreadUtils.getUserId())
                     .taskInfo(iNoteData.getId())
                     .get();
-            noteAsyncExecuteTaskService.addTask(asyncTask);
+            //加密笔记禁止进入版本优化
+            if (NoteConstants.ENCRYPTED_UN_FLAG.equals(noteMeta.getEncrypted())) {
+                noteAsyncExecuteTaskService.addTask(asyncTask);
+            }
         }
     }
 

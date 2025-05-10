@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteExportService;
+import top.yms.note.entity.RestOut;
 import top.yms.note.service.NoteFileService;
 
 import javax.annotation.Resource;
@@ -23,9 +24,18 @@ public class NoteExportController {
     private NoteFileService noteFileService;
 
     @GetMapping("/pdf")
-    public void exportPdf(@RequestParam("noteId") Long noteId,
-                          HttpServletRequest request, HttpServletResponse response) throws Exception{
+    public RestOut<String> exportPdf(@RequestParam("noteId") Long noteId,
+                             HttpServletRequest request, HttpServletResponse response) throws Exception{
         String fileId = noteExportService.export(noteId, NoteConstants.PDF);
         noteFileService.download(fileId, request, response);
+        return RestOut.succeed("ok");
+    }
+
+    @GetMapping("/docx")
+    public RestOut<String> exportDocx(@RequestParam("noteId") Long noteId,
+                                      HttpServletRequest request, HttpServletResponse response)throws Exception{
+        String fileId = noteExportService.export(noteId, NoteConstants.DOCX);
+        noteFileService.download(fileId, request, response);
+        return RestOut.succeed("ok");
     }
 }

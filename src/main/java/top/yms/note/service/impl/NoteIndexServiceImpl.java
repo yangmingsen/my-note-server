@@ -805,6 +805,22 @@ public class NoteIndexServiceImpl implements NoteIndexService {
         }
     }
 
+    @Override
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
+    public void autoDecryptedAllNote() {
+        Long userId = LocalThreadUtils.getUserId();
+        NoteIndex qry = new NoteIndex();
+        qry.setUserId(userId);
+        qry.setEncrypted(NoteConstants.ENCRYPTED_FLAG);
+        List<NoteIndex> encryptedList = noteIndexMapper.selectByCondition(qry);
+        for (NoteIndex noteMeta : encryptedList) {
+            noteService.decryptNote(noteMeta.getId());
+            //更新为未加密
+            noteMeta.setEncrypted(NoteConstants.ENCRYPTED_UN_FLAG);
+            noteIndexMapper.updateByPrimaryKeySelective(noteMeta);
+        }
+    }
+
     /**
      * 获取最近访问列表
      * @return

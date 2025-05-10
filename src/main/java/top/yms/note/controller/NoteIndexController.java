@@ -421,7 +421,7 @@ public class NoteIndexController {
      * @return
      */
     @GetMapping("/encrypted-read-note")
-    public RestOut encryptedReadNote(@RequestParam("id") Long id) {
+    public RestOut<String> encryptedReadNote(@RequestParam("id") Long id) {
         noteIndexService.encryptedReadNote(id);
         return RestOut.succeed("ok");
     }
@@ -433,7 +433,7 @@ public class NoteIndexController {
      * @return
      */
     @PostMapping("/unencrypted-read-note")
-    public RestOut unEncryptedReadNote(@RequestParam("id") Long id,
+    public RestOut<NoteIndexVo> unEncryptedReadNote(@RequestParam("id") Long id,
                                        @RequestParam("password") String password) {
         RestOut<NoteIndexVo> authResult = notePasswordAuth(id, password);
         if (!authResult.isSuccess()) {
@@ -444,9 +444,15 @@ public class NoteIndexController {
     }
 
     @GetMapping("/autoScanEncrypt")
-    public RestOut autoScanEncrypt() {
+    public RestOut<String> autoScanEncrypt() {
          noteIndexService.autoScanEncrypt();
          return RestOut.succeed("ok");
+    }
+
+    @GetMapping("/auto-decrypted-all-note")
+    public RestOut<String> autoDecryptedAllNote() {
+        noteIndexService.autoDecryptedAllNote();
+        return RestOut.succeed("ok");
     }
 
 }

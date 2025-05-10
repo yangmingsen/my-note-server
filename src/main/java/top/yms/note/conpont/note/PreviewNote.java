@@ -2,6 +2,8 @@ package top.yms.note.conpont.note;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import top.yms.note.comm.CommonErrorCode;
@@ -18,40 +20,37 @@ import top.yms.note.exception.BusinessException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by yangmingsen on 2024/9/27.
  */
 @Component
-public class PreviewNote extends AbstractNote implements NotePreview{
+public class PreviewNote extends AbstractNote implements NotePreview, InitializingBean {
 
     private final static Logger log = LoggerFactory.getLogger(PreviewNote.class);
 
-    private static final String [] SUPPORT_View_FILE = {
-            "txt","java","xml","go","html","css","js","ts","vue","json","c","scala","yml",
-            "cpp","py","bash","conf","ini","sql","cnf"
-    };
+    @Value("${note.preview.support}")
+    private String supportViewNoteList;
 
     public int getSortValue() {
         return 5;
     }
 
-    private static final Map<String,Boolean> supportMap = new HashMap<>();
+    private final Set<String> typeSet = new HashSet<>();
 
-    static {
-        for(String type : SUPPORT_View_FILE) {
-            supportMap.put(type, Boolean.TRUE);
-        }
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        log.info("preview support type: {}", supportViewNoteList);
+        String[] noteType = supportViewNoteList.split(",");
+        typeSet.addAll(Arrays.asList(noteType));
     }
 
     @Override
     public boolean support(String type) {
-        return supportMap.get(type) == Boolean.TRUE;
+        return typeSet.contains(type);
     }
-
 
     @Override
     public INoteData doGetContent(Long id) {
@@ -116,10 +115,8 @@ public class PreviewNote extends AbstractNote implements NotePreview{
     private boolean checkFileCanPreview(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
         //1. 先通过noteIndex的f_type判断是否在 SUPPORT_View_FILE 列表中
-        for (String st : SUPPORT_View_FILE) {
-            if (st.equals(noteIndex.getType())) {
-                return true;
-            }
+        if (typeSet.contains(noteIndex.getType())) {
+            return true;
         }
         //2. 不在的话再去通过内容判断是否为文本。
         //todo 哎，这个判断算法还有问题，后续在看
@@ -164,5 +161,4 @@ public class PreviewNote extends AbstractNote implements NotePreview{
 
         return noteLuceneIndex;
     }
-
 }

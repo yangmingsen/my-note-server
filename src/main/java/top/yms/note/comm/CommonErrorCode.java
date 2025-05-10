@@ -28,6 +28,7 @@ public enum CommonErrorCode implements ErrorCode {
     E_200218(200218, "数据update失败"),
     E_200219(200219, "数据delete失败"),
     E_200220(200220, "未找到合适的笔记导出组件"),
+    E_200221(200221, "未找到适配组件"),
 
     E_203000(203000, "Note parentId不能为空"),
     E_203001(203001, "Note Id不能为空"),

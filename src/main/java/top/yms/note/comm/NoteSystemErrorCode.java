@@ -4,6 +4,7 @@ public enum NoteSystemErrorCode implements ErrorCode{
     E_400000(400000, "数据库更新失败"),
     E_400001(400001, "AES加密异常"),
     E_400002(400002, "AES解密异常"),
+    E_400003(400003, "文件上传失败"),
 
 
     ;

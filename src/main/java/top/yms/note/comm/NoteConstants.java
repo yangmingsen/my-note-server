@@ -95,6 +95,8 @@ public abstract class NoteConstants {
 
     public final static String PDF = "pdf";
     public final static String DOCX = "docx";
+    public final static String MARKDOWN = "md";
+    public final static String WER = "wer";
 
 
 
