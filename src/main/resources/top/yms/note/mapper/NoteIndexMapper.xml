@@ -17,6 +17,19 @@
     <result column="f_encrypted" jdbcType="VARCHAR" property="encrypted" />
     <result column="f_view_time" jdbcType="TIMESTAMP" property="viewTime" />
   </resultMap>
+  <sql id="commonWhereClause" >
+    <where>
+      <if test="id != null and id != ''" >
+        and f_id = #{ id , jdbcType=BIGINT}
+      </if>
+      <if test="userId != null and userId != ''" >
+        and f_user_id = #{ userId , jdbcType=BIGINT}
+      </if>
+      <if test="encrypted != null and encrypted != ''" >
+        and f_encrypted = #{ encrypted , jdbcType=VARCHAR}
+      </if>
+    </where>
+  </sql>
   <sql id="Example_Where_Clause">
     <where>
       <foreach collection="oredCriteria" item="criteria" separator="or">
@@ -79,6 +92,13 @@
     f_id, f_parent_id, f_user_id, f_name, f_isfile, f_type, f_del, f_create_time, f_update_time,
         f_store_site, f_site_id, f_size, f_encrypted,f_view_time
   </sql>
+  <select id="selectByCondition" parameterType="top.yms.note.entity.NoteIndex" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_note_index
+    <include refid="commonWhereClause" />
+    order by f_create_time desc
+  </select>
   <select id="selectByExample" parameterType="top.yms.note.entity.NoteIndexExample" resultMap="BaseResultMap">
     select
     <if test="distinct">
@@ -351,7 +371,6 @@
       #{id}
     </foreach>
   </update>
-
   <select id="selectRecentUpdate" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List" />

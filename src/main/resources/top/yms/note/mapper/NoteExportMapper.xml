@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.yms.note.mapper.NoteExportMapper">
+  <resultMap id="BaseResultMap" type="top.yms.note.entity.NoteExport">
+    <id column="f_id" jdbcType="BIGINT" property="id" />
+    <result column="f_local_path" jdbcType="VARCHAR" property="localPath" />
+    <result column="f_view_url" jdbcType="VARCHAR" property="viewUrl" />
+    <result column="f_user_id" jdbcType="BIGINT" property="userId" />
+    <result column="f_note_id" jdbcType="BIGINT" property="noteId" />
+    <result column="f_create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="f_export_type" jdbcType="VARCHAR" property="exportType" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    f_id, f_local_path, f_view_url, f_user_id, f_note_id, f_create_time, f_export_type
+  </sql>
+  <select id="selectByExample" parameterType="top.yms.note.entity.NoteExportExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from t_note_export
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_note_export
+    where f_id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_note_export
+    where f_id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="top.yms.note.entity.NoteExportExample">
+    delete from t_note_export
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="top.yms.note.entity.NoteExport">
+    insert into t_note_export (f_id, f_local_path, f_view_url, 
+      f_user_id, f_note_id, f_create_time, 
+      f_export_type)
+    values (#{id,jdbcType=BIGINT}, #{localPath,jdbcType=VARCHAR}, #{viewUrl,jdbcType=VARCHAR}, 
+      #{userId,jdbcType=BIGINT}, #{noteId,jdbcType=BIGINT}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{exportType,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="top.yms.note.entity.NoteExport">
+    insert into t_note_export
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        f_id,
+      </if>
+      <if test="localPath != null">
+        f_local_path,
+      </if>
+      <if test="viewUrl != null">
+        f_view_url,
+      </if>
+      <if test="userId != null">
+        f_user_id,
+      </if>
+      <if test="noteId != null">
+        f_note_id,
+      </if>
+      <if test="createTime != null">
+        f_create_time,
+      </if>
+      <if test="exportType != null">
+        f_export_type,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="localPath != null">
+        #{localPath,jdbcType=VARCHAR},
+      </if>
+      <if test="viewUrl != null">
+        #{viewUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="noteId != null">
+        #{noteId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="exportType != null">
+        #{exportType,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="top.yms.note.entity.NoteExportExample" resultType="java.lang.Long">
+    select count(*) from t_note_export
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update t_note_export
+    <set>
+      <if test="record.id != null">
+        f_id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.localPath != null">
+        f_local_path = #{record.localPath,jdbcType=VARCHAR},
+      </if>
+      <if test="record.viewUrl != null">
+        f_view_url = #{record.viewUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="record.userId != null">
+        f_user_id = #{record.userId,jdbcType=BIGINT},
+      </if>
+      <if test="record.noteId != null">
+        f_note_id = #{record.noteId,jdbcType=BIGINT},
+      </if>
+      <if test="record.createTime != null">
+        f_create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.exportType != null">
+        f_export_type = #{record.exportType,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update t_note_export
+    set f_id = #{record.id,jdbcType=BIGINT},
+      f_local_path = #{record.localPath,jdbcType=VARCHAR},
+      f_view_url = #{record.viewUrl,jdbcType=VARCHAR},
+      f_user_id = #{record.userId,jdbcType=BIGINT},
+      f_note_id = #{record.noteId,jdbcType=BIGINT},
+      f_create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      f_export_type = #{record.exportType,jdbcType=VARCHAR}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="top.yms.note.entity.NoteExport">
+    update t_note_export
+    <set>
+      <if test="localPath != null">
+        f_local_path = #{localPath,jdbcType=VARCHAR},
+      </if>
+      <if test="viewUrl != null">
+        f_view_url = #{viewUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="userId != null">
+        f_user_id = #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="noteId != null">
+        f_note_id = #{noteId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null">
+        f_create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="exportType != null">
+        f_export_type = #{exportType,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where f_id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="top.yms.note.entity.NoteExport">
+    update t_note_export
+    set f_local_path = #{localPath,jdbcType=VARCHAR},
+      f_view_url = #{viewUrl,jdbcType=VARCHAR},
+      f_user_id = #{userId,jdbcType=BIGINT},
+      f_note_id = #{noteId,jdbcType=BIGINT},
+      f_create_time = #{createTime,jdbcType=TIMESTAMP},
+      f_export_type = #{exportType,jdbcType=VARCHAR}
+    where f_id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

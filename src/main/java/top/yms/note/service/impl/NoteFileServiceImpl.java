@@ -4,7 +4,6 @@ import com.alibaba.fastjson2.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -12,8 +11,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-import top.yms.note.comm.CommonErrorCode;
+import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
+import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStoreService;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dto.NoteDataDto;
@@ -35,7 +35,10 @@ import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.LocalNoteSyncResult;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -617,5 +620,27 @@ public class NoteFileServiceImpl implements NoteFileService {
         }
 
         noteIndexMapper.insertSelective(note);
+    }
+
+    @Override
+    public void download(String id, HttpServletRequest req, HttpServletResponse resp) throws Exception {
+        if (StringUtils.isBlank(id)) {
+            throw new BusinessException(CommonErrorCode.E_203001);
+        }
+        NoteFile noteFile = findOne(id);
+//        log.info("download: noteFile:{}", noteFile);
+        if (noteFile == null) return ;
+//        if (!checkIsEncryptedNote(noteFile, req, resp, "加密笔记不可下载")) {
+//            return;
+//        }
+        NoteFile upCnt = new NoteFile();
+        upCnt.setId(noteFile.getId());
+        upCnt.setDownloadCount(noteFile.getDownloadCount()+1);
+        noteFileMapper.updateByPrimaryKeySelective(upCnt);
+        AnyFile file = fileStoreService.loadFile(id);
+        resp.addHeader("Content-Disposition", "attachment; filename=\"" + URLEncoder.encode(file.getFilename(), "UTF-8") + "\"");
+        resp.addHeader("Content-Length", "" + file.getLength());
+        resp.setContentType(file.getContentType());
+        file.writeTo(resp.getOutputStream());
     }
 }

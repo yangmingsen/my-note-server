@@ -8,6 +8,8 @@ import top.yms.note.entity.NoteTree;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.vo.LocalNoteSyncResult;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.util.List;
 
@@ -27,4 +29,6 @@ public interface NoteFileService {
     JSONObject uploadText(String textContent, Long parentId);
 
     void urlToPdf(String htmlUrl, Long parentId);
+
+    void download(String id, HttpServletRequest req, HttpServletResponse resp)  throws Exception;
 }

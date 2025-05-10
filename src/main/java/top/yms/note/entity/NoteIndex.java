@@ -8,6 +8,7 @@ import java.util.Date;
  *
  * create by yangmingsen
  * t_note_index
+ * 笔记元数据
  */
 public class NoteIndex {
     /**

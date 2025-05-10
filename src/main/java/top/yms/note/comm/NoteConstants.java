@@ -17,6 +17,7 @@ public abstract class NoteConstants {
     public final static String MYSQL = "mysql";
     public final static String BASE_URL = "http://api.notetest.yms.top/note/file/view?id=";
     public final static String FILE_VIEW_URL = "file/view?id=";
+    public final static String FILE_DOWNLOAD_URL = "file/download?id=";
 
     public final static String BASE_TMP_VIEW_URL = "http://api.notetest.yms.top/note/file/tmpView?id=";
     public final static String TMP_FILE_VIEW_URL = "file/tmpView?id=";
@@ -76,6 +77,11 @@ public abstract class NoteConstants {
     public final static String ENCRYPTED_FLAG = "1";
     public final static String ENCRYPTED_UN_FLAG = "0";
 
+    public final static String FILE_FLAG = "1";
+    public final static String DIR_FLAG = "0";
+
+
+
     /**
      * root目录标志
      */
@@ -88,11 +94,20 @@ public abstract class NoteConstants {
 
 
 
+    public final static String PDF = "pdf";
+    public final static String DOCX = "docx";
+    public final static String MARKDOWN = "md";
+    public final static String WER = "wer";
+
 
 
 
     public static String getFileViewUrlSuffix(String id) {
         return FILE_VIEW_URL+id;
+    }
+
+    public static String getFileDownloadUrlSuffix(String id) {
+        return FILE_DOWNLOAD_URL+id;
     }
 
     public static String getTmpFileViewUrlSuffix(String id) {

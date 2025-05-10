@@ -34,9 +34,9 @@ public interface FileStoreService {
         return null;
     }
 
-    default String saveFile(File file) throws Exception {
-        return null;
-    }
+    String saveFile(File file) throws Exception;
+
+    String saveFile(String localPath) throws Exception;
 
 
 

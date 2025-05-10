@@ -1,6 +1,6 @@
 package top.yms.note.conpont;
 
-import top.yms.note.comm.CommonErrorCode;
+import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.exception.BusinessException;
 
@@ -38,5 +38,7 @@ public interface NoteLuceneDataService {
      * @return true表示支持，否则false-
      */
     boolean supportGetLuceneData(String type);
+
+    default boolean supportGetEncryptDataForLucene() {return true;};
 
 }

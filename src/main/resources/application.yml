@@ -4,6 +4,8 @@ server:
     context-path: /note
 
 spring:
+#  aop:
+#    proxy-target-class: false
   data:
     mongodb:
       url: mongodb://localhost:27017

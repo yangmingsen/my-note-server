@@ -55,4 +55,10 @@ public interface NoteIndexMapper {
     @Select("select * from t_note_index where  f_del='0'")
     @ResultMap("BaseResultMap")
     List<NoteIndex> findAll();
+
+    @Select("select * from t_note_index where f_user_id = #{userId, jdbcType=BIGINT}")
+    @ResultMap("BaseResultMap")
+    List<NoteIndex> selectByUserId(@Param("userId") Long userId);
+
+    List<NoteIndex> selectByCondition(NoteIndex qry);
 }
