@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
+import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.msgcd.NoteIndexErrorCode;
@@ -50,7 +51,7 @@ public class NoteDataController {
         noteDataDto.setContent(jsonContent);
         noteDataDto.setUserId(uid);
         noteDataService.save(noteDataDto);
-        return RestOut.success("Ok");
+        return RestOut.succeed();
     }
 
 
@@ -63,11 +64,11 @@ public class NoteDataController {
             throw new BusinessException(NoteIndexErrorCode.E_203104);
         }
         noteDataService.save(noteData);
-        return RestOut.succeed("ok");
+        return RestOut.succeed();
     }
 
     @GetMapping("/get")
-    public RestOut findOne(@RequestParam("id") Long id, HttpServletRequest request) {
+    public RestOut<NoteData> findOne(@RequestParam("id") Long id, HttpServletRequest request) {
         if (id == null) {
             throw new BusinessException(CommonErrorCode.E_200202);
         }
@@ -82,20 +83,19 @@ public class NoteDataController {
 
 
     @GetMapping("/checkFileCanPreview")
-    public RestOut checkFileCanPreview(@RequestParam("id") Long id) {
+    public RestOut<String> checkFileCanPreview(@RequestParam("id") Long id) {
         boolean canPreview = notePreview.canPreview(id);
         if (canPreview) {
-            return RestOut.succeed("Ok");
+            return RestOut.succeed();
         }
-        return RestOut.error("Not Support");
+        return RestOut.error(BusinessErrorCode.E_204008);
     }
 
 
     @GetMapping("/index-rebuild")
-    public RestOut indexRebuild() {
+    public RestOut<String> indexRebuild() {
         noteDataIndexService.rebuildIndex();
-
-        return RestOut.succeed("Ok");
+        return RestOut.succeed();
     }
 
 }

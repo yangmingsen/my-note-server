@@ -1,7 +1,5 @@
 package top.yms.note.conpont;
 
-import java.time.LocalDateTime;
-
 public interface NoteExpireCacheService extends NoteCacheService{
 
     /**

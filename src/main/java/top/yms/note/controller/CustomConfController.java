@@ -86,7 +86,7 @@ public class CustomConfController {
                     .get();
             noteExecuteTaskService.addTask(visitComputeTask);
         }
-        return RestOut.succeed("Ok");
+        return RestOut.succeed();
     }
 
     @GetMapping("/find-user-conf")

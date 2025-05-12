@@ -115,7 +115,7 @@ public class NoteDataServiceImpl implements NoteDataService {
             }
             throw new BusinessException(CommonErrorCode.E_203008);
         }
-        return RestOut.success("Ok");
+        return RestOut.succeed();
     }
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)

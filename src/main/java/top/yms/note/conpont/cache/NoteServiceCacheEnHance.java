@@ -33,17 +33,17 @@ public class NoteServiceCacheEnHance implements BeanPostProcessor, ApplicationLi
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         if (enableCache) {
             if (beanName.equals("noteIndexService")) {
-                log.info("started NoteIndexCacheCglibProxy");
+                log.debug("started NoteIndexCacheCglibProxy");
                 NoteCacheCglibProxy noteCglibProxy = new NoteIndexCacheCglibProxy(bean);
                 listCache.add(noteCglibProxy);
                 return noteCglibProxy.getTargetProxy();
             } else if  (beanName.equals("noteFileServiceImpl")) {
-                log.info("started NoteFileCacheCglibProxy");
+                log.debug("started NoteFileCacheCglibProxy");
                 NoteCacheCglibProxy noteCglibProxy = new NoteFileCacheCglibProxy(bean);
                 listCache.add(noteCglibProxy);
                 return noteCglibProxy.getTargetProxy();
             } else if (beanName.equals("noteDataService")) {
-                log.info("started NoteDataCacheCglibProxy");
+                log.debug("started NoteDataCacheCglibProxy");
                 NoteCacheCglibProxy noteCacheCglibProxy = new NoteDataCacheCglibProxy(bean);
                 listCache.add(noteCacheCglibProxy);
                 return noteCacheCglibProxy.getTargetProxy();

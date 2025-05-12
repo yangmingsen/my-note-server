@@ -280,6 +280,15 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
             log.info("当前组件不支持该类型数据保存");
             return false;
         }
+        //重复内容校验
+        INoteData oldContent = doGetContent(iNoteData.getId());
+        if (oldContent != null) {
+            long h1 = FNVHash.fnv1aHash64(oldContent.getContent());
+            long h2 = FNVHash.fnv1aHash64(iNoteData.getContent());
+            if (h1 == h2) {
+                throw new BusinessException(BusinessErrorCode.E_204007);
+            }
+        }
         //加密处理
         if (supportEncrypt()) {
             Long id = iNoteData.getId();

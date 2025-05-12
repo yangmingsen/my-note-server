@@ -57,7 +57,7 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
                 if (StringUtils.isNotBlank(lastVid))  {
                     if (sensitiveService.isSensitive(Long.parseLong(lastVid))) {
                         //命中敏感内容
-                        log.info("命中敏感内容 id={}", lastVid);
+                        log.debug("命中敏感内容 id={}", lastVid);
                         continue;
                     }
                 }
@@ -75,7 +75,7 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
                     oldDoc.put(key, value);
                 }
                 mongoTemplate.save(oldDoc,  NoteConstants.customConfig);
-                log.info("updateUserConfig_更新成功: {}", oldDoc.toJson());
+                log.debug("updateUserConfig_更新成功: {}", oldDoc.toJson());
             }
         }
 

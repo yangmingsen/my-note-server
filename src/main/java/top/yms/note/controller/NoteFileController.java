@@ -177,7 +177,7 @@ public class NoteFileController {
 //        log.info("upload Note={}", note);
         noteFileService.addNote(file, note);
 
-        return RestOut.success("ok");
+        return RestOut.succeed();
     }
 
     //todo 加密访问先放着
@@ -295,7 +295,7 @@ public class NoteFileController {
         }
 
         noteFileService.urlToPdf(url, parentId);
-        return RestOut.succeed("ok");
+        return RestOut.succeed();
     }
 
 
@@ -332,7 +332,7 @@ public class NoteFileController {
 
 
 //        noteFileService.generateTree(file, parentId);
-        return RestOut.succeed("OK");
+        return RestOut.succeed();
     }
 
 
@@ -402,7 +402,7 @@ public class NoteFileController {
         log.info("目录新增：{}", syncStatisticList.size() - fileStatisticList.size());
         log.info("总共新增：{}", syncStatisticList.size());
         log.info("--------------------------------");
-        return RestOut.succeed("OK");
+        return RestOut.succeed();
     }
 
 
@@ -459,7 +459,7 @@ public class NoteFileController {
             throw new Exception(e);
         }
 
-        return RestOut.success("ok");
+        return RestOut.succeed();
     }
 
 
