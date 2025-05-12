@@ -37,6 +37,7 @@ public abstract class NoteConstants {
     public final static String defaultNoteCache = "defaultNoteCache";
     public final static String userMemoryNoteCache = "userMemoryNoteCache";
     public final static String weakMemoryNoteCache = "weakMemoryNoteCache";
+    public final static String noteExpireTimeCache = "noteExpireTimeCache";
     public final static String noteLuceneSearch = "noteLuceneSearch";
     public final static String noteDefaultSearch = "noteDefaultSearch";
     public final static String noteLuceneIndexMemoryQueue = "noteLuceneIndexMemoryQueue";
@@ -98,6 +99,11 @@ public abstract class NoteConstants {
     public final static String DOCX = "docx";
     public final static String MARKDOWN = "md";
     public final static String WER = "wer";
+
+    //加密临时访问标志
+    public final static String TMP_VISIT_TOKEN = "tmp_token:";
+    public final static String TMP_TOKEN_FLAG = "tmpToken";
+
 
 
 

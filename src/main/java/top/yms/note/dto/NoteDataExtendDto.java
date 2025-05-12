@@ -37,7 +37,7 @@ public class NoteDataExtendDto implements INoteData, Serializable {
 
     @Override
     public void setContent(String content) {
-        INoteData.super.setContent(content);
+        getNoteData().setContent(content);
     }
 
     @Override

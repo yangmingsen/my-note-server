@@ -17,6 +17,7 @@ import top.yms.note.service.NoteDataService;
 import top.yms.note.utils.LocalThreadUtils;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Created by yangmingsen on 2024/4/6.
@@ -66,9 +67,14 @@ public class NoteDataController {
     }
 
     @GetMapping("/get")
-    public RestOut findOne(@RequestParam("id") Long id) {
+    public RestOut findOne(@RequestParam("id") Long id, HttpServletRequest request) {
         if (id == null) {
             throw new BusinessException(CommonErrorCode.E_200202);
+        }
+        String tmpToken = request.getParameter(NoteConstants.TMP_TOKEN_FLAG);
+        if (StringUtils.isNotBlank(tmpToken)) {
+            log.debug("tmpToken={}", tmpToken);
+            LocalThreadUtils.get().put(NoteConstants.TMP_VISIT_TOKEN, tmpToken);
         }
         NoteData res = noteDataService.findNoteData(id);
         return RestOut.success(res);

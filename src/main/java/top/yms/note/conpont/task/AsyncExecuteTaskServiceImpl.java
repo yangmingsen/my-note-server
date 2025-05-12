@@ -17,6 +17,7 @@ import top.yms.note.enums.AsyncExcuteTypeEnum;
 import top.yms.note.exception.BusinessException;
 
 import javax.annotation.Resource;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -110,18 +111,18 @@ public class AsyncExecuteTaskServiceImpl implements NoteAsyncExecuteTaskService,
         Collections.sort(asyncExecuteTaskList);
         log.info("获取到 AsyncExecuteTask: {}", asyncExecuteTaskList);
         //注册定时任务
-        regScheduledTask();
+        regScheduledTask(context);
     }
 
 
     /**
      * 注册定时执行任务
      */
-    private void regScheduledTask() {
-        for (AsyncExecuteTask executeTask : this.asyncExecuteTaskList) {
-            if (executeTask instanceof ScheduledExecuteTask) {
-                ((ScheduledExecuteTask) executeTask).regScheduledTask(this.noteScheduledExecutorService);
-            }
+    private void regScheduledTask(ApplicationContext context) {
+        Collection<ScheduledExecuteTask> scheduledExecuteTasks = BeanFactoryUtils.beansOfTypeIncludingAncestors(
+                context, ScheduledExecuteTask.class, true, false).values();
+        for (ScheduledExecuteTask executeTask : scheduledExecuteTasks) {
+            executeTask.regScheduledTask(this.noteScheduledExecutorService);
         }
     }
 }

@@ -47,6 +47,7 @@ public enum CommonErrorCode implements ErrorCode {
     E_300002(300002, "执行#异步任务类型为空"),
     E_300003(300003, "当前执行任务类非DelayExecuteTask"),
     E_300004(300004, "当前AsyncTask非DelayExecuteAsyncTask"),
+    E_300005(300005, "add不允许添加重复cache"),
 
 
     /**

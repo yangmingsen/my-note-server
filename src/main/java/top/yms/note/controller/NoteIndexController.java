@@ -4,8 +4,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
+import top.yms.note.conpont.NoteCacheService;
+import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.msgcd.NoteIndexErrorCode;
@@ -47,9 +50,12 @@ public class NoteIndexController {
     @Resource
     private IdWorker idWorker;
 
-
     @Resource
     private NoteAsyncExecuteTaskService noteExecuteTaskService;
+
+    @Qualifier(NoteConstants.noteExpireTimeCache)
+    @Resource
+    private NoteCacheService noteExpireCacheService;
 
     @GetMapping("/list")
     public RestOut<List<NoteIndex>> findByUid() {
@@ -385,7 +391,7 @@ public class NoteIndexController {
     @PostMapping("/note-pass-auth")
     public RestOut<NoteIndexExtVo> notePasswordAuth(@RequestParam("id") Long id,
                                                     @RequestParam("password") String password) {
-        log.info("notePasswordAuth: id={}, password={}", id, password);
+        log.debug("notePasswordAuth: id={}, password={}", id, password);
         //todo 去做密码验证， 暂时先不验证，因为密码还不知道存哪里
         if (StringUtils.isBlank(password) || id == null) {
             throw new BusinessException(CommonErrorCode.E_200202);
@@ -398,18 +404,13 @@ public class NoteIndexController {
             NoteIndex noteIndex = noteIndexService.findOne(id);
             NoteIndexExtVo resVo = new NoteIndexExtVo();
             BeanUtils.copyProperties(noteIndex, resVo);
-
-            //生成零时token, 如果是文件访问
-            //todo 加密访问先放着
-//            if (noteIndex.getType().equals("1")) {
-//                String tmpToken = UUID.randomUUID().toString();
-//                resVo.setTmpToken(tmpToken);
-//                noteCache.add(Constants.tmpReadPasswordToken+resVo.getId(), tmpToken);
-//            }
-
+            String tmpTokenKey = NoteConstants.TMP_VISIT_TOKEN+id;
+            String tmpToken = UUID.randomUUID().toString();
+            resVo.setTmpToken(tmpToken);
+            noteExpireCacheService.update(tmpTokenKey, tmpToken);
             return RestOut.success(resVo);
         } else {
-            return RestOut.failed("密码错误");
+            throw new BusinessException(BusinessErrorCode.E_204006);
         }
 
     }
@@ -442,7 +443,7 @@ public class NoteIndexController {
         return authResult;
     }
 
-    @GetMapping("/autoScanEncrypt")
+    //@GetMapping("/autoScanEncrypt")
     public RestOut<String> autoScanEncrypt() {
          noteIndexService.autoScanEncrypt();
          return RestOut.succeed("ok");

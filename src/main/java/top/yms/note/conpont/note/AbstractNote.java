@@ -4,18 +4,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import top.yms.note.comm.*;
-import top.yms.note.conpont.ComponentSort;
-import top.yms.note.conpont.FileStoreService;
-import top.yms.note.conpont.NoteAsyncExecuteTaskService;
-import top.yms.note.conpont.NoteLuceneDataService;
+import top.yms.note.conpont.*;
 import top.yms.note.conpont.export.NoteFileExport;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.conpont.task.AsyncTask;
 import top.yms.note.conpont.task.DelayExecuteAsyncTask;
 import top.yms.note.dto.INoteData;
+import top.yms.note.dto.NoteDataExtendDto;
 import top.yms.note.dto.NoteIndexLuceneUpdateDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteDataVersion;
@@ -26,6 +25,7 @@ import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.exception.NoteSystemException;
 import top.yms.note.mapper.*;
+import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.msgcd.NoteIndexErrorCode;
 import top.yms.note.msgcd.NoteSystemErrorCode;
@@ -63,9 +63,6 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     protected NoteFileMapper noteFileMapper;
 
     @Resource
-    protected NoteExportMapper noteExportMapper;
-
-    @Resource
     protected NoteFileService noteFileService;
 
     @Resource
@@ -83,6 +80,10 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     @Resource
     protected NoteFileExport noteFileExport;
 
+    @Qualifier(NoteConstants.noteExpireTimeCache)
+    @Resource
+    protected NoteCacheService noteExpireCacheService;
+
     @Override
     public int compareTo(ComponentSort other) {
         return this.getSortValue()-other.getSortValue();
@@ -94,7 +95,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     }
 
     protected String getEncryptedKey() {
-        String key = Base64Util.encodeBase64Str(encryptedKey);
+        String key = Base64Util.decodeStr(encryptedKey);
         log.debug("getEncryptedKey={}", key);
         return key;
     }
@@ -128,22 +129,61 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         return noteFileService.findOne(noteIndex.getSiteId());
     }
 
-    public INoteData getContent(Long id) {
+    protected boolean beforeGetContent(INoteData iNoteData) {
+        //token检查
+        if (supportEncrypt() && NoteConstants.ENCRYPTED_FLAG.equals(iNoteData.getNoteIndex().getEncrypted())) {
+            String tmpTokenKey =  NoteConstants.TMP_VISIT_TOKEN+iNoteData.getId();
+            String tmpVisitToken = (String)noteExpireCacheService.find(tmpTokenKey);
+            if (StringUtils.isBlank(tmpVisitToken)) {
+                throw new BusinessException(BusinessErrorCode.E_204003);
+            }
+            String curTmpVisitToken = LocalThreadUtils.getTmpVisitToken();
+            if (StringUtils.isBlank(curTmpVisitToken)) {
+                throw new BusinessException(BusinessErrorCode.E_204005);
+            }
+            if (!tmpVisitToken.equals(curTmpVisitToken)) {
+                throw new BusinessException(BusinessErrorCode.E_204004);
+            }
+        }
+        return true;
+    }
+
+    protected void afterGetContent(INoteData iNoteData) {
         //修改访问时间
         NoteIndex upNoteIndex = new NoteIndex();
-        upNoteIndex.setId(id);
+        upNoteIndex.setId(iNoteData.getId());
         upNoteIndex.setViewTime(new Date());
         noteIndexMapper.updateByPrimaryKeySelective(upNoteIndex);
-        return doGetContent(id);
+        //解密处理
+        if (supportEncrypt() && NoteConstants.ENCRYPTED_FLAG.equals(iNoteData.getNoteIndex().getEncrypted())) {
+            String content = decryptContent(iNoteData.getContent());
+            iNoteData.setContent(content);
+            //clear tmpTokenKey
+            String tmpTokenKey =  NoteConstants.TMP_VISIT_TOKEN+iNoteData.getId();
+            noteExpireCacheService.delete(tmpTokenKey);
+        }
+    }
+
+    public INoteData getContent(Long id) {
+        NoteIndex noteMeta = noteIndexMapper.selectByPrimaryKey(id);
+        NoteDataExtendDto nde  = new NoteDataExtendDto();
+        nde.setNoteIndex(noteMeta);
+        nde.setUserId(LocalThreadUtils.getUserId());
+        //前置处理
+        if (!beforeGetContent(nde)) {
+            return null;
+        }
+        //获取数据
+        NoteData iNoteData = (NoteData)doGetContent(id);
+        nde.setNoteData(iNoteData);
+        //后置处理
+        afterGetContent(nde);
+        //返回数据
+        return nde.getNoteData();
     }
 
     protected INoteData doGetContent(Long id) {
         INoteData iNoteData = noteDataMapper.selectByPrimaryKey(id);
-        NoteIndex noteMeta = noteIndexMapper.selectByPrimaryKey(id);
-        if (NoteConstants.ENCRYPTED_FLAG.equals(noteMeta.getEncrypted())) {
-            String content = decryptContent(iNoteData.getContent());
-            iNoteData.setContent(content);
-        }
         return iNoteData;
     }
 

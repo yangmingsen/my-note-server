@@ -15,6 +15,10 @@ import java.util.Map;
  */
 public class LocalThreadUtils {
 
+    public static String getTmpVisitToken() {
+        return (String)get().get(NoteConstants.TMP_VISIT_TOKEN);
+    }
+
     public static Long getUserId() {
         return (Long)threadLocalValue.get().get(NoteConstants.USER_ID);
     }
