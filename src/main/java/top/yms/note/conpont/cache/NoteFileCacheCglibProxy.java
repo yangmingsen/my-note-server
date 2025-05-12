@@ -57,7 +57,7 @@ public class NoteFileCacheCglibProxy  implements MethodInterceptor, NoteCacheCgl
 //                if (args != null && args.length > 0) {
 //                    cacheId += Arrays.toString(args);
 //                }
-                log.info("findCache: id={}", cacheId);
+                log.debug("findCache: id={}", cacheId);
                 Object data = noteCacheService.find(cacheId);
                 if (data != null) {
                     return data;

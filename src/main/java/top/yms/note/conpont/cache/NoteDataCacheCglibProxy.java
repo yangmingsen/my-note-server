@@ -32,7 +32,7 @@ public class NoteDataCacheCglibProxy implements MethodInterceptor, NoteCacheCgli
             String methodName = method.getName();
              if (methodName.startsWith("find")) {
                  String cacheId = getCacheKey(proxy, method, args);
-                 log.info("findCache: id={}", cacheId);
+                 log.debug("findCache: id={}", cacheId);
                  Object data = noteCacheService.find(cacheId);
                  if (data != null) {
                      return data;

@@ -239,7 +239,7 @@ public class NoteIndexController {
             throw new BusinessException(CommonErrorCode.E_203001);
         }
         noteIndexService.update(note);
-        return RestOut.succeed("ok");
+        return RestOut.succeed();
     }
 
 
@@ -250,7 +250,7 @@ public class NoteIndexController {
             throw new BusinessException(CommonErrorCode.E_203000);
         }
         noteIndexService.delDir(parentId);
-        return RestOut.succeed("ok");
+        return RestOut.succeed();
     }
 
 
@@ -264,14 +264,14 @@ public class NoteIndexController {
         }
 
         noteIndexService.delNote(note.getId());
-        return RestOut.succeed("ok");
+        return RestOut.succeed();
     }
 
     @GetMapping("/destroyNote")
     public RestOut<String> destroyNote(@RequestParam("id") Long id) {
         log.info("destroyNote id= {}", id);
         noteIndexService.destroyNote(id);
-        return RestOut.succeed("ok");
+        return RestOut.succeed();
     }
 
     @PostMapping("/findBy")
@@ -350,7 +350,7 @@ public class NoteIndexController {
                 .taskInfo(noteMeta)
                 .get();
         noteExecuteTaskService.addTask(visitComputeTask);
-        return RestOut.success("Ok");
+        return RestOut.succeed();
     }
 
 
@@ -358,14 +358,14 @@ public class NoteIndexController {
     public RestOut allDestroy() {
         int cnt = noteIndexService.allDestroy();
         log.info("allDestroy: {}", cnt);
-        return RestOut.succeed("OK");
+        return RestOut.succeed();
     }
 
     @GetMapping("/allRecover")
     public RestOut allRecover() {
         int cnt = noteIndexService.allRecover();
         log.info("allRecover: {}", cnt);
-        return RestOut.succeed("OK");
+        return RestOut.succeed();
     }
 
     /**
@@ -379,7 +379,7 @@ public class NoteIndexController {
             throw new BusinessException(CommonErrorCode.E_200202);
         }
         noteIndexService.updateMove(noteMoveDto);
-        return RestOut.succeed("ok");
+        return RestOut.succeed();
     }
 
     /**
@@ -423,7 +423,7 @@ public class NoteIndexController {
     @GetMapping("/encrypted-read-note")
     public RestOut<String> encryptedReadNote(@RequestParam("id") Long id) {
         noteIndexService.encryptedReadNote(id);
-        return RestOut.succeed("ok");
+        return RestOut.succeed();
     }
 
     /**
@@ -446,13 +446,13 @@ public class NoteIndexController {
     //@GetMapping("/autoScanEncrypt")
     public RestOut<String> autoScanEncrypt() {
          noteIndexService.autoScanEncrypt();
-         return RestOut.succeed("ok");
+         return RestOut.succeed();
     }
 
     @GetMapping("/auto-decrypted-all-note")
     public RestOut<String> autoDecryptedAllNote() {
         noteIndexService.autoDecryptedAllNote();
-        return RestOut.succeed("ok");
+        return RestOut.succeed();
     }
 
 }

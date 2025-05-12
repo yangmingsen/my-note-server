@@ -132,7 +132,8 @@ public class NoteExpireTimeCacheService implements NoteExpireCacheService, Sched
     @Override
     public void run() {
         log.debug("=========开始执行key clear==========");
-        for (ExpireObjectEntity eoe : findAll()) {
+        for (String key : expireTimeMap.keySet()) {
+            ExpireObjectEntity eoe = expireTimeMap.get(key);
             if (eoe.isExpire()) {
                 log.debug("已清理过期 cache={}", eoe);
                 delete(eoe.getKey());
@@ -140,9 +141,4 @@ public class NoteExpireTimeCacheService implements NoteExpireCacheService, Sched
         }
         log.debug("=========开始执行 key clear 结束==========");
     }
-
-    private List<ExpireObjectEntity> findAll() {
-        return new ArrayList<>(expireTimeMap.values());
-    }
-
 }

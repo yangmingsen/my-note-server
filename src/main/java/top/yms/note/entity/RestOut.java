@@ -1,6 +1,7 @@
 package top.yms.note.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import top.yms.note.msgcd.ErrorCode;
 
 import java.util.Optional;
 
@@ -90,6 +91,11 @@ public class RestOut<T>
         return build(status, message, null);
     }
 
+    public static <T> RestOut<T> error(ErrorCode errorCode)
+    {
+        return build(errorCode.getCode(), errorCode.getDesc(), null);
+    }
+
 
     public static <T> RestOut<T> failed(String errMsg)
     {
@@ -99,6 +105,11 @@ public class RestOut<T>
     public static <T> RestOut<T> succeed(String message)
     {
         return build(STATUS_SUCCESS, message, null);
+    }
+
+    public static <T> RestOut<T> succeed()
+    {
+        return build(STATUS_SUCCESS, "Ok", null);
     }
 
     public RestOut<T> setRespMsg(String respMsg)

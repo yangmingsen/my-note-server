@@ -8,6 +8,8 @@ public enum BusinessErrorCode implements ErrorCode {
     E_204004(204004, "错误临时访问token"),
     E_204005(204005, "请求临时访问token为空"),
     E_204006(204006, "认证失败"),
+    E_204007(204007, "禁止重复内容"),
+    E_204008(204008, "不支持当前笔记预览"),
     ;
     private int code;
     private String desc;
