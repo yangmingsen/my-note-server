@@ -13,7 +13,6 @@ public class AutoClearMemoryNoteCacheService implements NoteCacheService {
         return null;
     }
 
-    @Override
     public Object find() {
         return null;
     }

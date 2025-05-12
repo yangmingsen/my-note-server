@@ -23,7 +23,6 @@ public class WeakMemoryNoteCacheService implements NoteCacheService {
         return cacheMap.get(id);
     }
 
-    @Override
     public Object find() {
         return null;
     }

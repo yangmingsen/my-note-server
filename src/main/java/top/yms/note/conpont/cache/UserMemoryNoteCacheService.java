@@ -25,7 +25,6 @@ public class UserMemoryNoteCacheService implements NoteCacheService {
         return cacheMap.get(getUserId()).get(id);
     }
 
-    @Override
     public Object find() {
         throw new RuntimeException("Not Support");
     }

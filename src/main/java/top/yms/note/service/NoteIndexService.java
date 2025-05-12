@@ -76,6 +76,7 @@ public interface NoteIndexService {
     /**
      * 自动处理标记加密笔记（处理旧版本只对noteIndex做标记，没有做实际笔记加密处理)
      */
+    @Deprecated//不再使用
     void autoScanEncrypt();
 
     /**
