@@ -23,7 +23,7 @@ import top.yms.note.service.NoteIndexService;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.MenuListVo;
-import top.yms.note.vo.NoteIndexVo;
+import top.yms.note.vo.NoteIndexExtVo;
 import top.yms.note.vo.NoteInfoVo;
 import top.yms.note.vo.NoteSearchVo;
 
@@ -383,8 +383,8 @@ public class NoteIndexController {
      * @return
      */
     @PostMapping("/note-pass-auth")
-    public RestOut<NoteIndexVo> notePasswordAuth(@RequestParam("id") Long id,
-                                                 @RequestParam("password") String password) {
+    public RestOut<NoteIndexExtVo> notePasswordAuth(@RequestParam("id") Long id,
+                                                    @RequestParam("password") String password) {
         log.info("notePasswordAuth: id={}, password={}", id, password);
         //todo 去做密码验证， 暂时先不验证，因为密码还不知道存哪里
         if (StringUtils.isBlank(password) || id == null) {
@@ -396,9 +396,8 @@ public class NoteIndexController {
         String encryptedStr = DigestUtils.md5DigestAsHex(srcStr.getBytes(StandardCharsets.UTF_8));
         if (encryptedStr.equals(noteUser.getPassword())) {
             NoteIndex noteIndex = noteIndexService.findOne(id);
-            NoteIndexVo resVo = new NoteIndexVo();
+            NoteIndexExtVo resVo = new NoteIndexExtVo();
             BeanUtils.copyProperties(noteIndex, resVo);
-
 
             //生成零时token, 如果是文件访问
             //todo 加密访问先放着
@@ -433,9 +432,9 @@ public class NoteIndexController {
      * @return
      */
     @PostMapping("/unencrypted-read-note")
-    public RestOut<NoteIndexVo> unEncryptedReadNote(@RequestParam("id") Long id,
-                                       @RequestParam("password") String password) {
-        RestOut<NoteIndexVo> authResult = notePasswordAuth(id, password);
+    public RestOut<NoteIndexExtVo> unEncryptedReadNote(@RequestParam("id") Long id,
+                                                       @RequestParam("password") String password) {
+        RestOut<NoteIndexExtVo> authResult = notePasswordAuth(id, password);
         if (!authResult.isSuccess()) {
             return authResult;
         }

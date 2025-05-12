@@ -137,7 +137,7 @@ public abstract class AbstractNoteConvert implements NoteConvert{
         exportMeta.setNoteId(iNoteData.getId());
         exportMeta.setExportType(getExportType());
         exportMeta.setLocalPath(localPath);
-        exportMeta.setViewUrl(NoteConstants.getBaseUrl()+NoteConstants.getFileViewUrlSuffix(fileId));
+        exportMeta.setViewUrl(NoteConstants.getBaseUrl()+NoteConstants.getFileDownloadUrlSuffix(fileId));
         exportMeta.setCreateTime(new Date());
         noteExportMapper.insertSelective(exportMeta);
         //save note file info
