@@ -25,6 +25,7 @@ public class NoteControllerAspect {
         try {
             Object resVal = joinPoint.proceed();
             if (resVal instanceof RestOut) {
+                //直接返回
                 return resVal;
             }
             return RestOut.success(resVal);
