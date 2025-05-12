@@ -60,27 +60,27 @@ public class NoteIndexController {
     @GetMapping("/list")
     public RestOut<List<NoteIndex>> findByUid() {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
-        log.info("findByUid: {}", uid);
+        log.debug("findByUid: {}", uid);
         List<NoteIndex> noteList = noteIndexService.findByUserId(uid);
-//        log.info("findByUid: {} , count: {}", uid, noteList.size());
+        log.debug("findByUid: {} , count: {}", uid, noteList.size());
         return RestOut.success(noteList);
     }
 
     @GetMapping("/tree")
     public RestOut findNoteTreeByUid() {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
-        log.info("findNoteTreeByUid: {}", uid);
+        log.debug("findNoteTreeByUid: {}", uid);
         List<NoteTree> noteTreeList = noteIndexService.findNoteTreeByUid(uid);
-//        log.info("findByUid: {} , count: {}", uid, noteTreeList.size());
+//        log.debug("findByUid: {} , count: {}", uid, noteTreeList.size());
         return RestOut.success(noteTreeList);
     }
 
     @GetMapping("/antTree")
     public RestOut findAntTree() {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
-        log.info("antTree: {}", uid);
+        log.debug("antTree: {}", uid);
         List<AntTreeNode> antTreeList = noteIndexService.findAntTreeExcludeEncrypted(uid);
-//        log.info("antTree: {} , count: {}", uid, antTreeList.size());
+        log.debug("antTree: {} , count: {}", uid, antTreeList.size());
         return RestOut.success(antTreeList);
     }
 
@@ -91,15 +91,15 @@ public class NoteIndexController {
      */
     @PostMapping("/sub")
     public RestOut<List<NoteIndex>> findSubBy(NoteListQueryDto noteListQueryDto) {
-        log.info("findSubBy_noteListQueryDto:{}", noteListQueryDto);
+        log.debug("findSubBy_noteListQueryDto:{}", noteListQueryDto);
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         Long parentId = noteListQueryDto.getParentId();
         if (parentId == null) {
             throw new BusinessException(CommonErrorCode.E_100101);
         }
-//        log.info("findSubBy: uid= {}, parentId={}", uid, parentId);
+        log.debug("findSubBy: uid= {}, parentId={}", uid, parentId);
         List<NoteIndex> resList =  handleSortBy(noteListQueryDto, noteIndexService.findSubBy(parentId, uid));
-//        log.info("findSubBy: uid= {}, parentId={}, count:{}", uid, parentId, resList.size());
+        log.debug("findSubBy: uid= {}, parentId={}, count:{}", uid, parentId, resList.size());
         return RestOut.success(resList);
     }
 
@@ -162,7 +162,7 @@ public class NoteIndexController {
             throw new BusinessException(NoteIndexErrorCode.E_203104);
         }
         List<NoteIndex> resList =  noteIndexService.findBackParentDir(id);
-        log.info("findBackParentDir: id= {},  count:{}", id, resList.size());
+        log.debug("findBackParentDir: id= {},  count:{}", id, resList.size());
 
         return RestOut.success(resList);
     }
@@ -173,14 +173,14 @@ public class NoteIndexController {
             throw new BusinessException(NoteIndexErrorCode.E_203104);
         }
         NoteIndex res = noteIndexService.findOne(id);
-//        log.info("findOne: id= {},  count:{}", id, res);
+        log.debug("findOne: id= {},  count:{}", id, res);
 
         return RestOut.success(res);
     }
 
     @PostMapping("/findNoteByCondition")
     public RestOut<NoteSearchVo> findNoteByCondition(@RequestBody NoteSearchCondition searchCondition) {
-        log.info("findNoteByCondition: condition={}", searchCondition);
+        log.debug("findNoteByCondition: condition={}", searchCondition);
         if(searchCondition == null) {
             return RestOut.success(NoteSearchVo.getEmpty());
         }
@@ -212,7 +212,7 @@ public class NoteIndexController {
     public RestOut<NoteIndex> add(@RequestBody NoteIndex note) {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         note.setUserId(uid);
-        log.info("add: {}", note);
+        log.debug("add: {}", note);
         if (StringUtils.isBlank(note.getName())) {
             throw new BusinessException(NoteIndexErrorCode.E_203100);
         }
@@ -231,7 +231,7 @@ public class NoteIndexController {
     public RestOut<String> update(@RequestBody NoteIndex note) {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         note.setUserId(uid);
-        log.info("update: {}", note);
+        log.debug("update: {}", note);
         if (note == null) {
             throw new BusinessException(CommonErrorCode.E_200202);
         }
@@ -245,7 +245,7 @@ public class NoteIndexController {
 
     @GetMapping("/delDir")
     public RestOut<String> delDir(@RequestParam("parentId") Long parentId) {
-        log.info("delDir: parentId={}", parentId);
+        log.debug("delDir: parentId={}", parentId);
         if (parentId == null) {
             throw new BusinessException(CommonErrorCode.E_203000);
         }
@@ -256,7 +256,7 @@ public class NoteIndexController {
 
     @PostMapping("/delNote")
     public RestOut<String> delNote(@RequestBody NoteIndex note) {
-        log.info("delNote: {}", note);
+        log.debug("delNote: {}", note);
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         note.setUserId(uid);
         if (note.getId() == null) {
@@ -269,20 +269,20 @@ public class NoteIndexController {
 
     @GetMapping("/destroyNote")
     public RestOut<String> destroyNote(@RequestParam("id") Long id) {
-        log.info("destroyNote id= {}", id);
+        log.debug("destroyNote id= {}", id);
         noteIndexService.destroyNote(id);
         return RestOut.succeed();
     }
 
     @PostMapping("/findBy")
     public RestOut<List<NoteIndex>> findBy(@RequestBody NoteIndexQuery query) {
-        log.info("findBy: {}", query);
+        log.debug("findBy: {}", query);
         if (query == null) {
             throw new BusinessException(CommonErrorCode.E_100101);
         }
         List<NoteIndex> resList = noteIndexService.findBy(query);
 
-//        log.info("findBy Result: 共{}条", resList.size());
+        log.debug("findBy Result: 共{}条", resList.size());
         return RestOut.success(resList);
     }
 
@@ -293,13 +293,13 @@ public class NoteIndexController {
      */
     @GetMapping("/findBreadcrumb")
     public RestOut<List<NoteIndex>> findBreadcrumb (@RequestParam("id") Long id) {
-        log.info("findBreadcrumb: id={}", id);
+        log.debug("findBreadcrumb: id={}", id);
         if (id == null) {
             throw new BusinessException(CommonErrorCode.E_203001);
         }
         List<NoteIndex> res = new LinkedList<>();
         noteIndexService.findBreadcrumb(id, res);
-//        log.info("findBreadcrumb Result: 共{}条", res.size());
+        log.debug("findBreadcrumb Result: 共{}条", res.size());
         return RestOut.success(res);
     }
 
@@ -314,18 +314,18 @@ public class NoteIndexController {
 
     @PostMapping("/getRecentFiles")
     public RestOut<List<NoteIndex>> getRecentFiles(NoteListQueryDto noteListQueryDto) {
-        log.info("getRecentFiles => {}", noteListQueryDto);
+        log.debug("getRecentFiles => {}", noteListQueryDto);
         List<NoteIndex> resList = handleSortBy(noteListQueryDto, noteIndexService.getRecentFiles());
-//        log.info("getRecentFiles Result: 共{}条", resList.size());
+        log.debug("getRecentFiles Result: 共{}条", resList.size());
 
         return RestOut.success(resList);
     }
 
     @PostMapping("/getDeletedFiles")
     public RestOut<List<NoteIndex>> getDeletedFiles(NoteListQueryDto noteListQueryDto) {
-        log.info("getDeletedFiles => {}", noteListQueryDto);
+        log.debug("getDeletedFiles => {}", noteListQueryDto);
         List<NoteIndex> resList = handleSortBy(noteListQueryDto, noteIndexService.getDeletedFiles());
-//        log.info("getDeletedFiles Result: 共{}条", resList.size());
+        log.debug("getDeletedFiles Result: 共{}条", resList.size());
 
         return RestOut.success(resList);
     }
@@ -357,14 +357,14 @@ public class NoteIndexController {
     @GetMapping("/allDestroy")
     public RestOut allDestroy() {
         int cnt = noteIndexService.allDestroy();
-        log.info("allDestroy: {}", cnt);
+        log.debug("allDestroy: {}", cnt);
         return RestOut.succeed();
     }
 
     @GetMapping("/allRecover")
     public RestOut allRecover() {
         int cnt = noteIndexService.allRecover();
-        log.info("allRecover: {}", cnt);
+        log.debug("allRecover: {}", cnt);
         return RestOut.succeed();
     }
 
@@ -374,7 +374,7 @@ public class NoteIndexController {
      */
     @PostMapping("/updateMove")
     public RestOut updateMove(NoteMoveDto noteMoveDto) {
-        log.info("updateMove: {}", noteMoveDto);
+        log.debug("updateMove: {}", noteMoveDto);
         if (noteMoveDto.getFromId() == null || noteMoveDto.getToId() == null) {
             throw new BusinessException(CommonErrorCode.E_200202);
         }
