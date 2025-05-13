@@ -6,11 +6,13 @@ import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.msgcd.ComponentErrorCode;
 import top.yms.note.conpont.AnyFile;
@@ -21,6 +23,7 @@ import top.yms.note.enums.FileTypeEnum;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteFileMapper;
 
+import javax.annotation.Resource;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -31,21 +34,23 @@ import java.util.Map;
 /**
  * Created by yangmingsen on 2024/4/13.
  */
-@Component("mongoFileStore449")
+@Component(NoteConstants.mongoFileStore449)
 public class FileStoreServiceMongoImpl449 implements FileStoreService {
 
     private final static Logger log = LoggerFactory.getLogger(FileStoreServiceMongoImpl449.class);
 
-    @Autowired
+    @Qualifier(NoteConstants.legacyGridFsTemplate)
+    @Resource
     private GridFsTemplate gridFsTemplate;
 
-    @Autowired
+    @Qualifier(NoteConstants.legacyGridFSBucket)
+    @Resource
     private GridFSBucket gridFSBucket;
 
-    @Autowired
+    @Resource
     private NotePreview notePreview;
 
-    @Autowired
+    @Resource
     private NoteFileMapper noteFileMapper;
 
 
@@ -53,7 +58,7 @@ public class FileStoreServiceMongoImpl449 implements FileStoreService {
     public AnyFile loadFile(String id) throws BusinessException {
         try {
             log.debug("loadFile id={}", id);
-            GridFSFile gFS = gridFsTemplate.findOne(new Query(Criteria.where("_id").is(id)));
+            GridFSFile gFS = gridFsTemplate.findOne(new Query(Criteria.where(NoteConstants._id).is(id)));
             return new MongFile449(gFS, gridFSBucket);
         } catch (Exception e) {
             throw new BusinessException(CommonErrorCode.E_203003);
@@ -74,18 +79,16 @@ public class FileStoreServiceMongoImpl449 implements FileStoreService {
 
     @Override
     public String saveFile(InputStream inputStream, Map<String, Object> option) {
-        String fileName = (String)option.get("fileName");
-        String fileType = (String)option.get("fileType");
+        String fileName = (String)option.get(NoteConstants.OPTION_FILE_NAME);
+        String fileType = (String)option.get(NoteConstants.OPTION_FILE_TYPE);
         ObjectId fileId = gridFsTemplate.store(inputStream, fileName, fileType);
         try { inputStream.close();} catch (Exception ignored) {}
-
         return fileId.toString();
     }
 
     @Override
     public String saveFile(File file) throws Exception {
         FileInputStream fis = new FileInputStream(file);
-
         String fileName = file.getName();
         String fileType;
         int dot = fileName.lastIndexOf('.');
@@ -96,10 +99,8 @@ public class FileStoreServiceMongoImpl449 implements FileStoreService {
         } else {
             fileType = FileTypeEnum.UNKNOWN.getValue();
         }
-
         ObjectId fileId = gridFsTemplate.store(fis, file.getName(), fileType);
         fis.close();
-
         return fileId.toString();
     }
 
@@ -112,7 +113,7 @@ public class FileStoreServiceMongoImpl449 implements FileStoreService {
     @Override
     public boolean delFile(String id) {
         try {
-            gridFsTemplate.delete(new Query(Criteria.where("_id").is(id)));
+            gridFsTemplate.delete(new Query(Criteria.where(NoteConstants._id).is(id)));
             return true;
         } catch (Exception e) {
             log.error("删除mongo文件失败: id="+id, e);

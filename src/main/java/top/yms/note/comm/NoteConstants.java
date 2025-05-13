@@ -105,6 +105,29 @@ public abstract class NoteConstants {
     public final static String TMP_TOKEN_FLAG = "tmpToken";
 
 
+    //mongo component
+    public final static String legacyGridFsTemplate = "legacyGridFsTemplate";
+    public final static String legacyGridFSBucket = "legacyGridFSBucket";
+    public final static String bigFileGridFsTemplate = "bigFileGridFsTemplate";
+    public final static String bigFileGridFsBucket = "bigFileGridFsBucket";
+
+    public final static String mongoFileStoreService = "mongoFileStoreService";
+    public final static String mongoFileStore449 = "mongoFileStore449";
+    //mongo file start prefix
+    public final static String NEW_BIG_FILE_PREFIX = "b:";
+    //小文件前缀
+    public final static String NEW_SMALL_FILE_PREFIX = "d:";
+    //noteOptionMap const
+    public final static String OPTION_FILE_NAME = "fileName";
+    public final static String OPTION_FILE_TYPE = "fileType";
+    public final static String OPTION_FILE_SIZE = "fileSize";
+
+
+
+
+
+
+
 
 
 
