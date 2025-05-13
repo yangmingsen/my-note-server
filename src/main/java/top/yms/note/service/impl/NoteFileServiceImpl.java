@@ -507,8 +507,9 @@ public class NoteFileServiceImpl implements NoteFileService {
             Files.write(tempFile, textContent.getBytes(StandardCharsets.UTF_8), StandardOpenOption.WRITE);
             InputStream inputStream = new FileInputStream(tempFile.toFile());
             Map<String, Object> optionMap = new HashMap<>();
-            optionMap.put("fileName", fileName);
-            optionMap.put("fileType", FileTypeEnum.TXT.getValue());
+            optionMap.put(NoteConstants.OPTION_FILE_NAME, fileName);
+            optionMap.put(NoteConstants.OPTION_FILE_TYPE, FileTypeEnum.TXT.getValue());
+            optionMap.put(NoteConstants.OPTION_FILE_SIZE, textContent.getBytes(StandardCharsets.UTF_8).length);
             fileId = fileStoreService.saveFile(inputStream, optionMap);
             note.setSiteId(fileId);
 
@@ -583,8 +584,9 @@ public class NoteFileServiceImpl implements NoteFileService {
             Files.write(tempFile, body, StandardOpenOption.WRITE);
             InputStream inputStream = new FileInputStream(tempFile.toFile());
             Map<String, Object> optionMap = new HashMap<>();
-            optionMap.put("fileName", fileName);
-            optionMap.put("fileType", FileTypeEnum.PDF.getValue());
+            optionMap.put(NoteConstants.OPTION_FILE_NAME, fileName);
+            optionMap.put(NoteConstants.OPTION_FILE_TYPE, FileTypeEnum.PDF.getValue());
+            optionMap.put(NoteConstants.OPTION_FILE_SIZE, body.length);
             fileId = fileStoreService.saveFile(inputStream, optionMap);
             note.setSiteId(fileId);
 
