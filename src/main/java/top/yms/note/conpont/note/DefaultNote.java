@@ -1,11 +1,11 @@
 package top.yms.note.conpont.note;
 
 import org.springframework.stereotype.Component;
-import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.conpont.NoteTikaService;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.dto.INoteData;
 import top.yms.note.exception.BusinessException;
+import top.yms.note.msgcd.CommonErrorCode;
 
 import java.io.InputStream;
 

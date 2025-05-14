@@ -1,11 +1,11 @@
 package top.yms.note.dto;
 
 
-import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteDataVersion;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.exception.BusinessException;
+import top.yms.note.msgcd.CommonErrorCode;
 
 import java.util.List;
 

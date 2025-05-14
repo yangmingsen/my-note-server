@@ -9,13 +9,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
-import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteService;
 import top.yms.note.dto.INoteData;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteIndexMapper;
+import top.yms.note.msgcd.CommonErrorCode;
 
 import java.util.Collections;
 import java.util.LinkedList;

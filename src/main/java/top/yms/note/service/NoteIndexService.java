@@ -71,7 +71,7 @@ public interface NoteIndexService {
 
     void unEncryptedReadNote(Long id);
 
-    List<NoteIndex> recentVisitList();
+    List<NoteIndex> findRecentVisitList();
 
     /**
      * 自动处理标记加密笔记（处理旧版本只对noteIndex做标记，没有做实际笔记加密处理)

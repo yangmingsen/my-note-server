@@ -10,11 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.wltea.analyzer.lucene.IKAnalyzer;
-import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
-import top.yms.note.exception.NoteSystemException;
 import top.yms.note.conpont.NoteContentOptimizeService;
 import top.yms.note.entity.NoteDataVersion;
+import top.yms.note.exception.NoteSystemException;
+import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.service.NoteDataService;
 import top.yms.note.service.NoteIndexService;
 

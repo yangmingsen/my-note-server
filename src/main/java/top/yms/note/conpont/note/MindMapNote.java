@@ -8,7 +8,6 @@ import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.dto.INoteData;
@@ -16,6 +15,7 @@ import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.exception.BusinessException;
+import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.utils.LocalThreadUtils;
 
 import java.nio.charset.StandardCharsets;

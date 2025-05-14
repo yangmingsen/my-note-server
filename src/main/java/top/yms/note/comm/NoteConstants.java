@@ -123,6 +123,11 @@ public abstract class NoteConstants {
     public final static String OPTION_FILE_SIZE = "fileSize";
 
 
+    //cache PREFIX
+    public final static String C_METHOD = "c:m:";
+
+
+
 
 
 

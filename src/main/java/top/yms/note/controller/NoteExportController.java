@@ -10,8 +10,6 @@ import top.yms.note.entity.RestOut;
 import top.yms.note.service.NoteFileService;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/export")
