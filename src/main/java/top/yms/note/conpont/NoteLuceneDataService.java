@@ -1,8 +1,8 @@
 package top.yms.note.conpont;
 
-import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.exception.BusinessException;
+import top.yms.note.msgcd.CommonErrorCode;
 
 import java.util.List;
 

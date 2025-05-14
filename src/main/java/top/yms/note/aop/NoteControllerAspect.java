@@ -7,10 +7,10 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import top.yms.note.msgcd.ErrorCode;
 import top.yms.note.entity.RestOut;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.exception.WangEditorUploadException;
+import top.yms.note.msgcd.ErrorCode;
 
 @Aspect
 @Component
@@ -24,11 +24,12 @@ public class NoteControllerAspect {
     public Object doAroundController(ProceedingJoinPoint joinPoint) {
         try {
             Object resVal = joinPoint.proceed();
-            if (resVal instanceof RestOut) {
-                //直接返回
-                return resVal;
-            }
-            return RestOut.success(resVal);
+            return resVal;
+//            if (resVal instanceof RestOut) {
+//                //直接返回
+//                return resVal;
+//            }
+//            return RestOut.success(resVal);
         } catch (WangEditorUploadException we) {
             throw we;
         } catch (BusinessException be) {

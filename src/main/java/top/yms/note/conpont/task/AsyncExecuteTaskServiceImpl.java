@@ -10,11 +10,11 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
-import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteAsyncExecuteTaskService;
 import top.yms.note.enums.AsyncExcuteTypeEnum;
 import top.yms.note.exception.BusinessException;
+import top.yms.note.msgcd.CommonErrorCode;
 
 import javax.annotation.Resource;
 import java.util.Collection;

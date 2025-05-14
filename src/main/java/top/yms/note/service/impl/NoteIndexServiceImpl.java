@@ -14,17 +14,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.comm.NoteConstants;
-import top.yms.note.msgcd.NoteIndexErrorCode;
 import top.yms.note.conpont.*;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.conpont.task.DelayExecuteAsyncTask;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dao.NoteIndexQuery;
-import top.yms.note.dto.*;
+import top.yms.note.dto.NoteIndexLuceneUpdateDto;
+import top.yms.note.dto.NoteMoveDto;
+import top.yms.note.dto.NoteSearchCondition;
+import top.yms.note.dto.NoteSearchDto;
 import top.yms.note.entity.*;
 import top.yms.note.enums.*;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.*;
+import top.yms.note.msgcd.NoteIndexErrorCode;
 import top.yms.note.service.NoteIndexService;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
@@ -825,7 +828,7 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      * 获取最近访问列表
      * @return
      */
-    public List<NoteIndex> recentVisitList() {
+    public List<NoteIndex> findRecentVisitList() {
         return noteRecentVisitService.getRecentVisitList();
     }
 }

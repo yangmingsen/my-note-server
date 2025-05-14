@@ -7,12 +7,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
-import top.yms.note.conpont.NoteCacheService;
-import top.yms.note.msgcd.BusinessErrorCode;
-import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.comm.NoteConstants;
-import top.yms.note.msgcd.NoteIndexErrorCode;
 import top.yms.note.conpont.NoteAsyncExecuteTaskService;
+import top.yms.note.conpont.NoteCacheService;
 import top.yms.note.conpont.task.AsyncTask;
 import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.dto.NoteListQueryDto;
@@ -22,6 +19,9 @@ import top.yms.note.entity.*;
 import top.yms.note.enums.AsyncExcuteTypeEnum;
 import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.exception.BusinessException;
+import top.yms.note.msgcd.BusinessErrorCode;
+import top.yms.note.msgcd.CommonErrorCode;
+import top.yms.note.msgcd.NoteIndexErrorCode;
 import top.yms.note.service.NoteIndexService;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
@@ -332,7 +332,7 @@ public class NoteIndexController {
 
     @GetMapping("/recentVisitList")
     public RestOut recentVisitList() {
-        List<NoteIndex> recentVisits = noteIndexService.recentVisitList();
+        List<NoteIndex> recentVisits = noteIndexService.findRecentVisitList();
         return RestOut.success(recentVisits);
     }
 
