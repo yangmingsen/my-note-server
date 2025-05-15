@@ -17,6 +17,7 @@ import top.yms.note.service.NoteAuthService;
 import top.yms.note.utils.JwtUtil;
 import top.yms.note.vo.AuthResult;
 
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -25,14 +26,14 @@ import java.nio.charset.StandardCharsets;
 @Service
 public class NoteAuthServiceImpl implements NoteAuthService {
 
-    @Autowired
+    @Resource
     NoteUserMapper noteUserMapper;
 
-    @Autowired
+    @Resource
     @Qualifier(NoteConstants.defaultNoteCache)
     private NoteCacheService noteCacheService;
 
-    @Autowired
+    @Resource
     private JwtUtil jwtUtil;
 
     public RestOut auth(NoteAuth noteAuth) {

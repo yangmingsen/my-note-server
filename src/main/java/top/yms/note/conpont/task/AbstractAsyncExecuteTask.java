@@ -12,6 +12,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.ComponentSort;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -65,10 +66,10 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
 
     protected List<AsyncTask> dataList = new LinkedList<>();
 
-    @Autowired
+    @Resource
     private PlatformTransactionManager transactionManager;
 
-    @Autowired
+    @Resource
     protected MongoTemplate mongoTemplate;
 
 

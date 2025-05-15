@@ -103,7 +103,7 @@ public class MongoFileStoreService implements FileStoreService {
     public String saveFile(InputStream inputStream, Map<String, Object> option) {
         String fileName = (String)option.get(NoteConstants.OPTION_FILE_NAME);
         String fileType = (String)option.get(NoteConstants.OPTION_FILE_TYPE);
-        int fileSize = Integer.parseInt((String)option.get(NoteConstants.OPTION_FILE_SIZE));
+        long fileSize = Long.parseLong(option.get(NoteConstants.OPTION_FILE_SIZE)+"");
         if (fileSize < THRESHOLD_SIZE) {
             String name = fileName+"."+fileType;
             SmallFileDocument doc = new SmallFileDocument();
