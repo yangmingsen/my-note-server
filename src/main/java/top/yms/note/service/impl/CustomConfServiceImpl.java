@@ -15,6 +15,7 @@ import top.yms.note.exception.BusinessException;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.utils.LocalThreadUtils;
 
+import javax.annotation.Resource;
 import java.util.Map;
 
 /**
@@ -25,7 +26,7 @@ public class CustomConfServiceImpl {
 
     private static final Logger log = LoggerFactory.getLogger(CustomConfServiceImpl.class);
 
-    @Autowired
+    @Resource
     private MongoTemplate mongoTemplate;
 
 

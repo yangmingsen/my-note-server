@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import top.yms.note.converts.WebMvcConfigurationSupportConfigurer;
 
+import javax.annotation.Resource;
+
 /**
  * Created by yangmingsen on 2024/4/6.
  */
@@ -18,7 +20,7 @@ public class NoteWebMvcConfigSupport extends WebMvcConfigurationSupportConfigure
     @Value("${sys.note-interceptor}")
     private String noteInterceptor;
 
-    @Autowired
+    @Resource
     private JwtInterceptor jwtInterceptor;
 
     @Override

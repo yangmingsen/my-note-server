@@ -7,21 +7,23 @@ import top.yms.note.entity.SearchLog;
 import top.yms.note.mapper.SearchLogMapper;
 import top.yms.note.utils.IdWorker;
 
+import javax.annotation.Resource;
+
 /**
  * Created by yangmingsen on 2024/8/17.
  */
 @Service
 public class NoteSearchLogServiceImpl {
 
-    @Autowired
+    @Resource
     private JdbcTemplate jdbcTemplate;
 
 
-    @Autowired
+    @Resource
     private SearchLogMapper searchLogMapper;
 
 
-    @Autowired
+    @Resource
     IdWorker idWorker;
 
 

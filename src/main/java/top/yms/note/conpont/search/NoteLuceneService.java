@@ -268,7 +268,7 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
                     indexWriter.addDocument(document);
                 }
                 indexWriter.commit();
-                logger.info("rebuild index success");
+                logger.debug("rebuild index success");
             } catch (Exception e) {
                 logger.error("重新建立index失败", e);
                 throw new RuntimeException(e);
@@ -335,7 +335,7 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
             }
             indexWriter.commit();
             indexWriter.flush();
-            logger.info("index更新完成....");
+            logger.debug("index更新完成....");
         } catch (Exception e) {
             logger.error("updateByIds#更新lucene索引失败：", e);
             throw new RuntimeException(e);
@@ -377,7 +377,7 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
                 //提交更改并关闭IndexWriter
                 indexWriter.updateDocument(idTerm, document);
                 indexWriter.commit();
-                logger.info("更新完成...{}", id);
+                logger.debug("更新完成...{}", id);
             } catch (Exception e) {
                 logger.error("更新lucene索引失败：", e);
                 throw new RuntimeException(e);

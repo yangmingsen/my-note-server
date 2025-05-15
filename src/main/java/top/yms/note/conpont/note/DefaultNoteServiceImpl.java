@@ -17,6 +17,7 @@ import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteIndexMapper;
 import top.yms.note.msgcd.CommonErrorCode;
 
+import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,7 +33,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
 
     protected final List<Note> noteComponentList = new LinkedList<>();
 
-    @Autowired
+    @Resource
     protected NoteIndexMapper noteIndexMapper;
 
     @Override
