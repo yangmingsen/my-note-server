@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStoreService;
+import top.yms.note.conpont.NoteFetchService;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;
@@ -83,6 +84,9 @@ public class NoteFileServiceImpl implements NoteFileService {
 
     @Resource
     private NoteDataMapper noteDataMapper;
+
+    @Resource
+    private NoteFetchService noteFetchService;
 
     /**
      * <p>上传成功的返回格式：</p>
@@ -644,5 +648,11 @@ public class NoteFileServiceImpl implements NoteFileService {
         resp.addHeader("Content-Length", "" + file.getLength());
         resp.setContentType(file.getContentType());
         file.writeTo(resp.getOutputStream());
+    }
+
+    @Override
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 60)
+    public Long fetch(String url, String toType, Long parentId) {
+        return noteFetchService.fetch(url, toType, parentId);
     }
 }

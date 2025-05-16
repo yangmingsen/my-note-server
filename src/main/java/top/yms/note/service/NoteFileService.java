@@ -31,4 +31,6 @@ public interface NoteFileService {
     void urlToPdf(String htmlUrl, Long parentId);
 
     void download(String id, HttpServletRequest req, HttpServletResponse resp)  throws Exception;
+
+    Long fetch(String url, String toType, Long parentId);
 }

@@ -121,6 +121,12 @@ public class MongoFileStoreService implements FileStoreService {
             } catch (Exception e) {
                log.error("saveFile error", e);
                throw new NoteSystemException(NoteSystemErrorCode.E_400004);
+            } finally {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    log.error("close stream error", e);
+                }
             }
             doc.setData(buffer.toByteArray());
             mongoTemplate.save(doc);

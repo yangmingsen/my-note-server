@@ -25,6 +25,7 @@ public class DefaultNoteFileExportImpl implements NoteFileExport, ApplicationLis
     public String noteExport(Long id, String fromType, String toType) {
         for(NoteConvert noteConvert : convertList) {
             if (noteConvert.support(fromType, toType)) {
+                log.debug("find convert component => {}", noteConvert);
                 return noteConvert.convert(id);
             }
         }

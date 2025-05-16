@@ -14,6 +14,7 @@ import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStoreService;
 import top.yms.note.conpont.NoteCacheService;
+import top.yms.note.conpont.NoteFetchService;
 import top.yms.note.entity.NoteFile;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.NoteTree;
@@ -285,8 +286,8 @@ public class NoteFileController {
 
 
     @GetMapping("/url2pdf")
-    public RestOut urlToPdf(@RequestParam("url") String url, @RequestParam("parentId") Long parentId) {
-        log.info("urlToPdf: url={}", url);
+    public RestOut<String> urlToPdf(@RequestParam("url") String url, @RequestParam("parentId") Long parentId) {
+        log.debug("urlToPdf: url={}", url);
         if (StringUtils.isBlank(url)) {
             throw new BusinessException(NoteIndexErrorCode.E_203116);
         }
@@ -298,9 +299,22 @@ public class NoteFileController {
         return RestOut.succeed();
     }
 
+    @GetMapping("/url2md")
+    public RestOut<String> urlToMd(@RequestParam("url") String url, @RequestParam("parentId") Long parentId) {
+        log.debug("urlToMd: url={}", url);
+        if (StringUtils.isBlank(url)) {
+            throw new BusinessException(NoteIndexErrorCode.E_203116);
+        }
+        if (!url.startsWith("http")) {
+            throw new BusinessException(CommonErrorCode.E_203005);
+        }
+        Long noteId = noteFileService.fetch(url, NoteConstants.MARKDOWN, parentId);
+        return RestOut.succeed(noteId+"");
+    }
+
 
     //@GetMapping("/genTree")
-    public RestOut genTree(@RequestParam("id") Integer id) throws Exception{
+    public RestOut<String> genTree(@RequestParam("id") Integer id) throws Exception{
         String [] para = {
                 "Github","tmp","专业","人体","公司",
                 //0        1      2     3       4

@@ -118,6 +118,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
         NoteIndex noteMeta = getNoteMeta(noteId);
         for(Note note : noteComponentList) {
             if (note.supportExport(noteMeta.getType(), exportType)) {
+                log.debug("find note component => {}", note);
                 return note.export(noteId, exportType);
             }
         }

@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
@@ -30,8 +31,19 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
     @Resource
     private SensitiveService sensitiveService;
 
+    @Value("${user-config.task.immediately}")
+    private int immediatelySize;
+
     public int getSortValue() {
         return 1;
+    }
+
+    public void afterAddTask(AsyncTask task) {
+        int dataSize = getDataSize();
+        log.debug("curDataSize={}, immediatelySize={}",dataSize, immediatelySize );
+        if (dataSize >= immediatelySize) {
+            doRun();
+        }
     }
 
     @Override
