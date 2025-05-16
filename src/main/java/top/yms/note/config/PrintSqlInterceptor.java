@@ -131,7 +131,7 @@ public class PrintSqlInterceptor implements Interceptor {
                 .append(" ms - ID：").append(sqlId)
                 .append("\n").append("Execute SQL：")
                 .append(sql);//.append("\n");
-        log.info(sb.toString());
+        log.debug(sb.toString());
     }
 
     @Override

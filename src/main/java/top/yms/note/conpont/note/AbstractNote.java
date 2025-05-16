@@ -280,7 +280,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
 
     protected boolean beforeSave(INoteData iNoteData) {
         if (!supportSave()) {
-            log.info("当前组件不支持该类型数据保存");
+            log.debug("当前组件不支持该类型数据保存");
             return false;
         }
         //重复内容校验
@@ -423,7 +423,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     @Override
     public boolean noteDecrypt(Long id) {
         if (!supportEncrypt()) {
-            log.info("当前组件不支持解密");
+            log.debug("当前组件不支持解密");
             return false;
         }
         return true;
@@ -432,7 +432,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     @Override
     public boolean noteEncrypt(Long id) {
         if (!supportEncrypt()) {
-            log.info("当前组件不支持加密");
+            log.debug("当前组件不支持加密");
             return false;
         }
         return true;

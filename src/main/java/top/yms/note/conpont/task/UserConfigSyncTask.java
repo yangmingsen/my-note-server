@@ -54,7 +54,7 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
     @Override
     void doRun() {
         List<AsyncTask> allData = getAllData();
-//        log.info("当前时间: {} , 获取到数据: {}", DateHelper.getYYYY_MM_DD_HH_MM_SS(), allData);
+//        log.debug("当前时间: {} , 获取到数据: {}", DateHelper.getYYYY_MM_DD_HH_MM_SS(), allData);
         for(AsyncTask asyncTask : allData) {
             JSONObject userConfig = new JSONObject();
             JSONObject tmpJson = (JSONObject) asyncTask.getTaskInfo();
@@ -102,7 +102,7 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
     @Override
     public void regScheduledTask(NoteScheduledExecutorService noteScheduledExecuteService) {
         noteScheduledExecuteService.scheduleWithFixedDelay(this, 5, 30, TimeUnit.SECONDS);
-        log.info("UserConfigSyncTask注册到ScheduledTask成功...");
+        log.debug("UserConfigSyncTask注册到ScheduledTask成功...");
     }
 
 }

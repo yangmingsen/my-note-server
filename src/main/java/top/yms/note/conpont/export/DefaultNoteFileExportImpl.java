@@ -39,6 +39,6 @@ public class DefaultNoteFileExportImpl implements NoteFileExport, ApplicationLis
                 BeanFactoryUtils.beansOfTypeIncludingAncestors(
                         context, NoteConvert.class, true, false).values());
         Collections.sort(convertList);
-        log.info("获取到convertList: {}", convertList);
+        log.debug("获取到convertList: {}", convertList);
     }
 }

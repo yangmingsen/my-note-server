@@ -279,7 +279,7 @@ public class NoteDataServiceImpl implements NoteDataService {
 
         AnyFile anyFile = fileStoreService.loadFile(noteIndex.getSiteId());
         if (anyFile.getLength() == 0L) {
-            log.info("文件id={}, 为空文件", id);
+            log.debug("文件id={}, 为空文件", id);
             return false;
         }
 

@@ -105,7 +105,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
                 BeanFactoryUtils.beansOfTypeIncludingAncestors(
                         context, Note.class, true, false).values());
         Collections.sort(noteComponentList);
-        log.info("获取到NoteContentTypeList: {}", noteComponentList);
+        log.debug("获取到NoteContentTypeList: {}", noteComponentList);
     }
 
     @Override

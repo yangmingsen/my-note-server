@@ -128,7 +128,7 @@ public class NoteExpireTimeCacheService implements NoteExpireCacheService, Sched
     @Override
     public void regScheduledTask(NoteScheduledExecutorService noteScheduledExecuteService) {
         noteScheduledExecuteService.scheduleWithFixedDelay(this, 5, 25, TimeUnit.SECONDS);
-        log.info("NoteExpireTimeCacheService注册到ScheduledTask成功...");
+        log.debug("NoteExpireTimeCacheService注册到ScheduledTask成功...");
     }
 
     @Override

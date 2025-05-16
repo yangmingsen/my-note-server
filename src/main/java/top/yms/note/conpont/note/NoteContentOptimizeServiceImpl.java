@@ -39,13 +39,13 @@ public class NoteContentOptimizeServiceImpl implements NoteContentOptimizeServic
     public List<Long> removeOneUnnecessaryVersion(Long id) {
         List<NoteDataVersion> dataVersionList = noteDataService.findDataVersionList(id);
         if (dataVersionList.isEmpty()) {
-            log.info("id={}, dataVersion is empty", id);
+            log.debug("id={}, dataVersion is empty", id);
             return Collections.emptyList();
         }
         List<Long> ids = Collections.emptyList();
         try {
             ids = getRemoveVersionIds(dataVersionList);
-            log.info("noteId={}, delList={}", id, ids);
+            log.debug("noteId={}, delList={}", id, ids);
             for (Long ndvId : ids) {
                 //noteDataService.deleteDataVersion(ndvId);
             }
@@ -92,7 +92,7 @@ public class NoteContentOptimizeServiceImpl implements NoteContentOptimizeServic
 //            NoteDataVersion noteDataVersion = noteDataVersions.get(i);
 //            NoteDataVersion noteDataVersion2 = noteDataVersions.get(i+1);
 //            double similarity = cosineSimilarity(tfidfVectors.get(i), tfidfVectors.get(i + 1));
-//            log.info("noteId={}, 版本={} 和版本={} 相似度={}",
+//            log.debug("noteId={}, 版本={} 和版本={} 相似度={}",
 //                    noteDataVersion.getNoteId(), noteDataVersion.getId(), noteDataVersion2.getId(), similarity);
 //            if (similarity > SIMILARITY_THRESHOLD) {
 //                optimizedIds.add(noteDataVersion.getId());
@@ -109,7 +109,7 @@ public class NoteContentOptimizeServiceImpl implements NoteContentOptimizeServic
                     NoteDataVersion jndv = noteDataVersions.get(i);
                     double similarity = cosineSimilarity(imap, jmap);
                     double jgitChange = calculateTextDifference(indv.getContent(), jndv.getContent());
-                    log.info("noteId={}, 版本={} 和版本={} cos相似度={}, jgitChange={}",
+                    log.debug("noteId={}, 版本={} 和版本={} cos相似度={}, jgitChange={}",
                             indv.getNoteId(), indv.getId(), jndv.getId(), similarity, jgitChange);
                     if (similarity > SIMILARITY_THRESHOLD) {
                         optimizedIds.add(jndv.getId());

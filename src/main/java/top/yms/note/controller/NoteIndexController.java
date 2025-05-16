@@ -62,7 +62,7 @@ public class NoteIndexController {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         log.debug("findByUid: {}", uid);
         List<NoteIndex> noteList = noteIndexService.findByUserId(uid);
-        log.debug("findByUid: {} , count: {}", uid, noteList.size());
+//        log.debug("findByUid: {} , count: {}", uid, noteList.size());
         return RestOut.success(noteList);
     }
 
@@ -80,7 +80,7 @@ public class NoteIndexController {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
         log.debug("antTree: {}", uid);
         List<AntTreeNode> antTreeList = noteIndexService.findAntTreeExcludeEncrypted(uid);
-        log.debug("antTree: {} , count: {}", uid, antTreeList.size());
+//        log.debug("antTree: {} , count: {}", uid, antTreeList.size());
         return RestOut.success(antTreeList);
     }
 
@@ -97,9 +97,9 @@ public class NoteIndexController {
         if (parentId == null) {
             throw new BusinessException(CommonErrorCode.E_100101);
         }
-        log.debug("findSubBy: uid= {}, parentId={}", uid, parentId);
+//        log.debug("findSubBy: uid= {}, parentId={}", uid, parentId);
         List<NoteIndex> resList =  handleSortBy(noteListQueryDto, noteIndexService.findSubBy(parentId, uid));
-        log.debug("findSubBy: uid= {}, parentId={}, count:{}", uid, parentId, resList.size());
+//        log.debug("findSubBy: uid= {}, parentId={}, count:{}", uid, parentId, resList.size());
         return RestOut.success(resList);
     }
 
@@ -173,7 +173,7 @@ public class NoteIndexController {
             throw new BusinessException(NoteIndexErrorCode.E_203104);
         }
         NoteIndex res = noteIndexService.findOne(id);
-        log.debug("findOne: id= {},  count:{}", id, res);
+//        log.debug("findOne: id= {},  count:{}", id, res);
 
         return RestOut.success(res);
     }
@@ -282,7 +282,7 @@ public class NoteIndexController {
         }
         List<NoteIndex> resList = noteIndexService.findBy(query);
 
-        log.debug("findBy Result: 共{}条", resList.size());
+//        log.debug("findBy Result: 共{}条", resList.size());
         return RestOut.success(resList);
     }
 
@@ -299,7 +299,7 @@ public class NoteIndexController {
         }
         List<NoteIndex> res = new LinkedList<>();
         noteIndexService.findBreadcrumb(id, res);
-        log.debug("findBreadcrumb Result: 共{}条", res.size());
+//        log.debug("findBreadcrumb Result: 共{}条", res.size());
         return RestOut.success(res);
     }
 
@@ -316,7 +316,7 @@ public class NoteIndexController {
     public RestOut<List<NoteIndex>> getRecentFiles(NoteListQueryDto noteListQueryDto) {
         log.debug("getRecentFiles => {}", noteListQueryDto);
         List<NoteIndex> resList = handleSortBy(noteListQueryDto, noteIndexService.getRecentFiles());
-        log.debug("getRecentFiles Result: 共{}条", resList.size());
+//        log.debug("getRecentFiles Result: 共{}条", resList.size());
 
         return RestOut.success(resList);
     }
@@ -325,7 +325,7 @@ public class NoteIndexController {
     public RestOut<List<NoteIndex>> getDeletedFiles(NoteListQueryDto noteListQueryDto) {
         log.debug("getDeletedFiles => {}", noteListQueryDto);
         List<NoteIndex> resList = handleSortBy(noteListQueryDto, noteIndexService.getDeletedFiles());
-        log.debug("getDeletedFiles Result: 共{}条", resList.size());
+//        log.debug("getDeletedFiles Result: 共{}条", resList.size());
 
         return RestOut.success(resList);
     }

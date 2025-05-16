@@ -109,7 +109,7 @@ public class AsyncExecuteTaskServiceImpl implements NoteAsyncExecuteTaskService,
                 BeanFactoryUtils.beansOfTypeIncludingAncestors(
                         context, AsyncExecuteTask.class, true, false).values());
         Collections.sort(asyncExecuteTaskList);
-        log.info("获取到 AsyncExecuteTask: {}", asyncExecuteTaskList);
+        log.debug("获取到 AsyncExecuteTask: {}", asyncExecuteTaskList);
         //注册定时任务
         regScheduledTask(context);
     }

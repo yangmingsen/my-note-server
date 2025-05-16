@@ -124,7 +124,7 @@ public class FileStoreServiceMongoImpl449 implements FileStoreService {
     public String getStringContent(String id) {
         NoteFile noteFile = noteFileMapper.findOneByFileId(id);
         if (noteFile.getNoteRef() == 0L) {//这个地方兼容一下老版本时，fileId未与noteId关联的情况
-            log.info("警告: fileId={}, => noteId={}", id, noteFile.getNoteRef());
+            log.debug("警告: fileId={}, => noteId={}", id, noteFile.getNoteRef());
             return null;
         }
         if (!notePreview.canPreview(noteFile.getNoteRef())) {
