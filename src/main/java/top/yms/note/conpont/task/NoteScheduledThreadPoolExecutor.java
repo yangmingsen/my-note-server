@@ -48,7 +48,7 @@ public class NoteScheduledThreadPoolExecutor implements NoteScheduledExecutorSer
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        log.info("当前NoteScheduledThreadPoolExecutorCpuExeNum={}", coreCpuNum);
+        log.debug("当前NoteScheduledThreadPoolExecutorCpuExeNum={}", coreCpuNum);
         //todo 如果coreCpuNum是0会导致cpu标高，还不清楚为什么？
         // see https://stackoverflow.com/questions/34615125/scheduledthreadpoolexecutor-with-corepoolsize-0-causes-100-load-on-one-cpu-co?rq=3
         // see https://stackoverflow.com/questions/53401197/scheduledexecutorservice-consumes-100-cpu-when-corepoolsize-0?rq=3

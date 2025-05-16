@@ -52,7 +52,7 @@ public class CustomConfController {
         if (StringUtils.isBlank(jsonContent)) {
             throw new BusinessException(CommonErrorCode.E_200202);
         }
-        log.info("updateUserConfig: jsonContent={}", jsonContent);
+        log.debug("updateUserConfig: jsonContent={}", jsonContent);
         JSONObject userConfigJsonData = JSONObject.parseObject(jsonContent);
         AsyncTask asyncTask = AsyncTask.Builder
                 .build()

@@ -44,6 +44,6 @@ public class NoteFetchServiceImpl implements NoteFetchService, ApplicationListen
                 BeanFactoryUtils.beansOfTypeIncludingAncestors(
                         context, NoteFetch.class, true, false).values());
         Collections.sort(componentList);
-        log.info("获取到NoteFetch componentList: {}", componentList);
+        log.debug("获取到NoteFetch componentList: {}", componentList);
     }
 }

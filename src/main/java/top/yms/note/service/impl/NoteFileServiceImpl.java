@@ -118,7 +118,7 @@ public class NoteFileServiceImpl implements NoteFileService {
 
         Map<String, Object> reqInfo = LocalThreadUtils.get();
         long userId = (long)reqInfo.get(NoteConstants.USER_ID);
-        log.info("uploadFileForWer: userId={}", userId);
+        log.debug("uploadFileForWer: userId={}", userId);
         String fileId = null;
 
         try {
@@ -255,7 +255,7 @@ public class NoteFileServiceImpl implements NoteFileService {
                 String fileName = tf.getName();
                 NoteTree tmpNoteTree = treeMap.get(fileName);
                 if (tmpNoteTree == null) {
-                    log.info("本地笔记[{}] 在TreeNote中不存在, 执行创建", tf.getAbsolutePath());
+                    log.debug("本地笔记[{}] 在TreeNote中不存在, 执行创建", tf.getAbsolutePath());
                 }
 
                 if (tmpNoteTree != null) {
@@ -634,7 +634,7 @@ public class NoteFileServiceImpl implements NoteFileService {
             throw new BusinessException(CommonErrorCode.E_203001);
         }
         NoteFile noteFile = findOne(id);
-//        log.info("download: noteFile:{}", noteFile);
+//        log.debug("download: noteFile:{}", noteFile);
         if (noteFile == null) return ;
 //        if (!checkIsEncryptedNote(noteFile, req, resp, "加密笔记不可下载")) {
 //            return;

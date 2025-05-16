@@ -83,7 +83,7 @@ public class NoteFileController {
     @PostMapping("/upload")
     public JSONObject uploadFileForWer(@RequestParam(value = "file") MultipartFile file,
                                        @RequestParam("id") Long id) throws WangEditorUploadException {
-        log.info("uploadFileForWer: id={}", id);
+        log.debug("uploadFileForWer: id={}", id);
         return noteFileService.uploadFileForWer(file, id);
     }
 
@@ -175,7 +175,7 @@ public class NoteFileController {
             note.setType(FileTypeEnum.UNKNOWN.getValue());
         }
         note.setCreateTime(new Date());
-//        log.info("upload Note={}", note);
+//        log.debug("upload Note={}", note);
         noteFileService.addNote(file, note);
 
         return RestOut.succeed();
@@ -209,7 +209,7 @@ public class NoteFileController {
                     }
                 }
             }
-            log.info("checkIsEncryptedNote: 携带tmpToken: {}", tmpToken);
+            log.debug("checkIsEncryptedNote: 携带tmpToken: {}", tmpToken);
 
             response.setCharacterEncoding("UTF-8");
             response.setHeader("Content-Type", "application/json");
@@ -241,7 +241,7 @@ public class NoteFileController {
 
     @GetMapping("/tmpView")
     public void tmpView(@RequestParam("id") String id, HttpServletResponse resp) throws Exception {
-        log.info("tmpView: id={}", id);
+        log.debug("tmpView: id={}", id);
         if (StringUtils.isBlank(id)) return;
 
         AnyFile file = fileStoreService.loadFile(id);
@@ -257,10 +257,10 @@ public class NoteFileController {
 
     @GetMapping("/view")
     public void view(@RequestParam("id") String id, HttpServletRequest req, HttpServletResponse resp) throws Exception {
-        log.info("view: id={}", id);
+        log.debug("view: id={}", id);
         if (StringUtils.isBlank(id)) return;
         NoteFile noteFile = noteFileService.findOne(id);
-//        log.info("view: noteFile:{}", noteFile);
+//        log.debug("view: noteFile:{}", noteFile);
         if (noteFile == null) return ;
 
 //        if (!checkIsEncryptedNote(noteFile, req, resp, "加密笔记不可阅读")) {
@@ -280,7 +280,7 @@ public class NoteFileController {
 
     @GetMapping("/download")
     public void download(@RequestParam("id") String id, HttpServletRequest req, HttpServletResponse resp)  throws Exception{
-        log.info("download: id={}", id);
+        log.debug("download: id={}", id);
         noteFileService.download(id, req, resp);
     }
 
@@ -397,7 +397,7 @@ public class NoteFileController {
             }
         } catch (Exception e) {
             log.error("同步异常", e);
-            log.info("开始回滚mongo....");
+            log.debug("开始回滚mongo....");
             for (String fileId : mongoRollBackList) {
                 try {
                     fileStoreService.delFile(fileId);
@@ -410,12 +410,12 @@ public class NoteFileController {
             throw new BusinessException(CommonErrorCode.E_200213);
         }
 
-        log.info("----------syncResult------------");
+        log.debug("----------syncResult------------");
         List<LocalNoteSyncResult> fileStatisticList = syncStatisticList.stream().filter(LocalNoteSyncResult::isFile).collect(Collectors.toList());
-        log.info("文件新增：{}", fileStatisticList.size());
-        log.info("目录新增：{}", syncStatisticList.size() - fileStatisticList.size());
-        log.info("总共新增：{}", syncStatisticList.size());
-        log.info("--------------------------------");
+        log.debug("文件新增：{}", fileStatisticList.size());
+        log.debug("目录新增：{}", syncStatisticList.size() - fileStatisticList.size());
+        log.debug("总共新增：{}", syncStatisticList.size());
+        log.debug("--------------------------------");
         return RestOut.succeed();
     }
 

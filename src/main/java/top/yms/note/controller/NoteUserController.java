@@ -27,7 +27,7 @@ public class NoteUserController {
 
     @PostMapping("/login")
     public RestOut login(@RequestBody NoteAuthPassword noteAuthPassword) {
-        log.info("login: {}", noteAuthPassword);
+        log.debug("login: {}", noteAuthPassword);
         return noteAuthService.auth(noteAuthPassword);
     }
 }

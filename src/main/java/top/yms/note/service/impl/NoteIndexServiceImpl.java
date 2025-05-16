@@ -372,7 +372,7 @@ public class NoteIndexServiceImpl implements NoteIndexService {
                 arJson.put("name", "新建标题");
                 jsonArray.add(arJson);
                 jsonObject.put("content", jsonArray);
-                log.info("defaultJsonStr: {}", jsonObject);
+                log.debug("defaultJsonStr: {}", jsonObject);
                 Document document = Document.parse(jsonObject.toString());
                 Document saveRes = mongoTemplate.save(document, NoteConstants.noteMindMap);
                 ObjectId objId = saveRes.getObjectId("_id");
@@ -567,7 +567,7 @@ public class NoteIndexServiceImpl implements NoteIndexService {
                     .taskInfo(NoteIndexLuceneUpdateDto.Builder.build().type(NoteIndexLuceneUpdateDto.deleteList).data(delIdxList).get())
                     .get();
             noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
-            log.info("删除目录[{}]成功, 共[{}]条数据", noteIndex.getName(), addLogList.size());
+            log.debug("删除目录[{}]成功, 共[{}]条数据", noteIndex.getName(), addLogList.size());
         }
     }
 
@@ -641,7 +641,7 @@ public class NoteIndexServiceImpl implements NoteIndexService {
         }
         noteIndexMapper.delByListIds(delList);
         noteIndexLogMapper.insertBatch(addList);
-        log.info("delDir: 删除成功, 共计 {} 条数据", delList.size());
+        log.debug("delDir: 删除成功, 共计 {} 条数据", delList.size());
     }
 
     public List<NoteIndex> findBy(NoteIndexQuery query) {

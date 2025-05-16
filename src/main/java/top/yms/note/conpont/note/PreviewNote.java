@@ -44,7 +44,7 @@ public class PreviewNote extends AbstractNote implements NotePreview, Initializi
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        log.info("preview support type: {}", supportViewNoteList);
+        log.debug("preview support type: {}", supportViewNoteList);
         String[] noteType = supportViewNoteList.split(",");
         typeSet.addAll(Arrays.asList(noteType));
     }
@@ -123,14 +123,14 @@ public class PreviewNote extends AbstractNote implements NotePreview, Initializi
         //2. 不在的话再去通过内容判断是否为文本。
         //todo 哎，这个判断算法还有问题，后续在看
         if (!NoteConstants.MONGO.equals(noteIndex.getStoreSite())) {
-            log.info("查询的文件id={}, 未存储在mongo上", id);
+            log.debug("查询的文件id={}, 未存储在mongo上", id);
             //目前都是存储在mongo上的,
             return false;
         }
 
         AnyFile anyFile = fileStoreService.loadFile(noteIndex.getSiteId());
         if (anyFile.getLength() == 0L) {
-            log.info("文件id={}, 为空文件", id);
+            log.debug("文件id={}, 为空文件", id);
             return false;
         }
 
