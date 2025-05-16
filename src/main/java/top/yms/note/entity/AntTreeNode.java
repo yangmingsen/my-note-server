@@ -1,5 +1,6 @@
 package top.yms.note.entity;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -14,6 +15,11 @@ public class AntTreeNode {
         this.title = title;
         this.key = key;
         this.children = children;
+    }
+
+    public AntTreeNode(String title, String key) {
+        this.title = title;
+        this.key = key;
     }
 
     public AntTreeNode() {    }
@@ -40,5 +46,12 @@ public class AntTreeNode {
 
     public void setChildren(List<AntTreeNode> children) {
         this.children = children;
+    }
+
+    public void addChild(AntTreeNode node) {
+        if (children == null) {
+            children = new LinkedList<>();
+        }
+        children.add(node);
     }
 }

@@ -14,6 +14,7 @@ import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStoreService;
 import top.yms.note.conpont.NoteCacheService;
+import top.yms.note.conpont.NoteFetchService;
 import top.yms.note.entity.NoteFile;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.NoteTree;
@@ -82,7 +83,7 @@ public class NoteFileController {
     @PostMapping("/upload")
     public JSONObject uploadFileForWer(@RequestParam(value = "file") MultipartFile file,
                                        @RequestParam("id") Long id) throws WangEditorUploadException {
-        log.debug("uploadFileForWer: id={}", id);
+        log.info("uploadFileForWer: id={}", id);
         return noteFileService.uploadFileForWer(file, id);
     }
 
@@ -174,7 +175,7 @@ public class NoteFileController {
             note.setType(FileTypeEnum.UNKNOWN.getValue());
         }
         note.setCreateTime(new Date());
-        log.debug("upload Note={}", note);
+//        log.info("upload Note={}", note);
         noteFileService.addNote(file, note);
 
         return RestOut.succeed();
@@ -208,7 +209,7 @@ public class NoteFileController {
                     }
                 }
             }
-            log.debug("checkIsEncryptedNote: 携带tmpToken: {}", tmpToken);
+            log.info("checkIsEncryptedNote: 携带tmpToken: {}", tmpToken);
 
             response.setCharacterEncoding("UTF-8");
             response.setHeader("Content-Type", "application/json");
@@ -240,7 +241,7 @@ public class NoteFileController {
 
     @GetMapping("/tmpView")
     public void tmpView(@RequestParam("id") String id, HttpServletResponse resp) throws Exception {
-        log.debug("tmpView: id={}", id);
+        log.info("tmpView: id={}", id);
         if (StringUtils.isBlank(id)) return;
 
         AnyFile file = fileStoreService.loadFile(id);
@@ -256,10 +257,10 @@ public class NoteFileController {
 
     @GetMapping("/view")
     public void view(@RequestParam("id") String id, HttpServletRequest req, HttpServletResponse resp) throws Exception {
-        log.debug("view: id={}", id);
+        log.info("view: id={}", id);
         if (StringUtils.isBlank(id)) return;
         NoteFile noteFile = noteFileService.findOne(id);
-        log.debug("view: noteFile:{}", noteFile);
+//        log.info("view: noteFile:{}", noteFile);
         if (noteFile == null) return ;
 
 //        if (!checkIsEncryptedNote(noteFile, req, resp, "加密笔记不可阅读")) {
@@ -279,13 +280,13 @@ public class NoteFileController {
 
     @GetMapping("/download")
     public void download(@RequestParam("id") String id, HttpServletRequest req, HttpServletResponse resp)  throws Exception{
-        log.debug("download: id={}", id);
+        log.info("download: id={}", id);
         noteFileService.download(id, req, resp);
     }
 
 
     @GetMapping("/url2pdf")
-    public RestOut urlToPdf(@RequestParam("url") String url, @RequestParam("parentId") Long parentId) {
+    public RestOut<String> urlToPdf(@RequestParam("url") String url, @RequestParam("parentId") Long parentId) {
         log.debug("urlToPdf: url={}", url);
         if (StringUtils.isBlank(url)) {
             throw new BusinessException(NoteIndexErrorCode.E_203116);
@@ -298,9 +299,22 @@ public class NoteFileController {
         return RestOut.succeed();
     }
 
+    @GetMapping("/url2md")
+    public RestOut<String> urlToMd(@RequestParam("url") String url, @RequestParam("parentId") Long parentId) {
+        log.debug("urlToMd: url={}", url);
+        if (StringUtils.isBlank(url)) {
+            throw new BusinessException(NoteIndexErrorCode.E_203116);
+        }
+        if (!url.startsWith("http")) {
+            throw new BusinessException(CommonErrorCode.E_203005);
+        }
+        Long noteId = noteFileService.fetch(url, NoteConstants.MARKDOWN, parentId);
+        return RestOut.succeed(noteId+"");
+    }
+
 
     //@GetMapping("/genTree")
-    public RestOut genTree(@RequestParam("id") Integer id) throws Exception{
+    public RestOut<String> genTree(@RequestParam("id") Integer id) throws Exception{
         String [] para = {
                 "Github","tmp","专业","人体","公司",
                 //0        1      2     3       4
@@ -396,12 +410,12 @@ public class NoteFileController {
             throw new BusinessException(CommonErrorCode.E_200213);
         }
 
-        log.debug("----------syncResult------------");
+        log.info("----------syncResult------------");
         List<LocalNoteSyncResult> fileStatisticList = syncStatisticList.stream().filter(LocalNoteSyncResult::isFile).collect(Collectors.toList());
-        log.debug("文件新增：{}", fileStatisticList.size());
-        log.debug("目录新增：{}", syncStatisticList.size() - fileStatisticList.size());
-        log.debug("总共新增：{}", syncStatisticList.size());
-        log.debug("--------------------------------");
+        log.info("文件新增：{}", fileStatisticList.size());
+        log.info("目录新增：{}", syncStatisticList.size() - fileStatisticList.size());
+        log.info("总共新增：{}", syncStatisticList.size());
+        log.info("--------------------------------");
         return RestOut.succeed();
     }
 

@@ -26,6 +26,7 @@ public abstract class NoteConstants {
     public final static String markdownSuffix = "md";
     public final static String mindmapSuffix = "mindmap";
     public final static String defaultSuffix = "wer";
+    public final static String zipSuffix = "zip";
 
     public final static String noteMindMap = "note_mindmap";
     public final static String noteWerTextContent = "wer_text_content";

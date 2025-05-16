@@ -4,7 +4,6 @@ import com.alibaba.fastjson2.JSONObject;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -86,12 +85,15 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
     @Override
     public synchronized void addTask(AsyncTask task) {
         dataList.add(task);
-
+        log.debug("当前任务{}, 持有任务数: {}", this, getDataSize());
         JSONObject taskInfo = JSONObject.from(task);
         Document newDoc = Document.parse(taskInfo.toString());
         mongoTemplate.save(newDoc, NoteConstants.taskInfoMessage);
+        //user custom
+        afterAddTask(task);
     }
 
+    protected void afterAddTask(AsyncTask task) {    }
 
     /**
      * 是否需要事务. true 需要
@@ -106,6 +108,7 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
         }
         if (hasData()) {
             if (needTx()) {
+                log.debug("需要事务执行----");
                 TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
                 try {
                     doRun();
@@ -115,6 +118,7 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
                     transactionManager.rollback(status);
                 }
             } else {
+                log.debug("无需事务执行----");
                 try {
                     doRun();
                 } catch (Exception e) {
@@ -133,6 +137,10 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
      */
     protected synchronized  boolean hasData() {
         return dataList.size() > 0;
+    }
+
+    protected synchronized  int getDataSize() {
+        return dataList.size();
     }
 
     /**

@@ -10,9 +10,11 @@ public enum BusinessErrorCode implements ErrorCode {
     E_204006(204006, "认证失败"),
     E_204007(204007, "禁止重复内容"),
     E_204008(204008, "不支持当前笔记预览"),
+    E_204009(204009, "未找到支持的组件"),
+    E_204010(204010, "未fetch到内容"),
     ;
-    private int code;
-    private String desc;
+    private final int code;
+    private final String desc;
 
     BusinessErrorCode(int code, String desc) {
         this.code = code;

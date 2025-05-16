@@ -30,7 +30,10 @@ import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Date;
 
 public abstract class AbstractNoteConvert implements NoteConvert{
@@ -98,12 +101,13 @@ public abstract class AbstractNoteConvert implements NoteConvert{
         }
         //获取本地存储路径
         String localPath = geExportLocalPath();
+        log.debug("get localPath={}", localPath);
         //处理转换
         doConvert(localPath, nte);
         //上传
         String fileId = uploadConvertFile(localPath, nte);
         //后置处理
-        afterConvert(nte);
+        afterConvert(localPath, nte);
         return fileId;
     }
 
@@ -170,7 +174,16 @@ public abstract class AbstractNoteConvert implements NoteConvert{
      */
     abstract void doConvert(String localPath, INoteData iNoteData) throws BusinessException;
 
-    protected void afterConvert(INoteData iNoteData) {}
+    protected void afterConvert(String localPath, INoteData iNoteData) {
+        try {
+            log.debug("prepare delete file => {}", localPath);
+            Files.delete(Paths.get(localPath));
+            log.debug("delete {} success", localPath);
+        } catch (IOException e) {
+            log.error("local file delete error", e);
+            throw new NoteSystemException(NoteSystemErrorCode.E_400005);
+        }
+    }
 
     protected String getHtml(String body) {
         // add embedded fonts for non-latin character set rendering

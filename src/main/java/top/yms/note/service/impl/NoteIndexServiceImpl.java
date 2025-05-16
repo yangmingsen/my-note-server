@@ -254,7 +254,6 @@ public class NoteIndexServiceImpl implements NoteIndexService {
             noteTreeMap.put(tmpNoteTree.getId(), tmpNoteTree);
             noteIndexMap.put(note.getId(), note);
         }
-
         //各自找各自的父节点
         List<NoteTree> resList = new LinkedList<>();
         for(Map.Entry<Long, NoteTree> entry : noteTreeMap.entrySet()) {
