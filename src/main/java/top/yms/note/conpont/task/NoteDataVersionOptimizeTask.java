@@ -19,7 +19,7 @@ public class NoteDataVersionOptimizeTask extends AbstractAsyncExecuteTask {
     }
 
     @Override
-    void doRun() {
+    void doRun(Object data) {
         List<AsyncTask> dataList = getAllData();
         for (AsyncTask asyncTask : dataList) {
             Object taskInfo = asyncTask.getTaskInfo();

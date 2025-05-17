@@ -37,6 +37,16 @@ public class NoteFetchServiceImpl implements NoteFetchService, ApplicationListen
         throw new BusinessException(BusinessErrorCode.E_204009);
     }
 
+    public Long fetch(AbstractNoteFetch.FetchMeta fetchMeta, String toType) {
+        for (NoteFetch noteFetch : componentList) {
+            if (noteFetch.supportFetch(toType)) {
+                log.debug("find fetch component => {}", noteFetch);
+                return noteFetch.fetch(fetchMeta);
+            }
+        }
+        throw new BusinessException(BusinessErrorCode.E_204009);
+    }
+
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
         ApplicationContext context = event.getApplicationContext();

@@ -128,6 +128,15 @@ public abstract class NoteConstants {
     public final static String C_METHOD = "c:m:";
 
 
+    //bookmark 同步标志
+    public final static String BOOKMARKS_SYNC_FLAG = "1";
+    public final static String BOOKMARKS_SYNC_FLAG_UN = "0";
+    public final static String BOOKMARKS_FOLDER = "folder";
+    public final static String BOOKMARKS_URL = "url";
+    public final static String BOOKMARKS_CHILDREN = "children";
+
+
+
 
 
 

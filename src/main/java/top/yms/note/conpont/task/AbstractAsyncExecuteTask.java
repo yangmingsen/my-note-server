@@ -6,12 +6,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.ComponentSort;
+import top.yms.note.exception.BusinessException;
+import top.yms.note.exception.NoteSystemException;
+import top.yms.note.msgcd.NoteSystemErrorCode;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -86,11 +91,20 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
     public synchronized void addTask(AsyncTask task) {
         dataList.add(task);
         log.debug("当前任务{}, 持有任务数: {}", this, getDataSize());
+        //save task to db
+        saveTask(task);
+        //user custom
+        afterAddTask(task);
+    }
+
+    /**
+     * save task to db
+     * @param task
+     */
+    protected void saveTask(AsyncTask task) {
         JSONObject taskInfo = JSONObject.from(task);
         Document newDoc = Document.parse(taskInfo.toString());
         mongoTemplate.save(newDoc, NoteConstants.taskInfoMessage);
-        //user custom
-        afterAddTask(task);
     }
 
     protected void afterAddTask(AsyncTask task) {    }
@@ -103,32 +117,67 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
 
     @Override
     public void run() {
-        if (!beforeRun()) {
-            log.warn("beforeRun 异常....");
-        }
-        if (hasData()) {
-            if (needTx()) {
-                log.debug("需要事务执行----");
-                TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
-                try {
-                    doRun();
-                    transactionManager.commit(status);
-                } catch (Exception e) {
-                    log.error("AbstractAsyncExecuteTask1执行异常：", e);
-                    transactionManager.rollback(status);
-                }
-            } else {
-                log.debug("无需事务执行----");
-                try {
-                    doRun();
-                } catch (Exception e) {
-                    log.error("AbstractAsyncExecuteTask2执行异常", e);
+        log.debug("start task at {}", LocalDateTime.now());
+        Object currentData = null;
+        try {
+            currentData = getCurrentNeedHandleData();
+            if (!beforeRun(currentData)) {
+                log.warn("beforeRun 异常....");
+            }
+            if (hasData()) {
+                if (needTx()) {
+                    log.debug("------------------------需要事务执行------------------");
+                    // 定义事务属性
+                    DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+                    def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED); // 可根据需要设置传播行为
+                    def.setTimeout(120); //设置30秒超时
+                    // 获取事务状态
+                    TransactionStatus status = transactionManager.getTransaction(def);
+                    try {
+                        doRun(currentData);
+                        transactionManager.commit(status);
+                    } catch (Throwable e) {
+                        log.error("AbstractAsyncExecuteTask 【事务模式】 执行异常：", e);
+                        transactionManager.rollback(status);
+                        throwException(currentData);
+                        throw e;
+                    }
+                } else {
+                    log.debug("-----------------------无需事务执行-------------------");
+                    try {
+                        doRun(currentData);
+                    } catch (Exception e) {
+                        log.error("AbstractAsyncExecuteTask 【无事务模式】 执行异常", e);
+                        throwException(currentData);
+                        throw e;
+                    }
                 }
             }
+        } catch (Throwable t) {
+            log.error("Note Task execute error", t);
+            throw new NoteSystemException(NoteSystemErrorCode.E_400009);
+        } finally {
+            if (!runComplete(currentData)) {
+                log.warn("runComplete 异常....");
+            }
         }
-        if (!runComplete()) {
-            log.warn("runComplete 异常....");
-        }
+
+    }
+
+    /**
+     * 给与子类一个机会获取当前正在处理的数据
+     * @return
+     */
+    protected Object getCurrentNeedHandleData() throws Exception{
+        return null;
+    }
+
+    /**
+     * 当发生异常时，回调子类
+     * @param currentData
+     */
+    protected void throwException(Object currentData) {
+
     }
 
     /**
@@ -193,15 +242,19 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
     /**
      * 执行任务
      */
-    abstract void doRun();
+    abstract void doRun(Object data);
 
-    protected boolean beforeRun() {
+    protected Object getCurrentNeedHandleData(Object obj) {
+        return getAllData();
+    }
+
+    protected boolean beforeRun(Object obj) {
 //        setStatus(StatusEnum.Running.getValue());
         workerCount.getAndIncrement();
         return true;
     }
 
-    protected boolean runComplete() {
+    protected boolean runComplete(Object obj) {
 //        setStatus(StatusEnum.UnRunning.getValue());
         workerCount.decrementAndGet();
         return true;

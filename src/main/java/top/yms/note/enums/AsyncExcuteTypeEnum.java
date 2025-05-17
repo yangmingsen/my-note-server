@@ -7,6 +7,7 @@ public enum AsyncExcuteTypeEnum {
     SYNC_TASK("立即执行任务", "sync_task"),
     DELAY_EXC_TASK("延迟执行任务", "delay_exc_task"),
     CALLER_TASK("使用调用者线程执行的任务", "caller_task"),
+    CUSTOM_TASK("自定义任务", "custom_task"),
     TIMED_TASK("定时任务", "timed_task");
 
     private final String name;

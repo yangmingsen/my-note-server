@@ -42,7 +42,7 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
         int dataSize = getDataSize();
         log.debug("curDataSize={}, immediatelySize={}",dataSize, immediatelySize );
         if (dataSize >= immediatelySize) {
-            doRun();
+            doRun(null);
         }
     }
 
@@ -52,7 +52,7 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
     }
 
     @Override
-    void doRun() {
+    void doRun(Object data) {
         List<AsyncTask> allData = getAllData();
 //        log.debug("当前时间: {} , 获取到数据: {}", DateHelper.getYYYY_MM_DD_HH_MM_SS(), allData);
         for(AsyncTask asyncTask : allData) {

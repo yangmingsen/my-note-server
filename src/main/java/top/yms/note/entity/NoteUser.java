@@ -52,6 +52,16 @@ public class NoteUser {
      */
     private Date updateTime;
 
+    private Long noteRootTreeId;
+
+    public Long getNoteRootTreeId() {
+        return noteRootTreeId;
+    }
+
+    public void setNoteRootTreeId(Long noteRootTreeId) {
+        this.noteRootTreeId = noteRootTreeId;
+    }
+
     public Long getId() {
         return id;
     }
