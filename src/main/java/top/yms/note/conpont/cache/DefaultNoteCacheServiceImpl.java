@@ -2,6 +2,7 @@ package top.yms.note.conpont.cache;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteCacheService;
@@ -12,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by yangmingsen on 2024/4/13.
  */
+@Primary
 @Component(NoteConstants.defaultNoteCache)
 public class DefaultNoteCacheServiceImpl implements NoteCacheService {
 

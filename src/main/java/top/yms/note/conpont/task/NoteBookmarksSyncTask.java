@@ -13,7 +13,6 @@ import top.yms.note.exception.NoteSystemException;
 import top.yms.note.mapper.NoteBookmarksMapper;
 import top.yms.note.mapper.NoteIndexMapper;
 import top.yms.note.msgcd.NoteSystemErrorCode;
-import top.yms.note.service.NoteIndexService;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -33,9 +32,6 @@ public class NoteBookmarksSyncTask  extends AbstractAsyncExecuteTask implements 
     private volatile ThreadPoolExecutor threadPoolExecutor = null;
 
     private final AtomicInteger taskCnt = new AtomicInteger(0);
-
-    @Resource
-    private NoteIndexService noteIndexService;
 
     @Resource
     private NoteFetchService noteFetchService;
@@ -173,7 +169,7 @@ public class NoteBookmarksSyncTask  extends AbstractAsyncExecuteTask implements 
         return AsyncTaskEnum.apply(task.getType().getValue()) == AsyncTaskEnum.BOOKMARKS_SYNC_TASK;
     }
 
-    public  class ThreadPoolCheckTask implements Runnable{
+    public  class ThreadPoolCheckTask implements NoteTask{
 
         @Override
         public void run() {
