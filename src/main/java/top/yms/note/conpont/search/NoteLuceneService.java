@@ -143,20 +143,25 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
                     // 获取高亮的文本片段
                     TokenStream titleTokenStream = TokenSources.getTokenStream(NoteConstants.IDX_TITLE, indexReader.getTermVectors(hit.doc), title, ikAnalyzer, -1);
                     String titleFragment = highlighter.getBestFragment(titleTokenStream, title);
-                    searchResult.setResType(SearchResult.Note_Title_Type);
-                    searchResult.setResult(titleFragment+getViewValue(notePath));
-                    searchResults.add(searchResult);
+                    //fix: bug20250529 发现搜索时，出现null 显示在搜索列表上
+                    if (StringUtils.isNotBlank(titleFragment)) {
+                        searchResult.setResType(SearchResult.Note_Title_Type);
+                        searchResult.setResult(titleFragment+getViewValue(notePath));
+                        searchResults.add(searchResult);
+                    }
                 }
                 String content = hitDoc.get(NoteConstants.IDX_CONTENT);
                 if (!StringUtils.isEmpty(content)) {
                     // 获取高亮的文本片段
                     TokenStream contentTokenStream = TokenSources.getTokenStream(NoteConstants.IDX_CONTENT, indexReader.getTermVectors(hit.doc), content, ikAnalyzer, -1);
                     String contentFragment = highlighter.getBestFragment(contentTokenStream, content);
-                    NoteSearchResult contentSearchResult = new NoteSearchResult();
-                    BeanUtils.copyProperties(searchResult, contentSearchResult );
-                    contentSearchResult.setResType(SearchResult.Note_Content_Type);
-                    contentSearchResult.setResult(contentFragment+getViewValue(notePath));
-                    searchResults.add(contentSearchResult);
+                    if (StringUtils.isNotBlank(contentFragment)) {
+                        NoteSearchResult contentSearchResult = new NoteSearchResult();
+                        BeanUtils.copyProperties(searchResult, contentSearchResult );
+                        contentSearchResult.setResType(SearchResult.Note_Content_Type);
+                        contentSearchResult.setResult(contentFragment+getViewValue(notePath));
+                        searchResults.add(contentSearchResult);
+                    }
                 }
             }
         }catch (Exception e) {

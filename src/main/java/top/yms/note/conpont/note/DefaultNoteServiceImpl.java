@@ -124,4 +124,22 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
         }
         throw new BusinessException(CommonErrorCode.E_200220);
     }
+
+    @Override
+    public boolean supportDestroy(String noteType) {
+        return false;
+    }
+
+    @Override
+    public void noteDestroy(Long id) {
+        NoteIndex noteMeta = getNoteMeta(id);
+        for(Note note : noteComponentList) {
+            if (note.supportDestroy(noteMeta.getType()) ) {
+                log.debug("find note component => {}", note);
+                 note.noteDestroy(id);
+                 return;
+            }
+        }
+        throw new BusinessException(CommonErrorCode.E_200225);
+    }
 }

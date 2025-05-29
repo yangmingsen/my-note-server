@@ -5,6 +5,9 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import top.yms.note.conpont.ComponentSort;
 import top.yms.note.dto.INoteData;
+import top.yms.note.exception.BusinessException;
+import top.yms.note.msgcd.BusinessErrorCode;
+import top.yms.note.msgcd.CommonErrorCode;
 
 /**
  * 此为目录笔记（特殊类型）
@@ -17,6 +20,16 @@ public class DirNote implements Note{
             return true;
         }
         return false;
+    }
+
+    @Override
+    public boolean supportDestroy(String noteType) {
+        return false;
+    }
+
+    @Override
+    public void noteDestroy(Long id) {
+        throw new BusinessException(CommonErrorCode.E_200211);
     }
 
     @Override

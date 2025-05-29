@@ -32,6 +32,7 @@ public enum CommonErrorCode implements ErrorCode {
     E_200222(200222, "未找到适配NoteConvert组件"),
     E_200223(200223, "未找到适配NoteEncrypt组件"),
     E_200224(200224, "未找到适配NoteDecrypt组件"),
+    E_200225(200225, "未找到适配NoteDestroy组件"),
 
     E_203000(203000, "Note parentId不能为空"),
     E_203001(203001, "Note Id不能为空"),
