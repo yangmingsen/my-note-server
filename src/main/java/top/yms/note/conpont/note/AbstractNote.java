@@ -118,6 +118,16 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         return false;
     }
 
+    @Override
+    public boolean supportDestroy(String noteType) {
+        return false;
+    }
+
+    @Override
+    public void noteDestroy(Long id) {
+
+    }
+
     /**
      * 查找noteFile信息
      * @param id
@@ -282,6 +292,10 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         if (!supportSave()) {
             log.debug("当前组件不支持该类型数据保存");
             return false;
+        }
+        //非法内容校验
+        if (checkContent(iNoteData.getContent())) {
+            throw new BusinessException(NoteIndexErrorCode.E_203112);
         }
         //重复内容校验
         INoteData oldContent = doGetContent(iNoteData.getId());

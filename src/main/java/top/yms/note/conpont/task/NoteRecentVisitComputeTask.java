@@ -89,7 +89,7 @@ public class NoteRecentVisitComputeTask extends AbstractAsyncExecuteTask impleme
     }
 
     @Override
-    void doRun() {
+    void doRun(Object data) {
         List<AsyncTask> allData = getAllData();
         for (AsyncTask at : allData) {
             Long userId = at.getUserId();

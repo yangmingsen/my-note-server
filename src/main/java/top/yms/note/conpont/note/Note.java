@@ -8,7 +8,8 @@ import top.yms.note.exception.BusinessException;
 /**
  * 笔记类型抽象接口
  */
-public interface Note extends NoteExport, NoteEncrypt, NoteVersion, ComponentSort, Comparable<ComponentSort>{
+public interface Note extends NoteExport, NoteEncrypt, NoteVersion,
+        NoteDestroy, ComponentSort, Comparable<ComponentSort>{
     /**
      * 是否支持当前类型(type)的内容
      * @param type
@@ -46,7 +47,5 @@ public interface Note extends NoteExport, NoteEncrypt, NoteVersion, ComponentSor
      * @return true-是 , - false
      */
     boolean supportSave();
-
-    default void destroy(Long id){}
 
 }

@@ -38,7 +38,7 @@ public class NoteIndexUpdateTask extends AbstractAsyncExecuteTask implements Del
     }
 
     @Override
-    void doRun() {
+    void doRun(Object data) {
         List<AsyncTask> allData = getAllData();
         //这里进行索引更新时必须要加锁进行
         synchronized (obj) {

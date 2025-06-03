@@ -34,7 +34,6 @@ public class MongFile449 implements AnyFile {
         }
         isp.close();
         out.close();
-
         return 0;
     }
 

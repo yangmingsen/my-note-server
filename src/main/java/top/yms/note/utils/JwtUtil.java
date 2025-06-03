@@ -21,11 +21,17 @@ public class JwtUtil {
 
 
     @Value("${system.jwt.secret_key}")
-    private  String SECRET_KEY;
+    private  String secretKey;//SECRET_KEY;
 
 
     @Value("${system.jwt.expire_time}")
     private Long expireTime;
+
+    private String getSecretKey() {
+        String key =  Base64Util.decodeStr(secretKey);
+        logger.debug("SecretKey = {}", key);
+        return key;
+    }
 
 
     // 生成JWT
@@ -40,7 +46,7 @@ public class JwtUtil {
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expireTime))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .signWith(SignatureAlgorithm.HS256, getSecretKey())
                 .compact();
     }
 
@@ -84,7 +90,7 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+        return Jwts.parser().setSigningKey(getSecretKey()).parseClaimsJws(token).getBody();
     }
 
     private Boolean isTokenExpired(String token) {

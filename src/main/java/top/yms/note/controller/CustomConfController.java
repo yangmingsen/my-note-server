@@ -93,4 +93,5 @@ public class CustomConfController {
     public RestOut<Object> findUserConfig() {
         return RestOut.success(customConfServiceImpl.findUserConfig(LocalThreadUtils.getUserId()));
     }
+
 }

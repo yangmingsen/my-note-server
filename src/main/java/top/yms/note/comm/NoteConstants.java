@@ -112,6 +112,7 @@ public abstract class NoteConstants {
     public final static String bigFileGridFsTemplate = "bigFileGridFsTemplate";
     public final static String bigFileGridFsBucket = "bigFileGridFsBucket";
 
+    public final static String storageFileStoreService = "storageFileStoreService";
     public final static String mongoFileStoreService = "mongoFileStoreService";
     public final static String mongoFileStore449 = "mongoFileStore449";
     //mongo file start prefix
@@ -126,6 +127,15 @@ public abstract class NoteConstants {
 
     //cache PREFIX
     public final static String C_METHOD = "c:m:";
+
+
+    //bookmark 同步标志
+    public final static String BOOKMARKS_SYNC_FLAG = "1";
+    public final static String BOOKMARKS_SYNC_FLAG_UN = "0";
+    public final static String BOOKMARKS_FOLDER = "folder";
+    public final static String BOOKMARKS_URL = "url";
+    public final static String BOOKMARKS_CHILDREN = "children";
+
 
 
 

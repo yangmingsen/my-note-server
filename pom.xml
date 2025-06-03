@@ -183,6 +183,11 @@
             <artifactId>xz</artifactId>
             <version>1.9</version>
         </dependency>
+        <dependency>
+            <groupId>top.yms.storage</groupId>
+            <artifactId>storage-sdk</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -42,6 +42,7 @@ public class AsyncExecuteTaskServiceImpl implements NoteAsyncExecuteTaskService,
 
     @Override
     public void addTask(AsyncTask task) {
+        log.debug("addTask taskInfo={}", task);
         if (task.getType() == null) {
             log.error("addTask# 异步任务类型为空");
             throw new BusinessException(CommonErrorCode.E_300001);

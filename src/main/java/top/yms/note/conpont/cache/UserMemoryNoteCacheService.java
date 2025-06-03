@@ -14,7 +14,6 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * Created by yangmingsen on 2024/8/12.
  */
-@Primary
 @Component(NoteConstants.userMemoryNoteCache)
 public class UserMemoryNoteCacheService implements NoteCacheService {
 

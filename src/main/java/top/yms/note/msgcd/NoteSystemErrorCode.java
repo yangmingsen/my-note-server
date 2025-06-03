@@ -9,6 +9,8 @@ public enum NoteSystemErrorCode implements ErrorCode{
     E_400005(400005, "本地文件删除出错"),
     E_400006(400006, "zip解析异常"),
     E_400007(400007, "压缩解析异常"),
+    E_400008(400008, "队列操作异常"),
+    E_400009(400009, "note task 处理异常"),
 
 
     ;

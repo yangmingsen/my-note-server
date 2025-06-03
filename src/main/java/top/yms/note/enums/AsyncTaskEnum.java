@@ -4,7 +4,7 @@ public enum AsyncTaskEnum {
     SYNC_USER_CONFIG("同步用户配置", "sync_user_config"),
     SYNC_Note_Index_UPDATE("同步某个笔记全文搜索索引", "sync_note_index_update"),
     SYNC_COMPUTE_RECENT_VISIT("同步计算用户最近访问信息", "sync_compute_recent_visit"),
-
+    BOOKMARKS_SYNC_TASK("同步bookmarks", "bookmarks_sync_task"),
     NOTE_CONTENT_VERSION_OPTIMIZE("笔记版本优化", "note_content_version_optimize")
     ;
 
