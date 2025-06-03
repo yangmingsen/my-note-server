@@ -194,7 +194,8 @@ public class ArchivePreview extends AbstractNote{
         @Override
         AntTreeNode doParse(ArchiveMeta archiveMeta) throws Exception {
             AntTreeNode root = archiveMeta.getRoot();
-            try (ZipInputStream zis = new ZipInputStream(archiveMeta.getAnyFile().getInputStream())) {
+            try (InputStream is = archiveMeta.getAnyFile().getInputStream();
+                    ZipInputStream zis = new ZipInputStream(is)) {
                 ZipEntry entry;
                 while ((entry = zis.getNextEntry()) != null) {
                     String entryName = entry.getName();
@@ -219,7 +220,8 @@ public class ArchivePreview extends AbstractNote{
         @Override
         AntTreeNode doParse(ArchiveMeta archiveMeta) throws Exception {
             AntTreeNode root = archiveMeta.getRoot();
-            try (InputStream gis = new GzipCompressorInputStream(archiveMeta.getAnyFile().getInputStream());
+            try (  InputStream is = archiveMeta.getAnyFile().getInputStream();
+                    InputStream gis = new GzipCompressorInputStream(is);
                  TarArchiveInputStream tais = new TarArchiveInputStream(gis)){
                 TarArchiveEntry entry;
                 while ((entry = tais.getNextTarEntry()) != null) {
@@ -251,7 +253,8 @@ public class ArchivePreview extends AbstractNote{
         @Override
         AntTreeNode doParse(ArchiveMeta archiveMeta) throws Exception {
             AntTreeNode root = archiveMeta.getRoot();
-            byte[] bytes = toByteArray(archiveMeta.getAnyFile().getInputStream());
+            InputStream is = archiveMeta.getAnyFile().getInputStream();
+            byte[] bytes = toByteArray(is);
             try (SeekableInMemoryByteChannel channel = new SeekableInMemoryByteChannel(bytes);
                  SevenZFile sevenZFile = new SevenZFile(channel)) {
                 SevenZArchiveEntry entry;
@@ -259,6 +262,8 @@ public class ArchivePreview extends AbstractNote{
                     String entryName = entry.getName();
                     addToTree(root, archiveMeta.getPathMap(), entryName);
                 }
+            } finally {
+                is.close();
             }
             return root;
         }
@@ -306,7 +311,8 @@ public class ArchivePreview extends AbstractNote{
         @Override
         AntTreeNode doParse(ArchiveMeta archiveMeta) throws Exception {
             AntTreeNode root = archiveMeta.getRoot();
-            try (TarArchiveInputStream tais = new TarArchiveInputStream(archiveMeta.getAnyFile().getInputStream())) {
+            try (InputStream is = archiveMeta.getAnyFile().getInputStream();
+                    TarArchiveInputStream tais = new TarArchiveInputStream(is)) {
                 TarArchiveEntry entry;
                 while ((entry = tais.getNextTarEntry()) != null) {
                     String entryName = entry.getName();

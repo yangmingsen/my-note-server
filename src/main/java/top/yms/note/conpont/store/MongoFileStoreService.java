@@ -29,7 +29,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-@Primary
+
 @Component(NoteConstants.mongoFileStoreService)
 public class MongoFileStoreService implements FileStoreService {
 
@@ -195,7 +195,8 @@ public class MongoFileStoreService implements FileStoreService {
             GridFSFile gFS = bigFileGridFsTemplate.findOne(new Query(Criteria.where(NoteConstants._id).is(newId)));
             AnyFile anyFile = new MongFile449(gFS, newGridFSBucket);
             StringBuilder contentStr = new StringBuilder();
-            try(InputStreamReader isr = new InputStreamReader(anyFile.getInputStream(), StandardCharsets.UTF_8)) {
+            try(InputStream is = anyFile.getInputStream();
+                    InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8)) {
                 int bufLen = 1024;
                 char [] cBuf = new char[bufLen];
                 int rLen;

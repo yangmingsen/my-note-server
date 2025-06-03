@@ -112,6 +112,7 @@ public abstract class NoteConstants {
     public final static String bigFileGridFsTemplate = "bigFileGridFsTemplate";
     public final static String bigFileGridFsBucket = "bigFileGridFsBucket";
 
+    public final static String storageFileStoreService = "storageFileStoreService";
     public final static String mongoFileStoreService = "mongoFileStoreService";
     public final static String mongoFileStore449 = "mongoFileStore449";
     //mongo file start prefix

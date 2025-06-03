@@ -71,7 +71,8 @@ public class PreviewNote extends AbstractNote implements NotePreview, Initializi
         AnyFile anyFile = fileStoreService.loadFile(noteIndex.getSiteId());
         StringBuilder contentStr = new StringBuilder("```");
         contentStr.append(noteIndex.getType()).append("\n");
-        try(InputStreamReader isr = new InputStreamReader(anyFile.getInputStream(), StandardCharsets.UTF_8)) {
+        try( InputStream is = anyFile.getInputStream();
+                InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8)) {
             int bufLen = 1024;
             char [] cBuf = new char[bufLen];
             int rLen = 0;

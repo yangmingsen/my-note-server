@@ -1,6 +1,9 @@
 package top.yms.note.conpont;
 
 import org.springframework.web.multipart.MultipartFile;
+import top.yms.note.exception.BusinessException;
+import top.yms.note.msgcd.BusinessErrorCode;
+import top.yms.note.msgcd.CommonErrorCode;
 
 import java.io.File;
 import java.io.InputStream;
@@ -25,7 +28,9 @@ public interface FileStoreService {
      * @return
      */
     @Deprecated
-    String saveFile(MultipartFile file, Object [] objs);
+    default String saveFile(MultipartFile file, Object [] objs) {
+        throw new BusinessException(CommonErrorCode.E_200211);
+    }
 
 
     String saveFile(MultipartFile file) throws Exception;
