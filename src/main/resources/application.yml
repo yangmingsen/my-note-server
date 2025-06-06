@@ -47,8 +47,6 @@ spring:
 #      yms:
 #        note: info
 
-swagger:
-  enable: true
 
 #debug: true
 
@@ -63,7 +61,4 @@ cors:
   allowed-method: OPTIONS,HEAD,GET,POST,PUT,DELETE,PATCH
 
 sys:
-  session-expire-time: 30m
   note-interceptor: true
-  sql-show: false
-  enable-service-cache: false

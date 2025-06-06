@@ -29,6 +29,7 @@
         <mybatis-spring-boot.version>2.0.0</mybatis-spring-boot.version>
         <transmittable-thread-local.version>2.10.1</transmittable-thread-local.version>
         <flexmark.version>0.62.2</flexmark.version>
+        <storage.sdk.version>1.0.1</storage.sdk.version>
     </properties>
     <dependencies>
         <dependency>
@@ -186,7 +187,7 @@
         <dependency>
             <groupId>top.yms.storage</groupId>
             <artifactId>storage-sdk</artifactId>
-            <version>1.0.0</version>
+            <version>${storage.sdk.version}</version>
         </dependency>
     </dependencies>
 

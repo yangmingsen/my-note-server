@@ -422,7 +422,10 @@ public class NoteIndexController {
      */
     @GetMapping("/encrypted-read-note")
     public RestOut<String> encryptedReadNote(@RequestParam("id") Long id) {
+        long st = System.currentTimeMillis();
         noteIndexService.encryptedReadNote(id);
+        long et = System.currentTimeMillis();
+        log.debug("加密耗时: {}", et-st);
         return RestOut.succeed();
     }
 
