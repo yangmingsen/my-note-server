@@ -1,19 +1,12 @@
-server:
-  port: 9103
-  servlet:
-    context-path: /note
-
 spring:
-  #  aop:
-  #    proxy-target-class: false
-  data:
-    mongodb:
-      url: mongodb://localhost:27017
-      database: my_note
-  application:
-    name: my-note
-  main:
-    allow-bean-definition-overriding: true
+#  data:
+#    mongodb:
+#      url: mongodb://localhost:27017
+#      database: my_note
+#  application:
+#    name: my-note
+#  main:
+#    allow-bean-definition-overriding: true
   datasource:
     username: root
     password: ymsyms
@@ -34,31 +27,16 @@ spring:
     maxPoolPreparedStatementPerConnectionSize: 20
     useGlobalDataSourceStat: true
     connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
-  servlet:
-    multipart:
-      max-file-size: 500MB
-      max-request-size: 500MB
+#  servlet:
+#    multipart:
+#      max-file-size: 500MB
+#      max-request-size: 500MB
 
-#logging:
-#  path:
-#  file: note-log.log
-#  level:
-#    top:
-#      yms:
-#        note: info
+#mybatis:
+#  mapper-locations: classpath:top/yms/note/mapper/*.xml
+#
+#cors:
+#  allowed-hosts: 127.0.0.1,localhost,note.yms.top
+#  allowed-ports: 5173,9090
+#  allowed-method: OPTIONS,HEAD,GET,POST,PUT,DELETE,PATCH
 
-
-#debug: true
-
-
-mybatis:
-  mapper-locations: classpath:top/yms/note/mapper/*.xml
-
-
-cors:
-  allowed-hosts: 127.0.0.1,localhost,note.yms.top
-  allowed-ports: 5173,9090
-  allowed-method: OPTIONS,HEAD,GET,POST,PUT,DELETE,PATCH
-
-sys:
-  note-interceptor: true

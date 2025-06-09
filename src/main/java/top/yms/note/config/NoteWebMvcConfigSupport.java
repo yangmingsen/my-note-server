@@ -17,7 +17,7 @@ import javax.annotation.Resource;
 public class NoteWebMvcConfigSupport extends WebMvcConfigurationSupportConfigurer {
 
     private static Logger log = LoggerFactory.getLogger(NoteWebMvcConfigSupport.class);
-    @Value("${sys.note-interceptor}")
+    @Value("${sys.note-interceptor:true}")
     private String noteInterceptor;
 
     @Resource
