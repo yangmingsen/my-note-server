@@ -69,6 +69,7 @@ public class NoteDataController {
 
     @GetMapping("/get")
     public RestOut<NoteData> findOne(@RequestParam("id") Long id, HttpServletRequest request) {
+        long st = System.currentTimeMillis();
         if (id == null) {
             throw new BusinessException(CommonErrorCode.E_200202);
         }
@@ -78,6 +79,8 @@ public class NoteDataController {
             LocalThreadUtils.get().put(NoteConstants.TMP_VISIT_TOKEN, tmpToken);
         }
         NoteData res = noteDataService.findNoteData(id);
+        long et = System.currentTimeMillis();
+        log.debug("findOne spend time = {}", et-st);
         return RestOut.success(res);
     }
 

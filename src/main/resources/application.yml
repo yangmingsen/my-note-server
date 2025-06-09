@@ -36,8 +36,8 @@ spring:
     connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
   servlet:
     multipart:
-      max-file-size: 50MB
-      max-request-size: 50MB
+      max-file-size: 500MB
+      max-request-size: 500MB
 
 #logging:
 #  path:
@@ -47,8 +47,6 @@ spring:
 #      yms:
 #        note: info
 
-swagger:
-  enable: true
 
 #debug: true
 
@@ -63,7 +61,4 @@ cors:
   allowed-method: OPTIONS,HEAD,GET,POST,PUT,DELETE,PATCH
 
 sys:
-  session-expire-time: 30m
   note-interceptor: true
-  sql-show: false
-  enable-service-cache: false

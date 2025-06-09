@@ -12,6 +12,7 @@ public enum BusinessErrorCode implements ErrorCode {
     E_204008(204008, "不支持当前笔记预览"),
     E_204009(204009, "未找到支持的组件"),
     E_204010(204010, "未fetch到内容"),
+    E_204011(204011, "移动目标位置必须是目录"),
     ;
     private final int code;
     private final String desc;

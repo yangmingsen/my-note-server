@@ -27,6 +27,7 @@ import top.yms.note.entity.*;
 import top.yms.note.enums.*;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.*;
+import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.msgcd.NoteIndexErrorCode;
 import top.yms.note.service.NoteIndexService;
 import top.yms.note.utils.IdWorker;
@@ -759,6 +760,11 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void updateMove(NoteMoveDto noteMoveDto) {
+        Long toId = noteMoveDto.getToId();
+        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(toId);
+        if (!NoteConstants.DIR_FLAG.equals(noteIndex.getIsFile())) {
+            throw new BusinessException(BusinessErrorCode.E_204011);
+        }
         NoteIndex upDo = new NoteIndex();
         upDo.setId(noteMoveDto.getFromId());
         upDo.setParentId(noteMoveDto.getToId());
