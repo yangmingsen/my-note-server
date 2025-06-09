@@ -195,7 +195,8 @@ public class NoteFileServiceImpl implements NoteFileService {
         noteDataService.save(noteData);
     }
 
-    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
+    //bug20250609 10对于大文件上传会出现事务超时
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 60)
     public void addNote(MultipartFile file, NoteIndex note) throws Exception{
         String fileId = null;
         try {
@@ -207,10 +208,8 @@ public class NoteFileServiceImpl implements NoteFileService {
             //先默认上传到mongo
             note.setStoreSite(NoteConstants.MONGO);
             note.setSiteId(fileId);
-
             //存储到t_note_index
             noteIndexService.add(note);
-
             String tmpViewUrl = NoteConstants.getFileViewUrlSuffix(fileId);
             //store to t_note_file
             NoteFile noteFile = new NoteFile();
@@ -230,7 +229,6 @@ public class NoteFileServiceImpl implements NoteFileService {
             }
             throw new RuntimeException(e);
         }
-
     }
 
     /**
