@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteAsyncExecuteTaskService;
 import top.yms.note.conpont.NoteCacheService;
+import top.yms.note.conpont.NoteShareService;
 import top.yms.note.conpont.task.AsyncTask;
 import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.dto.NoteListQueryDto;
@@ -56,6 +57,9 @@ public class NoteIndexController {
     @Qualifier(NoteConstants.noteExpireTimeCache)
     @Resource
     private NoteCacheService noteExpireCacheService;
+
+    @Resource
+    private NoteShareService noteShareService;
 
     @GetMapping("/list")
     public RestOut<List<NoteIndex>> findByUid() {
@@ -456,6 +460,27 @@ public class NoteIndexController {
     public RestOut<String> autoDecryptedAllNote() {
         noteIndexService.autoDecryptedAllNote();
         return RestOut.succeed();
+    }
+
+    /**
+     * 关闭笔记分享
+     * @param noteId
+     */
+    @GetMapping("/share-close")
+    RestOut<String> shareNoteClose(@RequestParam("noteId") Long noteId) {
+        noteShareService.shareNoteClose(noteId);
+        return RestOut.succeed();
+    }
+
+    /**
+     * 开启笔记分享
+     * @param noteId
+     * @return
+     */
+    @GetMapping("/share-open")
+    RestOut<NoteShareInfo> shareNoteOpen(@RequestParam("noteId")Long noteId) {
+        NoteShareInfo noteShareInfo = noteShareService.shareNoteOpen(noteId);
+        return RestOut.success(noteShareInfo);
     }
 
 }

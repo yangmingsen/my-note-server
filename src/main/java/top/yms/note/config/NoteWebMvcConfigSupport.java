@@ -31,6 +31,7 @@ public class NoteWebMvcConfigSupport extends WebMvcConfigurationSupportConfigure
                     .addPathPatterns("/**")
                     .excludePathPatterns("/user/login","/file/view","/file/download",
                             "/file/tmpView",
+                            "/share/**",
                             "/actuator/**","/favicon.ico","/health","/account/login",
                             "/swagger-ui.html","/webjars/**","/swagger-resources/**");
         }

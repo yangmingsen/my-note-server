@@ -16,6 +16,7 @@
     <result column="f_size" jdbcType="BIGINT" property="size" />
     <result column="f_encrypted" jdbcType="VARCHAR" property="encrypted" />
     <result column="f_view_time" jdbcType="TIMESTAMP" property="viewTime" />
+    <result column="f_share" jdbcType="VARCHAR" property="share" />
   </resultMap>
   <sql id="commonWhereClause" >
     <where>
@@ -27,6 +28,9 @@
       </if>
       <if test="encrypted != null and encrypted != ''" >
         and f_encrypted = #{ encrypted , jdbcType=VARCHAR}
+      </if>
+      <if test="share != null and share != ''" >
+        and f_share = #{ share , jdbcType=VARCHAR}
       </if>
     </where>
   </sql>
@@ -90,7 +94,7 @@
   </sql>
   <sql id="Base_Column_List">
     f_id, f_parent_id, f_user_id, f_name, f_isfile, f_type, f_del, f_create_time, f_update_time,
-        f_store_site, f_site_id, f_size, f_encrypted,f_view_time
+        f_store_site, f_site_id, f_size, f_encrypted, f_view_time, f_share
   </sql>
   <select id="selectByCondition" parameterType="top.yms.note.entity.NoteIndex" resultMap="BaseResultMap">
     select
@@ -275,6 +279,9 @@
       <if test="record.viewTime != null">
         f_view_time = #{record.viewTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.share != null">
+        f_share = #{record.share,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -340,6 +347,9 @@
       </if>
       <if test="viewTime != null">
         f_view_time = #{viewTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="share != null">
+        f_share = #{share,jdbcType=VARCHAR},
       </if>
     </set>
     where f_id = #{id,jdbcType=BIGINT}

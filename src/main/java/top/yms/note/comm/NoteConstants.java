@@ -137,6 +137,13 @@ public abstract class NoteConstants {
     public final static String BOOKMARKS_CHILDREN = "children";
 
 
+    //分享常量-
+    //分享
+    public final static String SHARE_FLAG = "1";
+    //未分享
+    public final static String SHARE_UN_FLAG = "0";
+
+
 
 
 
@@ -164,6 +171,15 @@ public abstract class NoteConstants {
         String baseUrl = sysConfigService.getStringValue("system.base_url");
         if (StringUtils.isBlank(baseUrl)) {
             throw new RuntimeException("base_url is 空");
+        }
+        return baseUrl;
+    }
+
+    public static String getBaseShareUrl() {
+        SysConfigService sysConfigService = SpringContext.getBean(SysConfigService.class);
+        String baseUrl = sysConfigService.getStringValue("system.base_share_url");
+        if (StringUtils.isBlank(baseUrl)) {
+            throw new RuntimeException("base_share_url is 空");
         }
         return baseUrl;
     }
