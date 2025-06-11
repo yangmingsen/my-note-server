@@ -9,7 +9,8 @@ import top.yms.note.exception.BusinessException;
  * 笔记类型抽象接口
  */
 public interface Note extends NoteExport, NoteEncrypt, NoteVersion,
-        NoteDestroy, ComponentSort, Comparable<ComponentSort>{
+        NoteDestroy, ComponentSort, Comparable<ComponentSort>,
+        NoteShare {
     /**
      * 是否支持当前类型(type)的内容
      * @param type

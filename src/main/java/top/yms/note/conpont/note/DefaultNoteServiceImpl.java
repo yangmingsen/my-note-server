@@ -9,13 +9,19 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteService;
 import top.yms.note.dto.INoteData;
+import top.yms.note.dto.req.NoteShareReqDto;
 import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteShareInfo;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteIndexMapper;
+import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.msgcd.CommonErrorCode;
+import top.yms.note.vo.NoteShareVo;
 
 import javax.annotation.Resource;
 import java.util.Collections;
@@ -141,5 +147,47 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
             }
         }
         throw new BusinessException(CommonErrorCode.E_200225);
+    }
+
+    @Override
+    public NoteShareVo shareNoteGet(Long noteId) {
+        NoteIndex noteMeta = getNoteMeta(noteId);
+        for(Note note : noteComponentList) {
+            if (note.supportShare(noteMeta.getType())) {
+                NoteShareReqDto noteShareReqDto = new NoteShareReqDto();
+                noteShareReqDto.setNoteIndex(noteMeta);
+                return note.shareNoteGet(noteShareReqDto);
+            }
+        }
+        throw new BusinessException(BusinessErrorCode.E_204013);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 10)
+    @Override
+    public void shareNoteClose(Long noteId) {
+        NoteIndex noteMeta = getNoteMeta(noteId);
+        for(Note note : noteComponentList) {
+            if (note.supportShare(noteMeta.getType())) {
+                NoteShareReqDto noteShareReqDto = new NoteShareReqDto();
+                noteShareReqDto.setNoteIndex(noteMeta);
+                note.shareNoteClose(noteShareReqDto);
+                return;
+            }
+        }
+        throw new BusinessException(BusinessErrorCode.E_204013);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 10)
+    @Override
+    public NoteShareInfo shareNoteOpen(Long noteId) {
+        NoteIndex noteMeta = getNoteMeta(noteId);
+        for(Note note : noteComponentList) {
+            if (note.supportShare(noteMeta.getType())) {
+                NoteShareReqDto noteShareReqDto = new NoteShareReqDto();
+                noteShareReqDto.setNoteIndex(noteMeta);
+                return note.shareNoteOpen(noteShareReqDto);
+            }
+        }
+        throw new BusinessException(BusinessErrorCode.E_204013);
     }
 }

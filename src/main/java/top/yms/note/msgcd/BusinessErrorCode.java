@@ -13,6 +13,9 @@ public enum BusinessErrorCode implements ErrorCode {
     E_204009(204009, "未找到支持的组件"),
     E_204010(204010, "未fetch到内容"),
     E_204011(204011, "移动目标位置必须是目录"),
+    E_204012(204012, "当前不支持分享"),
+    E_204013(204013, "未找合适组件"),
+    E_204014(204014, "无权查看该内容"),
     ;
     private final int code;
     private final String desc;

@@ -73,6 +73,16 @@ public class NoteIndex {
 
     private Date viewTime;
 
+    private String share;
+
+    public String getShare() {
+        return share;
+    }
+
+    public void setShare(String share) {
+        this.share = share;
+    }
+
     public Date getViewTime() {
         return viewTime;
     }

@@ -17,7 +17,7 @@ import javax.annotation.Resource;
 public class NoteWebMvcConfigSupport extends WebMvcConfigurationSupportConfigurer {
 
     private static Logger log = LoggerFactory.getLogger(NoteWebMvcConfigSupport.class);
-    @Value("${sys.note-interceptor}")
+    @Value("${sys.note-interceptor:true}")
     private String noteInterceptor;
 
     @Resource
@@ -31,6 +31,7 @@ public class NoteWebMvcConfigSupport extends WebMvcConfigurationSupportConfigure
                     .addPathPatterns("/**")
                     .excludePathPatterns("/user/login","/file/view","/file/download",
                             "/file/tmpView",
+                            "/share/**",
                             "/actuator/**","/favicon.ico","/health","/account/login",
                             "/swagger-ui.html","/webjars/**","/swagger-resources/**");
         }

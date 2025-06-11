@@ -16,10 +16,8 @@ import top.yms.note.conpont.task.DelayExecuteAsyncTask;
 import top.yms.note.dto.INoteData;
 import top.yms.note.dto.NoteDataExtendDto;
 import top.yms.note.dto.NoteIndexLuceneUpdateDto;
-import top.yms.note.entity.NoteData;
-import top.yms.note.entity.NoteDataVersion;
-import top.yms.note.entity.NoteFile;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.dto.req.NoteShareReqDto;
+import top.yms.note.entity.*;
 import top.yms.note.enums.AsyncExcuteTypeEnum;
 import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.exception.BusinessException;
@@ -32,8 +30,10 @@ import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.msgcd.NoteIndexErrorCode;
 import top.yms.note.msgcd.NoteSystemErrorCode;
+import top.yms.note.repo.NoteShareInfoRepository;
 import top.yms.note.service.NoteFileService;
 import top.yms.note.utils.*;
+import top.yms.note.vo.NoteShareVo;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
@@ -87,9 +87,15 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     @Resource
     protected NoteCacheService noteExpireCacheService;
 
+    @Resource
+    protected NoteShareInfoRepository noteShareInfoRepository;
+
+    @Resource
+    private SysConfigService sysConfigService;
+
     @Override
     public int compareTo(ComponentSort other) {
-        return this.getSortValue()-other.getSortValue();
+        return this.getSortValue() - other.getSortValue();
     }
 
     @Override
@@ -125,11 +131,12 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
 
     @Override
     public void noteDestroy(Long id) {
-
+        throw new BusinessException(CommonErrorCode.E_200211);
     }
 
     /**
      * 查找noteFile信息
+     *
      * @param id
      * @return
      */
@@ -145,8 +152,8 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     protected boolean beforeGetContent(INoteData iNoteData) {
         //token检查
         if (supportEncrypt() && NoteConstants.ENCRYPTED_FLAG.equals(iNoteData.getNoteIndex().getEncrypted())) {
-            String tmpTokenKey =  NoteConstants.TMP_VISIT_TOKEN+iNoteData.getId();
-            String tmpVisitToken = (String)noteExpireCacheService.find(tmpTokenKey);
+            String tmpTokenKey = NoteConstants.TMP_VISIT_TOKEN + iNoteData.getId();
+            String tmpVisitToken = (String) noteExpireCacheService.find(tmpTokenKey);
             if (StringUtils.isBlank(tmpVisitToken)) {
                 throw new BusinessException(BusinessErrorCode.E_204003);
             }
@@ -172,14 +179,14 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
             String content = decryptContent(iNoteData.getContent());
             iNoteData.setContent(content);
             //clear tmpTokenKey
-            String tmpTokenKey =  NoteConstants.TMP_VISIT_TOKEN+iNoteData.getId();
+            String tmpTokenKey = NoteConstants.TMP_VISIT_TOKEN + iNoteData.getId();
             noteExpireCacheService.delete(tmpTokenKey);
         }
     }
 
     public INoteData getContent(Long id) {
         NoteIndex noteMeta = noteIndexMapper.selectByPrimaryKey(id);
-        NoteDataExtendDto nde  = new NoteDataExtendDto();
+        NoteDataExtendDto nde = new NoteDataExtendDto();
         nde.setNoteIndex(noteMeta);
         nde.setUserId(LocalThreadUtils.getUserId());
         //前置处理
@@ -187,7 +194,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
             return null;
         }
         //获取数据
-        NoteData iNoteData = (NoteData)doGetContent(id);
+        NoteData iNoteData = (NoteData) doGetContent(id);
         nde.setNoteData(iNoteData);
         //后置处理
         afterGetContent(nde);
@@ -200,7 +207,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         return iNoteData;
     }
 
-    private static final String [] ILLEGAL_LIST = {
+    private static final String[] ILLEGAL_LIST = {
             "<p><br></p>",
             "<p style=\"text-align: start;\"><br></p>"
     };
@@ -209,7 +216,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         if (content == null || StringUtils.isBlank(content)) {
             return true;
         }
-        for(String illegalStr : ILLEGAL_LIST) {
+        for (String illegalStr : ILLEGAL_LIST) {
             if (content.equals(illegalStr)) {
                 return true;
             }
@@ -219,10 +226,11 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
 
     /**
      * 更新笔记内容
+     *
      * @param iNoteData
      */
     protected void updateNoteData(INoteData iNoteData) {
-        NoteData noteData = (NoteData)iNoteData;
+        NoteData noteData = (NoteData) iNoteData;
         Long id = noteData.getId();
         NoteData dbNote = noteDataMapper.findById(id);
         if (checkContent(noteData.getContent())) {
@@ -240,6 +248,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
 
     /**
      * 更新笔记元数据
+     *
      * @param noteIndex
      * @param iNoteData
      */
@@ -250,8 +259,8 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         //更新大小
         long noteSize = iNoteData.getContent().getBytes(StandardCharsets.UTF_8).length;
         List<NoteFile> noteFiles = noteFileMapper.selectByNoteRef(iNoteData.getId());
-        for(NoteFile noteFile : noteFiles) {
-            noteSize+=noteFile.getSize();
+        for (NoteFile noteFile : noteFiles) {
+            noteSize += noteFile.getSize();
         }
         noteIndex.setSize(noteSize);
         noteIndexMapper.updateByPrimaryKeySelective(noteIndex);
@@ -259,6 +268,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
 
     /**
      * 更新全局搜索索引
+     *
      * @param noteIndex
      */
     protected void updateNoteMetaToLuceneSearch(NoteIndex noteIndex) {
@@ -321,9 +331,11 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         return true;
     }
 
-    public  void save(INoteData iNoteData) throws BusinessException  {
+    public void save(INoteData iNoteData) throws BusinessException {
         //执行前检查
-        if (!beforeSave(iNoteData)) {  return;  }
+        if (!beforeSave(iNoteData)) {
+            return;
+        }
         //执行保存
         doSave(iNoteData);
         //保存后处理
@@ -357,7 +369,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         }
     }
 
-    abstract void doSave(INoteData iNoteData) throws BusinessException ;
+    abstract void doSave(INoteData iNoteData) throws BusinessException;
 
     protected NoteLuceneIndex packNoteIndexForNoteLuceneIndex(Long id) {
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
@@ -405,6 +417,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
 
     /**
      * 笔记内容解密
+     *
      * @param content content
      * @return
      */
@@ -418,8 +431,10 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         }
         return content;
     }
+
     /**
      * 笔记内容加密
+     *
      * @param content content
      * @return
      */
@@ -450,5 +465,95 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public boolean supportShare(String noteType) {
+        return false;
+    }
+
+    protected boolean beforeShareNoteGet(NoteShareReqDto noteShareReqDto) {
+        NoteIndex noteIndex = noteShareReqDto.getNoteIndex();
+        if (NoteConstants.SHARE_UN_FLAG.equals(noteIndex.getShare())) {
+            throw new BusinessException(BusinessErrorCode.E_204014);
+        }
+        return true;
+    }
+
+    protected NoteShareVo doShareNoteGet(NoteShareReqDto noteShareReqDto) {
+        NoteIndex noteMeta = noteShareReqDto.getNoteIndex();
+        Long noteId = noteShareReqDto.getNoteIndex().getId();
+        NoteData noteData = noteDataMapper.selectByPrimaryKey(noteId);
+        NoteShareInfo noteShareInfo = noteShareInfoRepository.findByNoteId(noteId);
+        //resp
+        NoteShareVo resp = new NoteShareVo();
+        resp.setNoteIndex(noteMeta);
+        resp.setNoteData(noteData);
+        resp.setNoteShareInfo(noteShareInfo);
+        return resp;
+    }
+
+    protected void afterShareNoteGet(NoteShareVo noteShareVo) {
+        NoteData noteData = noteShareVo.getNoteData();
+        String content = noteData.getContent();
+        String regex = sysConfigService.getStringValue("system.base_url")+"file";
+        String targetReplace = sysConfigService.getStringValue("system.base_share.resource_url")+"resource";
+        content = content.replaceAll(regex, targetReplace);
+        noteData.setContent(content);
+    }
+
+    @Override
+    public NoteShareVo shareNoteGet(NoteShareReqDto noteShareReqDto) {
+        if (!beforeShareNoteGet(noteShareReqDto)) {
+            return null;
+        }
+        //执行数据获取
+        NoteShareVo resp = doShareNoteGet(noteShareReqDto);
+        //after do
+        afterShareNoteGet(resp);
+        //ret
+        return resp;
+    }
+
+    @Override
+    public void shareNoteClose(NoteShareReqDto noteShareReqDto) {
+        Long noteId = noteShareReqDto.getNoteIndex().getId();
+        //更新noteMeta
+        NoteIndex noteMeta = new NoteIndex();
+        noteMeta.setId(noteId);
+        noteMeta.setShare(NoteConstants.SHARE_UN_FLAG);
+        noteIndexMapper.updateByPrimaryKeySelective(noteMeta);
+        //删除分享信息
+        NoteShareInfo oldShareInfo = noteShareInfoRepository.findByNoteId(noteId);
+        if (oldShareInfo != null) {
+            noteShareInfoRepository.delete(oldShareInfo);
+            log.debug("删除分享成功,noteId={}", noteId);
+        }
+    }
+
+    @Override
+    public NoteShareInfo shareNoteOpen(NoteShareReqDto noteShareReqDto) {
+        Long noteId = noteShareReqDto.getNoteIndex().getId();
+        NoteShareInfo oldShareInfo = noteShareInfoRepository.findByNoteId(noteId);
+        if (oldShareInfo != null) {
+            log.debug("当前存在旧分享：id={}", noteId);
+            return oldShareInfo;
+        }
+        //更新noteMeta
+        NoteIndex noteMeta = new NoteIndex();
+        noteMeta.setId(noteId);
+        noteMeta.setShare(NoteConstants.SHARE_FLAG);
+        noteIndexMapper.updateByPrimaryKeySelective(noteMeta);
+        //新增noteShareInfo
+        String baseShareUrl = NoteConstants.getBaseShareUrl();
+        String shareUrl = baseShareUrl + noteId;
+        NoteShareInfo noteShareInfo = new NoteShareInfo();
+        noteShareInfo.setNoteId(noteId);
+        noteShareInfo.setShareUrl(shareUrl);
+        noteShareInfo.setCreateTime(new Date());
+        noteShareInfo.setViewCount(0L);
+        noteShareInfoRepository.save(noteShareInfo);
+        //返回
+        return noteShareInfo;
     }
 }
