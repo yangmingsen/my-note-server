@@ -10,12 +10,15 @@ import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.dto.INoteData;
+import top.yms.note.dto.req.NoteShareReqDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteShareInfo;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.msgcd.ComponentErrorCode;
 import top.yms.note.msgcd.NoteIndexErrorCode;
+import top.yms.note.vo.NoteShareVo;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -163,5 +166,21 @@ public class PreviewNote extends AbstractNote implements NotePreview, Initializi
         noteLuceneIndex.setContent(stringContent);
 
         return noteLuceneIndex;
+    }
+
+    public boolean supportShare(String noteType) {
+        return support(noteType);
+    }
+
+    public NoteShareVo shareNoteGet(NoteShareReqDto noteShareReqDto) {
+        Long noteId = noteShareReqDto.getNoteIndex().getId();
+        INoteData iNoteData = getContent(noteId);
+        NoteShareInfo noteShareInfo = noteShareInfoRepository.findByNoteId(noteId);
+        //ret
+        NoteShareVo resp = new NoteShareVo();
+        resp.setNoteIndex(noteShareReqDto.getNoteIndex());
+        resp.setNoteData((NoteData) iNoteData);
+        resp.setNoteShareInfo(noteShareInfo);
+        return resp;
     }
 }

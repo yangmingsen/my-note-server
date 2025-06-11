@@ -9,6 +9,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteService;
 import top.yms.note.dto.INoteData;
@@ -160,6 +162,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
         throw new BusinessException(BusinessErrorCode.E_204013);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 10)
     @Override
     public void shareNoteClose(Long noteId) {
         NoteIndex noteMeta = getNoteMeta(noteId);
@@ -174,6 +177,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
         throw new BusinessException(BusinessErrorCode.E_204013);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 10)
     @Override
     public NoteShareInfo shareNoteOpen(Long noteId) {
         NoteIndex noteMeta = getNoteMeta(noteId);

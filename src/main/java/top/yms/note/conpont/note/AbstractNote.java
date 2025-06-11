@@ -7,8 +7,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.*;
 import top.yms.note.conpont.export.NoteFileExport;
@@ -133,7 +131,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
 
     @Override
     public void noteDestroy(Long id) {
-
+        throw new BusinessException(CommonErrorCode.E_200211);
     }
 
     /**
@@ -471,7 +469,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
 
     @Override
     public boolean supportShare(String noteType) {
-        return true;
+        return false;
     }
 
     protected boolean beforeShareNoteGet(NoteShareReqDto noteShareReqDto) {
@@ -517,7 +515,6 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         return resp;
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 10)
     @Override
     public void shareNoteClose(NoteShareReqDto noteShareReqDto) {
         Long noteId = noteShareReqDto.getNoteIndex().getId();
@@ -534,7 +531,6 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 10)
     @Override
     public NoteShareInfo shareNoteOpen(NoteShareReqDto noteShareReqDto) {
         Long noteId = noteShareReqDto.getNoteIndex().getId();

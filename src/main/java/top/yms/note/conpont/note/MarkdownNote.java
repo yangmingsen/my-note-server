@@ -143,4 +143,8 @@ public class MarkdownNote extends AbstractNote {
             .set(TocExtension.LIST_CLASS, PdfConverterExtension.DEFAULT_TOC_LIST_CLASS)
             .toImmutable();
 
+    public boolean supportShare(String noteType) {
+        return support(noteType);
+    }
+
 }
