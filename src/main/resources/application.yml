@@ -1,8 +1,8 @@
 spring:
   datasource:
-    username: yms
-    password: 123456
-    url: jdbc:mysql://localhost:3306/my_note_test?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=UTF-8
+    username: root
+    password: ymsyms
+    url: jdbc:mysql://localhost:3306/my_note_prov?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=UTF-8
     type: com.alibaba.druid.pool.DruidDataSource
     initialSize: 5
     minIdle: 1
