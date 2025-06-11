@@ -12,12 +12,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.comm.NoteConstants;
+import top.yms.note.conpont.AnyFile;
+import top.yms.note.conpont.FileStoreService;
 import top.yms.note.conpont.NoteService;
 import top.yms.note.dto.INoteData;
 import top.yms.note.dto.req.NoteShareReqDto;
+import top.yms.note.entity.NoteFile;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.NoteShareInfo;
 import top.yms.note.exception.BusinessException;
+import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.mapper.NoteIndexMapper;
 import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.msgcd.CommonErrorCode;
@@ -41,6 +45,12 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
 
     @Resource
     protected NoteIndexMapper noteIndexMapper;
+
+    @Resource
+    private NoteFileMapper noteFileMapper;
+
+    @Resource
+    private FileStoreService fileStoreService;
 
     @Override
     public void decryptNote(Long id) {
@@ -116,7 +126,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
 
     @Override
     public void destroy(Long id) {
-        
+        throw new BusinessException(CommonErrorCode.E_200211);
     }
 
     @Override
@@ -189,5 +199,24 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
             }
         }
         throw new BusinessException(BusinessErrorCode.E_204013);
+    }
+
+    @Override
+    public AnyFile shareResource(String id) {
+        NoteFile noteFile = noteFileMapper.findOneByFileId(id);
+        if (noteFile == null) {
+            throw new BusinessException(BusinessErrorCode.E_204015);
+        }
+        Long noteId = noteFile.getNoteRef();
+        if (noteId == 0L) {
+            throw new BusinessException(BusinessErrorCode.E_204015);
+        }
+        //查看当前资源是否正在分享中
+        NoteIndex noteMeta = noteIndexMapper.selectByPrimaryKey(noteId);
+        if (NoteConstants.SHARE_UN_FLAG.equals(noteMeta.getShare())) {
+            throw new BusinessException(BusinessErrorCode.E_204014);
+        }
+        //检查通过
+        return fileStoreService.loadFile(id);
     }
 }

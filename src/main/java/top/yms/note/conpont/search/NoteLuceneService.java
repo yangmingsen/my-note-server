@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
  */
 @Component(NoteConstants.noteLuceneSearch)
 public class NoteLuceneService implements NoteSearchService, InitializingBean, NoteDataIndexService {
+
     private final static Logger logger = LoggerFactory.getLogger(NoteLuceneService.class);
 
     @Value("${system.lucence.index_path}")
@@ -66,7 +67,7 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
     private NoteLuceneDataService noteLuceneDataService;
 
     @Resource
-    private SearchContentFilter searchContentFilter;
+    private SearchResultFilter searchResultFilter;
 
     private static final Object syncObj = new Object();
 
@@ -170,7 +171,9 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
             tryClose(indexReader, directory);
         }
         //内容过滤
-        searchResults = searchContentFilter.filter(searchResults);
+        searchResults = searchResultFilter.filter(searchResults);
+        //搜索结果去重
+
         return searchResults;
     }
 
@@ -236,7 +239,6 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
         }
     }
 
-
     private void deleteDirectory(File dir) {
         if (dir.isDirectory()) {
             // 递归删除目录中的所有文件和子目录
@@ -250,8 +252,6 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
         // 删除当前文件或空目录
         dir.delete();
     }
-
-
 
     @Override
     public void rebuildIndex() {
