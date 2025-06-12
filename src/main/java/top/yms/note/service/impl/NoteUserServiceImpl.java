@@ -1,6 +1,5 @@
 package top.yms.note.service.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import top.yms.note.entity.NoteUser;
 import top.yms.note.mapper.NoteUserMapper;

@@ -5,12 +5,10 @@ import com.vladsch.flexmark.pdf.converter.PdfConverterExtension;
 import com.vladsch.flexmark.profile.pegdown.Extensions;
 import com.vladsch.flexmark.profile.pegdown.PegdownOptionsAdapter;
 import com.vladsch.flexmark.util.data.DataHolder;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import top.yms.note.comm.NoteConstants;
-import top.yms.note.conpont.ComponentSort;
 import top.yms.note.conpont.FileStoreService;
 import top.yms.note.dto.INoteData;
 import top.yms.note.dto.NoteDataExtendDto;
@@ -66,16 +64,6 @@ public abstract class AbstractNoteConvert implements NoteConvert{
                     , TocExtension.create()).toMutable()
             .set(TocExtension.LIST_CLASS, PdfConverterExtension.DEFAULT_TOC_LIST_CLASS)
             .toImmutable();
-
-    @Override
-    public int compareTo(@NotNull ComponentSort o) {
-        return this.getSortValue()-o.getSortValue();
-    }
-
-    @Override
-    public int getSortValue() {
-        return 999;
-    }
 
     @Override
     public boolean support(String fromType, String toType) {

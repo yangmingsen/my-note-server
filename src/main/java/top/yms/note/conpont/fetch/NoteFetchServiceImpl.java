@@ -7,13 +7,10 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 import top.yms.note.conpont.NoteFetchService;
-import top.yms.note.conpont.export.NoteConvert;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.msgcd.BusinessErrorCode;
 
-import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;

@@ -94,16 +94,6 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     @Resource
     private SysConfigService sysConfigService;
 
-    @Override
-    public int compareTo(ComponentSort other) {
-        return this.getSortValue() - other.getSortValue();
-    }
-
-    @Override
-    public int getSortValue() {
-        return 999;
-    }
-
     protected String getEncryptedKey() {
         String key = Base64Util.decodeStr(encryptedKey);
         log.debug("getEncryptedKey={}", key);

@@ -14,7 +14,6 @@ import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStoreService;
 import top.yms.note.conpont.NoteCacheService;
-import top.yms.note.conpont.NoteFetchService;
 import top.yms.note.entity.NoteFile;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.entity.NoteTree;

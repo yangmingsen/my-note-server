@@ -1,19 +1,14 @@
 package top.yms.note.conpont.fetch;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
 import top.yms.note.comm.NoteConstants;
-import top.yms.note.conpont.ComponentSort;
-import top.yms.note.entity.NoteBookmarks;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteIndex;
 import top.yms.note.exception.BusinessException;
-import top.yms.note.mapper.NoteDataMapper;
-import top.yms.note.mapper.NoteDataVersionMapper;
 import top.yms.note.mapper.NoteIndexMapper;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.service.NoteDataService;
@@ -163,13 +158,4 @@ public abstract class AbstractNoteFetch implements NoteFetch {
         noteIndexMapper.updateByPrimaryKeySelective(noteMeta);
     }
 
-    @Override
-    public int compareTo(@NotNull ComponentSort o) {
-        return this.getSortValue() - o.getSortValue();
-    }
-
-    @Override
-    public int getSortValue() {
-        return 999;
-    }
 }

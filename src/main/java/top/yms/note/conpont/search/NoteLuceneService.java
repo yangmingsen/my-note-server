@@ -172,8 +172,7 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
         }
         //内容过滤
         searchResults = searchResultFilter.filter(searchResults);
-        //搜索结果去重
-
+        //ret
         return searchResults;
     }
 

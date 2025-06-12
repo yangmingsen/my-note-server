@@ -27,4 +27,9 @@ public class DuplicationRemoveFilter implements SearchResultFilter {
         }
         return resList;
     }
+
+    @Override
+    public int getSortValue() {
+        return 30;
+    }
 }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import top.yms.note.vo.SearchResult;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -40,6 +41,7 @@ public class SearchResultCompositeFilter implements SearchResultFilter, Applicat
                 searchResultFilters.add(containerValue);
             }
         }
+        Collections.sort(searchResultFilters);
         log.info("SearchResultFilter={}", searchResultFilters);
     }
 }

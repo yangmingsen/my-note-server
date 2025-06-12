@@ -1,6 +1,8 @@
 package top.yms.note.conpont.note;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.junrar.Archive;
+import com.github.junrar.rarfile.FileHeader;
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -11,7 +13,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import top.yms.note.comm.NoteConstants;
 import top.yms.note.config.SpringContext;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.dto.INoteData;
@@ -25,7 +26,6 @@ import top.yms.note.msgcd.NoteSystemErrorCode;
 import top.yms.note.utils.IdWorker;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -34,9 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import com.github.junrar.*;
-import com.github.junrar.rarfile.FileHeader;
 
 @Component
 public class ArchivePreview extends AbstractNote{

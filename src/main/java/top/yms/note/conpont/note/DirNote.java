@@ -1,9 +1,7 @@
 package top.yms.note.conpont.note;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
-import top.yms.note.conpont.ComponentSort;
 import top.yms.note.dto.INoteData;
 import top.yms.note.dto.req.NoteShareReqDto;
 import top.yms.note.entity.NoteShareInfo;
@@ -38,16 +36,6 @@ public class DirNote implements Note{
     @Override
     public boolean supportSave() {
         return false;
-    }
-
-    @Override
-    public int compareTo(@NotNull ComponentSort other) {
-        return this.getSortValue()-other.getSortValue();
-    }
-
-    @Override
-    public int getSortValue() {
-        return 9999;
     }
 
     @Override
