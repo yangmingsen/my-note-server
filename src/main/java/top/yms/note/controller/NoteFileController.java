@@ -158,7 +158,6 @@ public class NoteFileController {
         if (StringUtils.isBlank(fileName)) {
             throw new BusinessException(NoteIndexErrorCode.E_203109);
         }
-
         NoteIndex note = new NoteIndex();
         note.setParentId(parentId);
         note.setUserId(uid);
@@ -175,9 +174,8 @@ public class NoteFileController {
             note.setType(FileTypeEnum.UNKNOWN.getValue());
         }
         note.setCreateTime(new Date());
-//        log.debug("upload Note={}", note);
+        log.debug("upload Note={}", note);
         noteFileService.addNote(file, note);
-
         return RestOut.succeed();
     }
 

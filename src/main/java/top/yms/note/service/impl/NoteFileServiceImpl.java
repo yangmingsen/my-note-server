@@ -196,7 +196,7 @@ public class NoteFileServiceImpl implements NoteFileService {
     }
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
-    public void addNote(MultipartFile file, NoteIndex note) throws Exception{
+    public void addNote(MultipartFile file, NoteIndex note) throws Exception {
         String fileId = null;
         try {
             if (NoteConstants.markdownSuffix.equals(note.getType())) {
@@ -207,10 +207,8 @@ public class NoteFileServiceImpl implements NoteFileService {
             //先默认上传到mongo
             note.setStoreSite(NoteConstants.MONGO);
             note.setSiteId(fileId);
-
             //存储到t_note_index
             noteIndexService.add(note);
-
             String tmpViewUrl = NoteConstants.getFileViewUrlSuffix(fileId);
             //store to t_note_file
             NoteFile noteFile = new NoteFile();
@@ -228,7 +226,7 @@ public class NoteFileServiceImpl implements NoteFileService {
             if (fileId != null) {
                 fileStoreService.delFile(fileId);
             }
-            throw new RuntimeException(e);
+            throw e;
         }
 
     }
