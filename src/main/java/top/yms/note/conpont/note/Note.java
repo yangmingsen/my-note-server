@@ -6,7 +6,7 @@ import top.yms.note.entity.NoteIndex;
 import top.yms.note.exception.BusinessException;
 
 /**
- * 笔记类型抽象接口
+ * 笔记抽象接口
  */
 public interface Note extends NoteExport, NoteEncrypt, NoteVersion,
         NoteDestroy, ComponentSort, Comparable<ComponentSort>,

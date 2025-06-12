@@ -3,6 +3,9 @@ package top.yms.note.conpont;
 import top.yms.note.entity.NoteShareInfo;
 import top.yms.note.vo.NoteShareVo;
 
+/**
+ * 分享服务
+ */
 public interface NoteShareService {
     /**
      * 获取分享note
@@ -23,4 +26,11 @@ public interface NoteShareService {
      * @return
      */
     NoteShareInfo shareNoteOpen(Long noteId);
+
+    /**
+     * 获取分享资源
+     * @param id 资源id
+     * @return 资源文件
+     */
+    AnyFile shareResource(String id);
 }

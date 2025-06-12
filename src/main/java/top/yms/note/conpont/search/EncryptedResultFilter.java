@@ -8,8 +8,11 @@ import javax.annotation.Resource;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * 敏感内容过滤器
+ */
 @Component
-public class EncryptedContentFilter implements SearchContentFilter {
+public class EncryptedResultFilter implements SearchResultFilter {
 
     @Resource
     private SensitiveService sensitiveService;

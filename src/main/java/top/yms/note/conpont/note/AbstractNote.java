@@ -7,6 +7,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import top.yms.note.comm.NoteCacheKey;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.*;
 import top.yms.note.conpont.export.NoteFileExport;
@@ -493,11 +494,28 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         return resp;
     }
 
+    private String getServerShareResourceUrl() {
+        String cacheKey = NoteCacheKey.SERVER_SHARE_RESOURCE_KEY;
+        Object o = noteExpireCacheService.find(cacheKey);
+        if (o != null) {
+            return (String) o;
+        }
+        String url = "http://" + HostIPUtil.getLocalIP() +
+                ":" +
+                sysConfigService.getStringValue("server.port") +
+                "/note/share/";
+        log.debug("getServerShareResourceUrl = {}", url);
+        //add cache
+        noteExpireCacheService.add(cacheKey, url);
+        //ret
+        return url;
+    }
+
     protected void afterShareNoteGet(NoteShareVo noteShareVo) {
         NoteData noteData = noteShareVo.getNoteData();
         String content = noteData.getContent();
         String regex = sysConfigService.getStringValue("system.base_url")+"file";
-        String targetReplace = sysConfigService.getStringValue("system.base_share.resource_url")+"resource";
+        String targetReplace = getServerShareResourceUrl()+"resource";
         content = content.replaceAll(regex, targetReplace);
         noteData.setContent(content);
     }
@@ -545,8 +563,8 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         noteMeta.setShare(NoteConstants.SHARE_FLAG);
         noteIndexMapper.updateByPrimaryKeySelective(noteMeta);
         //新增noteShareInfo
-        String baseShareUrl = NoteConstants.getBaseShareUrl();
-        String shareUrl = baseShareUrl + noteId;
+        String viewShareUrl = getViewShareUrl();
+        String shareUrl = viewShareUrl + noteId;
         NoteShareInfo noteShareInfo = new NoteShareInfo();
         noteShareInfo.setNoteId(noteId);
         noteShareInfo.setShareUrl(shareUrl);
@@ -555,5 +573,23 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         noteShareInfoRepository.save(noteShareInfo);
         //返回
         return noteShareInfo;
+    }
+
+    private String getViewShareUrl() {
+        String cacheKey = NoteCacheKey.VIEW_SHARE_KEY;
+        Object o = noteExpireCacheService.find(cacheKey);
+        if (o != null) {
+            return (String)o;
+        }
+        String curLocalIp = HostIPUtil.getLocalIP();
+        String url = "http://" + curLocalIp +
+                ":" +
+                sysConfigService.getStringValue("system.base_share_view_port") +
+                "/share/";
+        log.debug("getViewShareUrl = {}", url);
+        //add cache
+        noteExpireCacheService.add(cacheKey, url);
+        //ret
+        return url;
     }
 }

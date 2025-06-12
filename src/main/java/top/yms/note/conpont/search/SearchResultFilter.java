@@ -4,7 +4,7 @@ import top.yms.note.vo.SearchResult;
 
 import java.util.List;
 
-public interface SearchContentFilter {
+public interface SearchResultFilter {
     /**
      * 过滤敏感内容
      * @param searchResults

@@ -66,7 +66,6 @@ public class PreviewNote extends AbstractNote implements NotePreview, Initializi
         }
         NoteData noteData = new NoteData();
         NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
-
         //目前访问必须在mongo上
         if (!NoteConstants.MONGO.equals(noteIndex.getStoreSite())) {
             throw new BusinessException(NoteIndexErrorCode.E_203119);
@@ -88,7 +87,6 @@ public class PreviewNote extends AbstractNote implements NotePreview, Initializi
         contentStr.append("\n```");
         noteData.setId(id);
         noteData.setContent(contentStr.toString());
-
         return noteData;
     }
 
@@ -172,9 +170,9 @@ public class PreviewNote extends AbstractNote implements NotePreview, Initializi
         return support(noteType);
     }
 
-    public NoteShareVo shareNoteGet(NoteShareReqDto noteShareReqDto) {
+    public NoteShareVo doShareNoteGet(NoteShareReqDto noteShareReqDto) {
         Long noteId = noteShareReqDto.getNoteIndex().getId();
-        INoteData iNoteData = getContent(noteId);
+        INoteData iNoteData = doGetContent(noteId);
         NoteShareInfo noteShareInfo = noteShareInfoRepository.findByNoteId(noteId);
         //ret
         NoteShareVo resp = new NoteShareVo();
@@ -183,4 +181,6 @@ public class PreviewNote extends AbstractNote implements NotePreview, Initializi
         resp.setNoteShareInfo(noteShareInfo);
         return resp;
     }
+
+    public void afterShareNoteGet(NoteShareVo noteShareVo) {}
 }

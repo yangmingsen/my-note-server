@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * 笔记文件抽象接口
+ * 资源文件抽象接口
  */
 public  interface AnyFile {
     /**

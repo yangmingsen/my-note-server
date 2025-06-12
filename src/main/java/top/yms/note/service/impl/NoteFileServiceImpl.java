@@ -227,7 +227,7 @@ public class NoteFileServiceImpl implements NoteFileService {
             if (fileId != null) {
                 fileStoreService.delFile(fileId);
             }
-            throw new RuntimeException(e);
+            throw e;
         }
     }
 

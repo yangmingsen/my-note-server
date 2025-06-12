@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import top.yms.note.utils.HostIPUtil;
 
 import java.util.Arrays;
 
@@ -26,6 +27,14 @@ public class GlobalCorsConfig {
     private String allowedMethod;
 
     private static String SP = ",";
+
+
+    private String getAllowedHosts() {
+        String hosts = this.allowedHosts;
+        String localIP = HostIPUtil.getLocalIP();
+        hosts = hosts+","+localIP;
+        return hosts;
+    }
 
 
     /**
@@ -70,7 +79,7 @@ public class GlobalCorsConfig {
         //注意：必须要和端口一起加上
         //config.addAllowedOrigin("http://127.0.0.1:3000");
         //config.addAllowedOrigin("http://localhost:3000");
-        for( String origin : getAllowedOrigins(allowedHosts, allowedPorts)) {
+        for( String origin : getAllowedOrigins(getAllowedHosts(), allowedPorts)) {
             config.addAllowedOrigin(origin);
         }
 

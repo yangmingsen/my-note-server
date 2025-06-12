@@ -16,6 +16,7 @@ public enum BusinessErrorCode implements ErrorCode {
     E_204012(204012, "当前不支持分享"),
     E_204013(204013, "未找合适组件"),
     E_204014(204014, "无权查看该内容"),
+    E_204015(204015, "未找到资源"),
     ;
     private final int code;
     private final String desc;
