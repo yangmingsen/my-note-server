@@ -1,5 +1,6 @@
 package top.yms.note.conpont.fetch;
 
+import com.vladsch.flexmark.html2md.converter.FlexmarkHtmlConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.slf4j.Logger;
@@ -9,8 +10,6 @@ import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.msgcd.BusinessErrorCode;
-
-import com.vladsch.flexmark.html2md.converter.FlexmarkHtmlConverter;
 
 @Component
 public class Url2MarkdownNoteFetch extends AbstractNoteFetch {

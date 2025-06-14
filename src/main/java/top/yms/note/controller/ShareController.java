@@ -32,5 +32,4 @@ public class ShareController {
         file.writeTo(resp.getOutputStream());
     }
 
-
 }

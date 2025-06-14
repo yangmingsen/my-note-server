@@ -14,7 +14,7 @@ import top.yms.note.dto.INoteData;
 import top.yms.note.dto.INoteDataExt;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteDataVersion;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.msgcd.CommonErrorCode;
@@ -82,7 +82,7 @@ public class WerNote extends AbstractNote {
         Document document = Document.parse(jsonObject.toString());
         //更新mongo内容
         //get note 旧元数据
-        NoteIndex noteMeta = noteIndexMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
         mongoTemplate.findById(noteMeta.getSiteId(), Document.class, NoteConstants.noteWerTextContent);
         ObjectId objectId = new ObjectId(noteMeta.getSiteId());
         document.put(NoteConstants._id, objectId);
@@ -126,7 +126,7 @@ public class WerNote extends AbstractNote {
         Document document = Document.parse(jsonObject.toString());
         //更新mongo内容
         //get note 旧元数据
-        NoteIndex noteMeta = noteIndexMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
         mongoTemplate.findById(noteMeta.getSiteId(), Document.class, NoteConstants.noteWerTextContent);
         ObjectId objectId = new ObjectId(noteMeta.getSiteId());
         document.put(NoteConstants._id, objectId);
@@ -153,7 +153,7 @@ public class WerNote extends AbstractNote {
             //更新笔记内容
             super.updateNoteData(noteData);
             //get note 旧元数据
-            NoteIndex oldNoteMeta = noteIndexMapper.selectByPrimaryKey(iNoteData.getId());
+            NoteMeta oldNoteMeta = noteMetaMapper.selectByPrimaryKey(iNoteData.getId());
             //更新mongo
             JSONObject jsonObject = new JSONObject();
             jsonObject.put(NoteConstants.id, iNoteDataExt.getId());
@@ -175,10 +175,10 @@ public class WerNote extends AbstractNote {
             } else {
                 Document saveRes = mongoTemplate.save(document, NoteConstants.noteWerTextContent);
                 objId = saveRes.getObjectId(NoteConstants._id);
-                NoteIndex noteMeta = new NoteIndex();
+                NoteMeta noteMeta = new NoteMeta();
                 noteMeta.setSiteId(objId.toString());
                 noteMeta.setId(iNoteData.getId());
-                noteIndexMapper.updateByPrimaryKeySelective(noteMeta);
+                noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
             }
         } catch (Exception e) {
             log.error("save失败", e);

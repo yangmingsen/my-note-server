@@ -1,6 +1,5 @@
 package top.yms.note.conpont.cache;
 
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteCacheService;

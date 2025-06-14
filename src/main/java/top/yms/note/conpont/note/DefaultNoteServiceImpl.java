@@ -3,7 +3,6 @@ package top.yms.note.conpont.note;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
@@ -18,11 +17,11 @@ import top.yms.note.conpont.NoteService;
 import top.yms.note.dto.INoteData;
 import top.yms.note.dto.req.NoteShareReqDto;
 import top.yms.note.entity.NoteFile;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.entity.NoteShareInfo;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteFileMapper;
-import top.yms.note.mapper.NoteIndexMapper;
+import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.vo.NoteShareVo;
@@ -44,7 +43,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
     protected final List<Note> noteComponentList = new LinkedList<>();
 
     @Resource
-    protected NoteIndexMapper noteIndexMapper;
+    protected NoteMetaMapper noteMetaMapper;
 
     @Resource
     private NoteFileMapper noteFileMapper;
@@ -54,7 +53,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
 
     @Override
     public void decryptNote(Long id) {
-        NoteIndex noteMeta = getNoteMeta(id);
+        NoteMeta noteMeta = getNoteMeta(id);
         for(Note note : noteComponentList) {
             if (note.support(noteMeta.getType())) {
                 note.noteDecrypt(id);
@@ -66,7 +65,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
 
     @Override
     public void encryptNote(Long id) {
-        NoteIndex noteMeta = getNoteMeta(id);
+        NoteMeta noteMeta = getNoteMeta(id);
         for(Note note : noteComponentList) {
             if (note.support(noteMeta.getType())) {
                 note.noteEncrypt(id);
@@ -76,8 +75,8 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
         throw new BusinessException(CommonErrorCode.E_200223);
     }
 
-    private NoteIndex getNoteMeta(Long id) {
-        NoteIndex noteMeta = noteIndexMapper.selectByPrimaryKey(id);
+    private NoteMeta getNoteMeta(Long id) {
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
         if (noteMeta == null) {
             throw new BusinessException(CommonErrorCode.E_200201);
         }
@@ -86,7 +85,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
 
     @Override
     public INoteData findOne(Long id) {
-        NoteIndex noteMeta = getNoteMeta(id);
+        NoteMeta noteMeta = getNoteMeta(id);
         for(Note note : noteComponentList) {
             if (note.support(noteMeta.getType())) {
                 return note.getContent(id);
@@ -98,9 +97,9 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
     @Override
     public void save(INoteData iNoteData) {
         Long id = iNoteData.getId();
-        NoteIndex noteIndex = getNoteMeta(id);
+        NoteMeta noteMeta = getNoteMeta(id);
         for(Note note : noteComponentList) {
-            if (note.support(noteIndex.getType())) {
+            if (note.support(noteMeta.getType())) {
                 note.save(iNoteData);
                 return;
             }
@@ -131,7 +130,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
 
     @Override
     public String export(Long noteId, String exportType) {
-        NoteIndex noteMeta = getNoteMeta(noteId);
+        NoteMeta noteMeta = getNoteMeta(noteId);
         for(Note note : noteComponentList) {
             if (note.supportExport(noteMeta.getType(), exportType)) {
                 log.debug("find note component => {}", note);
@@ -148,7 +147,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
 
     @Override
     public void noteDestroy(Long id) {
-        NoteIndex noteMeta = getNoteMeta(id);
+        NoteMeta noteMeta = getNoteMeta(id);
         for(Note note : noteComponentList) {
             if (note.supportDestroy(noteMeta.getType()) ) {
                 log.debug("find note component => {}", note);
@@ -161,7 +160,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
 
     @Override
     public NoteShareVo shareNoteGet(Long noteId) {
-        NoteIndex noteMeta = getNoteMeta(noteId);
+        NoteMeta noteMeta = getNoteMeta(noteId);
         for(Note note : noteComponentList) {
             if (note.supportShare(noteMeta.getType())) {
                 NoteShareReqDto noteShareReqDto = new NoteShareReqDto();
@@ -175,7 +174,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 10)
     @Override
     public void shareNoteClose(Long noteId) {
-        NoteIndex noteMeta = getNoteMeta(noteId);
+        NoteMeta noteMeta = getNoteMeta(noteId);
         for(Note note : noteComponentList) {
             if (note.supportShare(noteMeta.getType())) {
                 NoteShareReqDto noteShareReqDto = new NoteShareReqDto();
@@ -190,7 +189,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 10)
     @Override
     public NoteShareInfo shareNoteOpen(Long noteId) {
-        NoteIndex noteMeta = getNoteMeta(noteId);
+        NoteMeta noteMeta = getNoteMeta(noteId);
         for(Note note : noteComponentList) {
             if (note.supportShare(noteMeta.getType())) {
                 NoteShareReqDto noteShareReqDto = new NoteShareReqDto();
@@ -212,7 +211,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
             throw new BusinessException(BusinessErrorCode.E_204015);
         }
         //查看当前资源是否正在分享中
-        NoteIndex noteMeta = noteIndexMapper.selectByPrimaryKey(noteId);
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(noteId);
         if (NoteConstants.SHARE_UN_FLAG.equals(noteMeta.getShare())) {
             throw new BusinessException(BusinessErrorCode.E_204014);
         }

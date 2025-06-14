@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="top.yms.note.mapper.NoteIndexMapper">
-  <resultMap id="BaseResultMap" type="top.yms.note.entity.NoteIndex">
+<mapper namespace="top.yms.note.mapper.NoteMetaMapper">
+  <resultMap id="BaseResultMap" type="top.yms.note.entity.NoteMeta">
     <id column="f_id" jdbcType="BIGINT" property="id" />
     <result column="f_parent_id" jdbcType="BIGINT" property="parentId" />
     <result column="f_user_id" jdbcType="BIGINT" property="userId" />
@@ -96,14 +96,14 @@
     f_id, f_parent_id, f_user_id, f_name, f_isfile, f_type, f_del, f_create_time, f_update_time,
         f_store_site, f_site_id, f_size, f_encrypted, f_view_time, f_share
   </sql>
-  <select id="selectByCondition" parameterType="top.yms.note.entity.NoteIndex" resultMap="BaseResultMap">
+  <select id="selectByCondition" parameterType="top.yms.note.entity.NoteMeta" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List" />
     from t_note_index
     <include refid="commonWhereClause" />
     order by f_create_time desc
   </select>
-  <select id="selectByExample" parameterType="top.yms.note.entity.NoteIndexExample" resultMap="BaseResultMap">
+  <select id="selectByExample" parameterType="top.yms.note.entity.NoteMetaExample" resultMap="BaseResultMap">
     select
     <if test="distinct">
       distinct
@@ -127,13 +127,13 @@
     delete from t_note_index
     where f_id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="top.yms.note.entity.NoteIndexExample">
+  <delete id="deleteByExample" parameterType="top.yms.note.entity.NoteMetaExample">
     delete from t_note_index
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="top.yms.note.entity.NoteIndex">
+  <insert id="insert" parameterType="top.yms.note.entity.NoteMeta">
     insert into t_note_index (f_id, f_parent_id, f_user_id, 
       f_name, f_isfile, f_type, f_del, 
       f_create_time, f_update_time, f_store_site, f_site_id,
@@ -143,7 +143,7 @@
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{storeSite,jdbcType=VARCHAR},
             #{siteId,jdbcType=VARCHAR}, #{encrypted,jdbcType=VARCHAR}, #{viewTime,jdbcType=TIMESTAMP})
   </insert>
-  <insert id="insertSelective" parameterType="top.yms.note.entity.NoteIndex">
+  <insert id="insertSelective" parameterType="top.yms.note.entity.NoteMeta">
     insert into t_note_index
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="id != null">
@@ -228,7 +228,7 @@
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="top.yms.note.entity.NoteIndexExample" resultType="java.lang.Long">
+  <select id="countByExample" parameterType="top.yms.note.entity.NoteMetaExample" resultType="java.lang.Long">
     select count(*) from t_note_index
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
@@ -306,7 +306,7 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="top.yms.note.entity.NoteIndex">
+  <update id="updateByPrimaryKeySelective" parameterType="top.yms.note.entity.NoteMeta">
     update t_note_index
     <set>
       <if test="parentId != null">
@@ -354,7 +354,7 @@
     </set>
     where f_id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="top.yms.note.entity.NoteIndex">
+  <update id="updateByPrimaryKey" parameterType="top.yms.note.entity.NoteMeta">
     update t_note_index
     set f_parent_id = #{parentId,jdbcType=BIGINT},
       f_user_id = #{userId,jdbcType=BIGINT},

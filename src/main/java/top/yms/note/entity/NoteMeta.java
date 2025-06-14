@@ -10,7 +10,7 @@ import java.util.Date;
  * t_note_index
  * 笔记元数据
  */
-public class NoteIndex {
+public class NoteMeta {
     /**
      */
     private Long id;

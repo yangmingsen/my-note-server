@@ -5,25 +5,23 @@ import com.vladsch.flexmark.pdf.converter.PdfConverterExtension;
 import com.vladsch.flexmark.profile.pegdown.Extensions;
 import com.vladsch.flexmark.profile.pegdown.PegdownOptionsAdapter;
 import com.vladsch.flexmark.util.data.DataHolder;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import top.yms.note.comm.NoteConstants;
-import top.yms.note.conpont.ComponentSort;
 import top.yms.note.conpont.FileStoreService;
 import top.yms.note.dto.INoteData;
 import top.yms.note.dto.NoteDataExtendDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteExport;
 import top.yms.note.entity.NoteFile;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.exception.NoteSystemException;
 import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteExportMapper;
 import top.yms.note.mapper.NoteFileMapper;
-import top.yms.note.mapper.NoteIndexMapper;
+import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.msgcd.NoteSystemErrorCode;
 import top.yms.note.utils.IdWorker;
@@ -41,7 +39,7 @@ public abstract class AbstractNoteConvert implements NoteConvert{
     private final static Logger log = LoggerFactory.getLogger(AbstractNoteConvert.class);
 
     @Resource
-    private NoteIndexMapper noteIndexMapper;
+    private NoteMetaMapper noteMetaMapper;
 
     @Resource
     private NoteDataMapper noteDataMapper;
@@ -68,16 +66,6 @@ public abstract class AbstractNoteConvert implements NoteConvert{
             .toImmutable();
 
     @Override
-    public int compareTo(@NotNull ComponentSort o) {
-        return this.getSortValue()-o.getSortValue();
-    }
-
-    @Override
-    public int getSortValue() {
-        return 999;
-    }
-
-    @Override
     public boolean support(String fromType, String toType) {
         return false;
     }
@@ -89,11 +77,11 @@ public abstract class AbstractNoteConvert implements NoteConvert{
     @Override
     public String convert(Long id) {
         //获取笔记基本数据
-        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
         NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
         NoteDataExtendDto nte = new NoteDataExtendDto();
         nte.setNoteData(noteData);
-        nte.setNoteIndex(noteIndex);
+        nte.setNoteIndex(noteMeta);
         nte.setUserId(LocalThreadUtils.getUserId());
         //前置检查
         if (!beforeConvert(nte)) {

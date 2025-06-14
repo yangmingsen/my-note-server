@@ -1,6 +1,6 @@
 package top.yms.note.vo;
 
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 
 import java.util.List;
 
@@ -9,23 +9,23 @@ import java.util.List;
  */
 public class MenuListVo {
     //目录列表
-    List<NoteIndex> menuList;
+    List<NoteMeta> menuList;
     //文件列表
-    List<NoteIndex> noteContentMenuList;
+    List<NoteMeta> noteContentMenuList;
 
-    public List<NoteIndex> getMenuList() {
+    public List<NoteMeta> getMenuList() {
         return menuList;
     }
 
-    public void setMenuList(List<NoteIndex> menuList) {
+    public void setMenuList(List<NoteMeta> menuList) {
         this.menuList = menuList;
     }
 
-    public List<NoteIndex> getNoteContentMenuList() {
+    public List<NoteMeta> getNoteContentMenuList() {
         return noteContentMenuList;
     }
 
-    public void setNoteContentMenuList(List<NoteIndex> noteContentMenuList) {
+    public void setNoteContentMenuList(List<NoteMeta> noteContentMenuList) {
         this.noteContentMenuList = noteContentMenuList;
     }
 }

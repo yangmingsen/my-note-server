@@ -7,11 +7,11 @@ import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteFetchService;
 import top.yms.note.conpont.fetch.AbstractNoteFetch;
 import top.yms.note.entity.NoteBookmarks;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.exception.NoteSystemException;
 import top.yms.note.mapper.NoteBookmarksMapper;
-import top.yms.note.mapper.NoteIndexMapper;
+import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.msgcd.NoteSystemErrorCode;
 
 import javax.annotation.Resource;
@@ -40,7 +40,7 @@ public class NoteBookmarksSyncTask  extends AbstractAsyncExecuteTask implements 
     private NoteBookmarksMapper noteBookmarksMapper;
 
     @Resource
-    private NoteIndexMapper noteIndexMapper;
+    private NoteMetaMapper noteMetaMapper;
 
     private ThreadPoolCheckTask threadPoolCheckTask = new ThreadPoolCheckTask();
 
@@ -102,7 +102,7 @@ public class NoteBookmarksSyncTask  extends AbstractAsyncExecuteTask implements 
             NoteBookmarks noteBookmarks = (NoteBookmarks) pollTask.getTaskInfo();
             Long id = noteBookmarks.getId();
             //add NoteMeta
-            NoteIndex newNoteMeta = new NoteIndex();
+            NoteMeta newNoteMeta = new NoteMeta();
             newNoteMeta.setId(noteBookmarks.getId());
             newNoteMeta.setParentId(noteBookmarks.getParentId());
             newNoteMeta.setUserId(noteBookmarks.getUserId());
@@ -114,11 +114,11 @@ public class NoteBookmarksSyncTask  extends AbstractAsyncExecuteTask implements 
             newNoteMeta.setCreateTime(new Date());
             newNoteMeta.setUpdateTime(new Date());
             newNoteMeta.setStoreSite(NoteConstants.MYSQL);
-            NoteIndex noteMeta = noteIndexMapper.selectByPrimaryKey(id);
+            NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
             if (noteMeta == null) {
-                noteIndexMapper.insertSelective(newNoteMeta);
+                noteMetaMapper.insertSelective(newNoteMeta);
             } else {
-                noteIndexMapper.updateByPrimaryKeySelective(newNoteMeta);
+                noteMetaMapper.updateByPrimaryKeySelective(newNoteMeta);
             }
             //只对url进行同步
             if (NoteConstants.BOOKMARKS_URL.equals(noteBookmarks.getType()) &&

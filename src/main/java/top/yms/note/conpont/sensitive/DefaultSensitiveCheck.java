@@ -5,8 +5,8 @@ import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteCacheService;
 import top.yms.note.conpont.SensitiveService;
-import top.yms.note.entity.NoteIndex;
-import top.yms.note.service.NoteIndexService;
+import top.yms.note.entity.NoteMeta;
+import top.yms.note.service.NoteMetaService;
 
 import javax.annotation.Resource;
 
@@ -20,7 +20,7 @@ public class DefaultSensitiveCheck implements SensitiveService {
     private NoteCacheService noteCacheService;
 
     @Resource
-    private NoteIndexService noteIndexService;
+    private NoteMetaService noteMetaService;
 
     @Override
     public boolean isSensitive(Long id) {
@@ -29,21 +29,21 @@ public class DefaultSensitiveCheck implements SensitiveService {
             return NoteConstants.ENCRYPTED_FLAG.equals(res);
         }
         //再过数据库
-        NoteIndex noteIndex = noteIndexService.findOne(id);
+        NoteMeta noteMeta = noteMetaService.findOne(id);
         //自己是加密情况
-        if (NoteConstants.ENCRYPTED_FLAG.equals(noteIndex.getEncrypted())) {
+        if (NoteConstants.ENCRYPTED_FLAG.equals(noteMeta.getEncrypted())) {
             noteCacheService.add(id.toString(), NoteConstants.ENCRYPTED_FLAG);
             return true;
         }
         //父级目录有加密情况 //最大循环
         for (int i=0; i<20; i++) {
-            Long parentId = noteIndex.getParentId();
+            Long parentId = noteMeta.getParentId();
             if (NoteConstants.ROOT_DIR_FLAG.equals(parentId.toString())) {
                 //应该不会存在加密自己的root目录，so暂时不管这个root目录加密
                 break;
             }
-            noteIndex = noteIndexService.findOne(parentId);
-            if (NoteConstants.ENCRYPTED_FLAG.equals(noteIndex.getEncrypted())) {
+            noteMeta = noteMetaService.findOne(parentId);
+            if (NoteConstants.ENCRYPTED_FLAG.equals(noteMeta.getEncrypted())) {
                 noteCacheService.add(id.toString(), NoteConstants.ENCRYPTED_FLAG);
                 return true;
             }

@@ -10,8 +10,6 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import top.yms.note.comm.NoteConstants;
-import top.yms.note.conpont.ComponentSort;
-import top.yms.note.exception.BusinessException;
 import top.yms.note.exception.NoteSystemException;
 import top.yms.note.msgcd.NoteSystemErrorCode;
 
@@ -76,17 +74,6 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
     @Resource
     protected MongoTemplate mongoTemplate;
 
-
-    @Override
-    public int compareTo(ComponentSort other) {
-        return this.getSortValue() - other.getSortValue();
-    }
-
-    @Override
-    public int getSortValue() {
-        return 9999;
-    }
-
     @Override
     public synchronized void addTask(AsyncTask task) {
         dataList.add(task);
@@ -113,7 +100,9 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
      * 是否需要事务. true 需要
      * @return
      */
-    abstract boolean needTx() ;
+    boolean needTx()  {
+        return false;
+    }
 
     @Override
     public void run() {

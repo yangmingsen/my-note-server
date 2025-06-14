@@ -3,7 +3,7 @@ package top.yms.note.dto;
 
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteDataVersion;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.msgcd.CommonErrorCode;
 
@@ -28,7 +28,7 @@ public interface INoteData {
      * 获取笔记元数据
      * @return
      */
-    default NoteIndex getNoteIndex() {throw new BusinessException(CommonErrorCode.E_200214);}
+    default NoteMeta getNoteIndex() {throw new BusinessException(CommonErrorCode.E_200214);}
 
     /**
      * 获取笔记内容数据

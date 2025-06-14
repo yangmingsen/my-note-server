@@ -1,23 +1,23 @@
 package top.yms.note.vo;
 
 import top.yms.note.entity.NoteFile;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 
 /**
  * Created by yangmingsen on 2024/8/6.
  */
 public class NoteInfoVo {
-    private NoteIndex noteIndex;
+    private NoteMeta noteMeta;
 
     //项目位置信息
     private NoteFile noteFile;
 
-    public NoteIndex getNoteIndex() {
-        return noteIndex;
+    public NoteMeta getNoteIndex() {
+        return noteMeta;
     }
 
-    public void setNoteIndex(NoteIndex noteIndex) {
-        this.noteIndex = noteIndex;
+    public void setNoteIndex(NoteMeta noteMeta) {
+        this.noteMeta = noteMeta;
     }
 
     public NoteFile getNoteFile() {
@@ -31,7 +31,7 @@ public class NoteInfoVo {
     @Override
     public String toString() {
         return "NoteInfoVo{" +
-                "noteIndex=" + noteIndex +
+                "noteIndex=" + noteMeta +
                 ", noteFile=" + noteFile +
                 '}';
     }

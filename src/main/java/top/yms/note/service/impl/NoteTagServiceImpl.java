@@ -1,7 +1,7 @@
 package top.yms.note.service.impl;
 
 import org.springframework.stereotype.Service;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.entity.NoteTag;
 import top.yms.note.service.NoteTagService;
 
@@ -20,7 +20,7 @@ public class NoteTagServiceImpl implements NoteTagService {
     }
 
     @Override
-    public List<NoteIndex> findByTag(Long tagId) {
+    public List<NoteMeta> findByTag(Long tagId) {
         return null;
     }
 }

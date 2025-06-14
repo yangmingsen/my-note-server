@@ -2,7 +2,6 @@ package top.yms.note.conpont;
 
 import org.springframework.web.multipart.MultipartFile;
 import top.yms.note.exception.BusinessException;
-import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.msgcd.CommonErrorCode;
 
 import java.io.File;

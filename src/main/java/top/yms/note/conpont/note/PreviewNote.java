@@ -12,7 +12,7 @@ import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.dto.INoteData;
 import top.yms.note.dto.req.NoteShareReqDto;
 import top.yms.note.entity.NoteData;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.entity.NoteShareInfo;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.msgcd.CommonErrorCode;
@@ -65,14 +65,14 @@ public class PreviewNote extends AbstractNote implements NotePreview, Initializi
             throw new BusinessException(NoteIndexErrorCode.E_203113);
         }
         NoteData noteData = new NoteData();
-        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
         //目前访问必须在mongo上
-        if (!NoteConstants.MONGO.equals(noteIndex.getStoreSite())) {
+        if (!NoteConstants.MONGO.equals(noteMeta.getStoreSite())) {
             throw new BusinessException(NoteIndexErrorCode.E_203119);
         }
-        AnyFile anyFile = fileStoreService.loadFile(noteIndex.getSiteId());
+        AnyFile anyFile = fileStoreService.loadFile(noteMeta.getSiteId());
         StringBuilder contentStr = new StringBuilder("```");
-        contentStr.append(noteIndex.getType()).append("\n");
+        contentStr.append(noteMeta.getType()).append("\n");
         try( InputStream is = anyFile.getInputStream();
                 InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8)) {
             int bufLen = 1024;
@@ -117,20 +117,20 @@ public class PreviewNote extends AbstractNote implements NotePreview, Initializi
      * @return
      */
     private boolean checkFileCanPreview(Long id) {
-        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
         //1. 先通过noteIndex的f_type判断是否在 SUPPORT_View_FILE 列表中
-        if (typeSet.contains(noteIndex.getType())) {
+        if (typeSet.contains(noteMeta.getType())) {
             return true;
         }
         //2. 不在的话再去通过内容判断是否为文本。
         //todo 哎，这个判断算法还有问题，后续在看
-        if (!NoteConstants.MONGO.equals(noteIndex.getStoreSite())) {
+        if (!NoteConstants.MONGO.equals(noteMeta.getStoreSite())) {
             log.debug("查询的文件id={}, 未存储在mongo上", id);
             //目前都是存储在mongo上的,
             return false;
         }
 
-        AnyFile anyFile = fileStoreService.loadFile(noteIndex.getSiteId());
+        AnyFile anyFile = fileStoreService.loadFile(noteMeta.getSiteId());
         if (anyFile.getLength() == 0L) {
             log.debug("文件id={}, 为空文件", id);
             return false;
@@ -156,11 +156,11 @@ public class PreviewNote extends AbstractNote implements NotePreview, Initializi
 
     public NoteLuceneIndex findNoteLuceneDataOne(Long id) {
         NoteLuceneIndex noteLuceneIndex = packNoteIndexForNoteLuceneIndex(id);
-        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
-        if (StringUtils.isEmpty(noteIndex.getSiteId())) {
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        if (StringUtils.isEmpty(noteMeta.getSiteId())) {
             throw new BusinessException(ComponentErrorCode.E_204000);
         }
-        String stringContent = fileStoreService.getStringContent(noteIndex.getSiteId());
+        String stringContent = fileStoreService.getStringContent(noteMeta.getSiteId());
         noteLuceneIndex.setContent(stringContent);
 
         return noteLuceneIndex;

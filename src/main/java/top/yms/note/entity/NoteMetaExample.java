@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class NoteIndexExample {
+public class NoteMetaExample {
     /**
      */
     protected String orderByClause;
@@ -17,7 +17,7 @@ public class NoteIndexExample {
      */
     protected List<Criteria> oredCriteria;
 
-    public NoteIndexExample() {
+    public NoteMetaExample() {
         oredCriteria = new ArrayList<Criteria>();
     }
 

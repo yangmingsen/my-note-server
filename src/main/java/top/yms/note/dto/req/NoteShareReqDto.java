@@ -1,15 +1,15 @@
 package top.yms.note.dto.req;
 
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 
 public class NoteShareReqDto {
-    private NoteIndex noteIndex;
+    private NoteMeta noteMeta;
 
-    public NoteIndex getNoteIndex() {
-        return noteIndex;
+    public NoteMeta getNoteIndex() {
+        return noteMeta;
     }
 
-    public void setNoteIndex(NoteIndex noteIndex) {
-        this.noteIndex = noteIndex;
+    public void setNoteIndex(NoteMeta noteMeta) {
+        this.noteMeta = noteMeta;
     }
 }

@@ -1,8 +1,11 @@
 package top.yms.note.conpont.export;
 
-import top.yms.note.conpont.ComponentSort;
+import top.yms.note.conpont.ComponentComparable;
 
-public interface NoteConvert extends ComponentSort, Comparable<ComponentSort> {
+
+public interface NoteConvert extends ComponentComparable {
+
     boolean support(String fromType, String toType);
+
     String convert(Long id);
 }

@@ -4,32 +4,32 @@ import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.dto.NoteMoveDto;
 import top.yms.note.dto.NoteSearchCondition;
 import top.yms.note.entity.AntTreeNode;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.entity.NoteTree;
 import top.yms.note.vo.NoteInfoVo;
 import top.yms.note.vo.NoteSearchVo;
 
 import java.util.List;
 
-public interface NoteIndexService {
+public interface NoteMetaService {
     /**
      * 找到一个NoteIndex
      * @param id id
      * @return noteIndex
      */
-    NoteIndex findOne(Long id);
+    NoteMeta findOne(Long id);
 
     NoteSearchVo findNoteByCondition(NoteSearchCondition searchDto);
 
-    List<NoteIndex> findByUserId(Long userid);
+    List<NoteMeta> findByUserId(Long userid);
 
-    NoteIndex findBySiteId(String siteId);
+    NoteMeta findBySiteId(String siteId);
 
-    List<NoteIndex> findSubBy(Long parentId, Long uid);
+    List<NoteMeta> findNoteMetaList(Long parentId, Long uid);
 
-    NoteIndex findRoot();
+    NoteMeta findRoot();
 
-    List<NoteIndex> findBackParentDir(Long id);
+    List<NoteMeta> findBackParentDir(Long id);
 
     NoteTree findCurUserRootNoteTree();
 
@@ -39,9 +39,9 @@ public interface NoteIndexService {
 
     AntTreeNode transferToAntTree(NoteTree noteTree);
 
-    void add(NoteIndex note);
+    void add(NoteMeta note);
 
-    void update(NoteIndex note);
+    void update(NoteMeta note);
 
     void destroyNote(Long id);
 
@@ -49,17 +49,17 @@ public interface NoteIndexService {
 
     void delDir(Long parentId);
 
-    List<NoteIndex> findBy(NoteIndexQuery query);
+    List<NoteMeta> findBy(NoteIndexQuery query);
 
-    void findBreadcrumb(Long id, List<NoteIndex> list);
+    void findBreadcrumb(Long id, List<NoteMeta> list);
 
     String findBreadcrumbForSearch(Long noteId);
 
     NoteInfoVo getNoteAndSite(Long id);
 
-    List<NoteIndex> getRecentFiles();
+    List<NoteMeta> getRecentFiles();
 
-    List<NoteIndex> getDeletedFiles();
+    List<NoteMeta> getDeletedFiles();
 
     int allDestroy();
 
@@ -71,7 +71,7 @@ public interface NoteIndexService {
 
     void unEncryptedReadNote(Long id);
 
-    List<NoteIndex> findRecentVisitList();
+    List<NoteMeta> findRecentVisitList();
 
     /**
      * 自动处理标记加密笔记（处理旧版本只对noteIndex做标记，没有做实际笔记加密处理)

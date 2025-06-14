@@ -16,7 +16,7 @@ import top.yms.note.entity.NoteDataVersion;
 import top.yms.note.exception.NoteSystemException;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.service.NoteDataService;
-import top.yms.note.service.NoteIndexService;
+import top.yms.note.service.NoteMetaService;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -30,7 +30,7 @@ public class NoteContentOptimizeServiceImpl implements NoteContentOptimizeServic
     private static final Logger log = LoggerFactory.getLogger(NoteContentOptimizeServiceImpl.class);
 
     @Resource
-    private NoteIndexService noteIndexService;
+    private NoteMetaService noteMetaService;
 
     @Resource
     private NoteDataService noteDataService;

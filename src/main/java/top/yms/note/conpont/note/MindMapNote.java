@@ -13,7 +13,7 @@ import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.dto.INoteData;
 import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.utils.LocalThreadUtils;
@@ -47,9 +47,9 @@ public class MindMapNote extends AbstractNote {
 
     @Override
     public INoteData doGetContent(Long id) {
-        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
         NoteData res = new NoteData();
-        Document resDoc = mongoTemplate.findById(noteIndex.getSiteId(), Document.class, noteMindMap);
+        Document resDoc = mongoTemplate.findById(noteMeta.getSiteId(), Document.class, noteMindMap);
         if (resDoc == null) {
             return null;
         }
@@ -65,28 +65,28 @@ public class MindMapNote extends AbstractNote {
         String jsonContent = noteDataDto.getContent();
         Long noteId = noteDataDto.getId();
         ObjectId objId = null;
-        NoteIndex upNoteIndex = new NoteIndex();
+        NoteMeta upNoteMeta = new NoteMeta();
         Document oldDoc = null;
         try {
             Document document = Document.parse(jsonContent);
-            NoteIndex noteIndex1 = noteIndexMapper.selectByPrimaryKey(noteId);
-            if (StringUtils.isBlank(noteIndex1.getSiteId())) {
+            NoteMeta noteMeta1 = noteMetaMapper.selectByPrimaryKey(noteId);
+            if (StringUtils.isBlank(noteMeta1.getSiteId())) {
                 Document saveRes = mongoTemplate.save(document, noteMindMap);
                 objId = saveRes.getObjectId(NoteConstants._id);
-                upNoteIndex.setSiteId(objId.toString());
+                upNoteMeta.setSiteId(objId.toString());
             } else {
-                oldDoc = mongoTemplate.findById(noteIndex1.getSiteId(), Document.class, noteMindMap);
-                ObjectId objectId = new ObjectId(noteIndex1.getSiteId());
+                oldDoc = mongoTemplate.findById(noteMeta1.getSiteId(), Document.class, noteMindMap);
+                ObjectId objectId = new ObjectId(noteMeta1.getSiteId());
                 document.put(NoteConstants._id, objectId);
                 mongoTemplate.save(document, noteMindMap);
             }
             Date opTime = new Date();
             long size = jsonContent.getBytes(StandardCharsets.UTF_8).length;
             //更新index信息
-            upNoteIndex.setId(noteId);
-            upNoteIndex.setUpdateTime(opTime);
-            upNoteIndex.setSize(size);
-            noteIndexMapper.updateByPrimaryKeySelective(upNoteIndex);
+            upNoteMeta.setId(noteId);
+            upNoteMeta.setUpdateTime(opTime);
+            upNoteMeta.setSize(size);
+            noteMetaMapper.updateByPrimaryKeySelective(upNoteMeta);
         } catch (Exception e) {
             log.error("MindMapNoteType#save异常", e);
             //回滚mongo数据

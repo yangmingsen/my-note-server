@@ -1,8 +1,9 @@
 package top.yms.note.conpont.fetch;
 
-import top.yms.note.conpont.ComponentSort;
+import top.yms.note.conpont.ComponentComparable;
 
-public interface NoteFetch extends ComponentSort, Comparable<ComponentSort>{
+
+public interface NoteFetch extends ComponentComparable {
 
     boolean supportFetch(String type);
 

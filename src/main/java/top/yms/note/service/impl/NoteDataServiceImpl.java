@@ -28,7 +28,7 @@ import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteDataVersionMapper;
 import top.yms.note.mapper.NoteFileMapper;
-import top.yms.note.mapper.NoteIndexMapper;
+import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.msgcd.NoteIndexErrorCode;
 import top.yms.note.service.NoteDataService;
@@ -57,7 +57,7 @@ public class NoteDataServiceImpl implements NoteDataService {
     private NoteDataVersionMapper noteDataVersionMapper;
 
     @Resource
-    private NoteIndexMapper noteIndexMapper;
+    private NoteMetaMapper noteMetaMapper;
 
     @Resource
     private FileStoreService fileStoreService;
@@ -87,28 +87,28 @@ public class NoteDataServiceImpl implements NoteDataService {
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public RestOut saveMindMapData(Long noteId, String jsonContent) {
         ObjectId objId = null;
-        NoteIndex upNoteIndex = new NoteIndex();
+        NoteMeta upNoteMeta = new NoteMeta();
         Document oldDoc = null;
         try {
             Document document = Document.parse(jsonContent);
-            NoteIndex noteIndex1 = noteIndexMapper.selectByPrimaryKey(noteId);
-            if (StringUtils.isBlank(noteIndex1.getSiteId())) {
+            NoteMeta noteMeta1 = noteMetaMapper.selectByPrimaryKey(noteId);
+            if (StringUtils.isBlank(noteMeta1.getSiteId())) {
                 Document saveRes = mongoTemplate.save(document, noteMindMap);
                 objId = saveRes.getObjectId("_id");
-                upNoteIndex.setSiteId(objId.toString());
+                upNoteMeta.setSiteId(objId.toString());
             } else {
-                oldDoc = mongoTemplate.findById(noteIndex1.getSiteId(), Document.class, noteMindMap);
-                ObjectId objectId = new ObjectId(noteIndex1.getSiteId());
+                oldDoc = mongoTemplate.findById(noteMeta1.getSiteId(), Document.class, noteMindMap);
+                ObjectId objectId = new ObjectId(noteMeta1.getSiteId());
                 document.put("_id", objectId);
                 mongoTemplate.save(document, noteMindMap);
             }
             Date opTime = new Date();
             long size = jsonContent.getBytes(StandardCharsets.UTF_8).length;
             //更新index信息
-            upNoteIndex.setId(noteId);
-            upNoteIndex.setUpdateTime(opTime);
-            upNoteIndex.setSize(size);
-            noteIndexMapper.updateByPrimaryKeySelective(upNoteIndex);
+            upNoteMeta.setId(noteId);
+            upNoteMeta.setUpdateTime(opTime);
+            upNoteMeta.setSize(size);
+            noteMetaMapper.updateByPrimaryKeySelective(upNoteMeta);
         } catch (Exception e) {
             if (oldDoc != null) {
                 mongoTemplate.save(oldDoc, noteMindMap);
@@ -153,12 +153,12 @@ public class NoteDataServiceImpl implements NoteDataService {
                 noteData.setUpdateTime(opTime);
                 noteDataMapper.updateByPrimaryKeySelective(noteData);
             }
-            NoteIndex noteIndex1 = noteIndexMapper.selectByPrimaryKey(id);
+            NoteMeta noteMeta1 = noteMetaMapper.selectByPrimaryKey(id);
             //更新index信息
-            NoteIndex noteIndex = new NoteIndex();
-            noteIndex.setId(id);
-            noteIndex.setUpdateTime(opTime);
-            noteIndex.setSize((long)noteData.getContent().getBytes(StandardCharsets.UTF_8).length);
+            NoteMeta noteMeta = new NoteMeta();
+            noteMeta.setId(id);
+            noteMeta.setUpdateTime(opTime);
+            noteMeta.setSize((long)noteData.getContent().getBytes(StandardCharsets.UTF_8).length);
             if (StringUtils.isNotBlank(noteDataDto.getTextContent())) {
                 if ("wer".equals(noteDataDto.getType())) {
                     JSONObject jsonObject = new JSONObject();
@@ -166,35 +166,35 @@ public class NoteDataServiceImpl implements NoteDataService {
                     jsonObject.put("textConent", noteDataDto.getTextContent());
                     Document document = Document.parse(jsonObject.toString());
 
-                    if (StringUtils.isNotBlank(noteIndex1.getSiteId())) {
-                        oldDoc = mongoTemplate.findById(noteIndex1.getSiteId(), Document.class, NoteConstants.noteWerTextContent);
-                        ObjectId objectId = new ObjectId(noteIndex1.getSiteId());
+                    if (StringUtils.isNotBlank(noteMeta1.getSiteId())) {
+                        oldDoc = mongoTemplate.findById(noteMeta1.getSiteId(), Document.class, NoteConstants.noteWerTextContent);
+                        ObjectId objectId = new ObjectId(noteMeta1.getSiteId());
                         document.put("_id", objectId);
                         mongoTemplate.save(document,  NoteConstants.noteWerTextContent);
                     } else {
                         Document saveRes = mongoTemplate.save(document, NoteConstants.noteWerTextContent);
                         objId = saveRes.getObjectId("_id");
-                        noteIndex.setSiteId(objId.toString());
+                        noteMeta.setSiteId(objId.toString());
                     }
                 }
 
             }
-            noteIndexMapper.updateByPrimaryKeySelective(noteIndex);
+            noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
             //通知更新lucene索引
             NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
             noteLuceneIndex.setId(id);
-            noteLuceneIndex.setUserId(noteIndex1.getUserId());
-            noteLuceneIndex.setParentId(noteIndex1.getParentId());
-            noteLuceneIndex.setTitle(noteIndex1.getName());
+            noteLuceneIndex.setUserId(noteMeta1.getUserId());
+            noteLuceneIndex.setParentId(noteMeta1.getParentId());
+            noteLuceneIndex.setTitle(noteMeta1.getName());
             if (StringUtils.isNotBlank(noteDataDto.getType()) && "wer".equals(noteDataDto.getType())) {
                 noteLuceneIndex.setContent(noteDataDto.getTextContent());
             } else {
                 noteLuceneIndex.setContent(noteData.getContent());
             }
-            noteLuceneIndex.setIsFile(noteIndex1.getIsFile());
-            noteLuceneIndex.setType(noteIndex1.getType());
+            noteLuceneIndex.setIsFile(noteMeta1.getIsFile());
+            noteLuceneIndex.setType(noteMeta1.getType());
             noteLuceneIndex.setCreateDate(opTime);
-            noteLuceneIndex.setEncrypted(noteIndex1.getEncrypted());
+            noteLuceneIndex.setEncrypted(noteMeta1.getEncrypted());
             noteDataIndexService.update(noteLuceneIndex);
             //版本记录
             NoteDataVersion dataVersion = new NoteDataVersion();
@@ -262,22 +262,22 @@ public class NoteDataServiceImpl implements NoteDataService {
      * @return
      */
     private boolean checkFileCanPreview(Long id) {
-        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
         //1. 先通过noteIndex的f_type判断是否在 SUPPORT_View_FILE 列表中
         for (String st : SUPPORT_View_FILE) {
-            if (st.equals(noteIndex.getType())) {
+            if (st.equals(noteMeta.getType())) {
                 return true;
             }
         }
         //2. 不在的话再去通过内容判断是否为文本。
         //todo 哎，这个判断算法还有问题，后续在看
-        if (!NoteConstants.MONGO.equals(noteIndex.getStoreSite())) {
+        if (!NoteConstants.MONGO.equals(noteMeta.getStoreSite())) {
             log.debug("查询的文件id={}, 未存储在mongo上", id);
             //目前都是存储在mongo上的,
             return false;
         }
 
-        AnyFile anyFile = fileStoreService.loadFile(noteIndex.getSiteId());
+        AnyFile anyFile = fileStoreService.loadFile(noteMeta.getSiteId());
         if (anyFile.getLength() == 0L) {
             log.debug("文件id={}, 为空文件", id);
             return false;
@@ -306,14 +306,14 @@ public class NoteDataServiceImpl implements NoteDataService {
      */
     @Deprecated
     public NoteData findOne(Long id) {
-        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
         NoteData noteData = new NoteData();
-        if (NoteConstants.MYSQL.equals(noteIndex.getStoreSite())) {
+        if (NoteConstants.MYSQL.equals(noteMeta.getStoreSite())) {
             noteData = noteDataMapper.selectByPrimaryKey(id);
         } else {
-            if (FileTypeEnum.MINDMAP.compare(noteIndex.getType())) {
+            if (FileTypeEnum.MINDMAP.compare(noteMeta.getType())) {
                 NoteData res = new NoteData();
-                Document resDoc = mongoTemplate.findById(noteIndex.getSiteId(), Document.class, noteMindMap);
+                Document resDoc = mongoTemplate.findById(noteMeta.getSiteId(), Document.class, noteMindMap);
                 if (resDoc == null) {
                     return null;
                 }
@@ -327,10 +327,10 @@ public class NoteDataServiceImpl implements NoteDataService {
             if (!checkFileCanPreviewByCache(id)) {
                 throw new BusinessException(NoteIndexErrorCode.E_203113);
             }
-            AnyFile anyFile = fileStoreService.loadFile(noteIndex.getSiteId());
+            AnyFile anyFile = fileStoreService.loadFile(noteMeta.getSiteId());
 
             StringBuilder contentStr = new StringBuilder("```");
-            contentStr.append(noteIndex.getType()).append("\n");
+            contentStr.append(noteMeta.getType()).append("\n");
             try(InputStream is = anyFile.getInputStream();
                     InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8)) {
                 int bufLen = 1024;
@@ -353,30 +353,30 @@ public class NoteDataServiceImpl implements NoteDataService {
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 20)
     public void syncDataSize() {
         Long uid = LocalThreadUtils.getUserId();
-        noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).filter(3).storeSite(NoteConstants.MYSQL).get().example())
+        noteMetaMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).filter(3).storeSite(NoteConstants.MYSQL).get().example())
                 .forEach(index -> {
                     Long id = index.getId();
                     NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
 
                     if (noteData != null) {
-                        NoteIndex upIndex = new NoteIndex();
+                        NoteMeta upIndex = new NoteMeta();
                         upIndex.setId(id);
                         upIndex.setSize((long)noteData.getContent().getBytes(StandardCharsets.UTF_8).length);
-                        noteIndexMapper.updateByPrimaryKeySelective(upIndex);
+                        noteMetaMapper.updateByPrimaryKeySelective(upIndex);
                     }
 
                 });
-        noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).filter(3).storeSite(NoteConstants.MONGO).get().example())
+        noteMetaMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).filter(3).storeSite(NoteConstants.MONGO).get().example())
                 .forEach(index -> {
                     Long id = index.getId();
                     String fileId = index.getSiteId();
                     NoteFile noteFile = noteFileMapper.selectByExample(NoteFileQuery.Builder.build().fileId(fileId).get().example()).get(0);
 
                     if (noteFile != null) {
-                        NoteIndex upIndex = new NoteIndex();
+                        NoteMeta upIndex = new NoteMeta();
                         upIndex.setId(id);
                         upIndex.setSize(noteFile.getSize());
-                        noteIndexMapper.updateByPrimaryKeySelective(upIndex);
+                        noteMetaMapper.updateByPrimaryKeySelective(upIndex);
                     }
                 });
     }

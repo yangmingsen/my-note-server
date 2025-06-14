@@ -11,8 +11,14 @@ import java.util.Set;
 /**
  * 重复内容过滤器
  */
-@Component
+//@Component //bug20250613 暂时停用
 public class DuplicationRemoveFilter implements SearchResultFilter {
+
+    /**
+     * 过滤掉重复
+     * @param searchResults
+     * @return
+     */
     @Override
     public List<SearchResult> filter(List<SearchResult> searchResults) {
         Set<Long> idSets = new HashSet<>();
@@ -26,5 +32,10 @@ public class DuplicationRemoveFilter implements SearchResultFilter {
             resList.add(searchResult);
         }
         return resList;
+    }
+
+    @Override
+    public int getSortValue() {
+        return 30;
     }
 }

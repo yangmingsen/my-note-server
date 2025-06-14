@@ -3,7 +3,7 @@ package top.yms.note.conpont.task;
 import org.springframework.stereotype.Component;
 import top.yms.note.conpont.NoteRecentVisitService;
 import top.yms.note.conpont.SensitiveService;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.utils.LocalThreadUtils;
 
@@ -23,7 +23,7 @@ public class NoteRecentVisitComputeTask extends AbstractAsyncExecuteTask impleme
     /**
      * LruCache缓存， 缓存每个用户最近访问情况，
      */
-    static class LruCache extends LinkedHashMap<Long, NoteIndex> {
+    static class LruCache extends LinkedHashMap<Long, NoteMeta> {
         private final int capacity;
 
         public LruCache(int capacity) {
@@ -32,16 +32,16 @@ public class NoteRecentVisitComputeTask extends AbstractAsyncExecuteTask impleme
         }
 
         @Override
-        protected boolean removeEldestEntry(Map.Entry<Long, NoteIndex> eldest) {
+        protected boolean removeEldestEntry(Map.Entry<Long, NoteMeta> eldest) {
             return size() > capacity;
         }
 
-        public void put(NoteIndex note) {
+        public void put(NoteMeta note) {
             super.put(note.getId(), note);
         }
 
-        public List<NoteIndex> getRecentVisitList() {
-            List<NoteIndex> lruList = new ArrayList<>(this.values());
+        public List<NoteMeta> getRecentVisitList() {
+            List<NoteMeta> lruList = new ArrayList<>(this.values());
             Collections.reverse(lruList);
             return lruList;
         }
@@ -68,7 +68,7 @@ public class NoteRecentVisitComputeTask extends AbstractAsyncExecuteTask impleme
     }
 
     @Override
-    public List<NoteIndex> getRecentVisitList() {
+    public List<NoteMeta> getRecentVisitList() {
         Long userId = LocalThreadUtils.getUserId();
         return getRecentVisitList(userId);
     }
@@ -79,7 +79,7 @@ public class NoteRecentVisitComputeTask extends AbstractAsyncExecuteTask impleme
     }
 
     @Override
-    public List<NoteIndex> getRecentVisitList(Long userId) {
+    public List<NoteMeta> getRecentVisitList(Long userId) {
         return getLruCache(userId).getRecentVisitList();
     }
 
@@ -93,7 +93,7 @@ public class NoteRecentVisitComputeTask extends AbstractAsyncExecuteTask impleme
         List<AsyncTask> allData = getAllData();
         for (AsyncTask at : allData) {
             Long userId = at.getUserId();
-            NoteIndex ni = (NoteIndex) at.getTaskInfo();
+            NoteMeta ni = (NoteMeta) at.getTaskInfo();
             if (!sensitiveService.isSensitive(ni.getId())) {
                 //没有命中敏感内容
                 getLruCache(userId).put(ni);

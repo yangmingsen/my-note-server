@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteLuceneDataService;
 import top.yms.note.conpont.search.NoteLuceneIndex;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.msgcd.CommonErrorCode;
 
@@ -30,10 +30,10 @@ public class NoteLuceneDataServiceImpl extends DefaultNoteServiceImpl implements
      * @return
      */
     private NoteLuceneDataService findCanApplyNoteIndexNoteType(Long id) {
-        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
         for(Note note : noteComponentList) {
             NoteLuceneDataService noteLuceneDataService = (NoteLuceneDataService) note;
-            if (noteLuceneDataService.supportGetLuceneData(noteIndex.getType())) {
+            if (noteLuceneDataService.supportGetLuceneData(noteMeta.getType())) {
                 return noteLuceneDataService;
             }
         }

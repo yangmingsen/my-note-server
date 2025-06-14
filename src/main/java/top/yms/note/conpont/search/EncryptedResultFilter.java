@@ -39,4 +39,10 @@ public class EncryptedResultFilter implements SearchResultFilter {
     }
 
 
+    @Override
+    public int getSortValue() {
+        return 20;
+    }
+
+
 }

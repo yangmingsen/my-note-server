@@ -44,4 +44,9 @@ public interface NoteFileMapper {
     @Select("select * from t_note_file where f_note_ref=#{noteRef, jdbcType=BIGINT}")
     @ResultMap("BaseResultMap")
     List<NoteFile> selectByNoteRef(@Param("noteRef") Long noteRef);
+
+
+    @Select("select * from t_note_file")
+    @ResultMap("BaseResultMap")
+    List<NoteFile> findAll();
 }
