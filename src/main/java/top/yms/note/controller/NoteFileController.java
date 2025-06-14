@@ -24,6 +24,7 @@ import top.yms.note.exception.WangEditorUploadException;
 import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.msgcd.NoteIndexErrorCode;
+import top.yms.note.other.ResourceSync;
 import top.yms.note.service.NoteFileService;
 import top.yms.note.service.NoteMetaService;
 import top.yms.note.utils.LocalThreadUtils;
@@ -470,6 +471,15 @@ public class NoteFileController {
             throw new Exception(e);
         }
 
+        return RestOut.succeed();
+    }
+
+    @Resource
+    private ResourceSync resourceSync;
+
+    @GetMapping("/testSync")
+    public RestOut<String> testSync() {
+        resourceSync.sync();
         return RestOut.succeed();
     }
 
