@@ -135,6 +135,7 @@ public class NoteExpireTimeCacheService implements NoteExpireCacheService, Sched
     public void run() {
         if (getCacheSize() == 0) return;
         log.debug("=========开始执行key clear==========");
+        log.debug("当前key size={}", getCacheSize());
         for (String key : expireTimeMap.keySet()) {
             ExpireObjectEntity eoe = expireTimeMap.get(key);
             if (eoe.isExpire()) {

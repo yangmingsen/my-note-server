@@ -1,6 +1,6 @@
 package top.yms.note.service;
 
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.entity.NoteTag;
 
 import java.util.List;
@@ -10,5 +10,5 @@ public interface NoteTagService {
 
     Boolean addTag(NoteTag noteTag);
 
-    List<NoteIndex> findByTag(Long tagId);
+    List<NoteMeta> findByTag(Long tagId);
 }

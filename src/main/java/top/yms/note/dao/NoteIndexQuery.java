@@ -1,7 +1,7 @@
 package top.yms.note.dao;
 
 import org.apache.commons.lang3.StringUtils;
-import top.yms.note.entity.NoteIndexExample;
+import top.yms.note.entity.NoteMetaExample;
 
 /**
  * Created by yangmingsen on 2024/4/5.
@@ -35,13 +35,13 @@ public class NoteIndexQuery {
 
 
 
-    private NoteIndexExample example;
+    private NoteMetaExample example;
 
-    public NoteIndexExample example() {
+    public NoteMetaExample example() {
         if (example != null) return example;
 
-        NoteIndexExample example = new NoteIndexExample();
-        NoteIndexExample.Criteria criteria = example.createCriteria();
+        NoteMetaExample example = new NoteMetaExample();
+        NoteMetaExample.Criteria criteria = example.createCriteria();
 
         if (userId != null) {
             criteria.andUserIdEqualTo(userId);

@@ -18,7 +18,7 @@ import top.yms.note.conpont.AnyFile;
 import top.yms.note.dto.INoteData;
 import top.yms.note.entity.AntTreeNode;
 import top.yms.note.entity.NoteData;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.exception.NoteSystemException;
 import top.yms.note.msgcd.CommonErrorCode;
@@ -54,17 +54,17 @@ public class ArchivePreview extends AbstractNote{
     }
 
     private static class ArchiveMeta {
-        private NoteIndex notMeta;
+        private NoteMeta notMeta;
         private AnyFile anyFile;
         private AntTreeNode antTreeNode;
         private Map<String, AntTreeNode> pathMap;
         private AntTreeNode root;
 
-        public NoteIndex getNotMeta() {
+        public NoteMeta getNotMeta() {
             return notMeta;
         }
 
-        public void setNotMeta(NoteIndex notMeta) {
+        public void setNotMeta(NoteMeta notMeta) {
             this.notMeta = notMeta;
         }
 
@@ -339,7 +339,7 @@ public class ArchivePreview extends AbstractNote{
 
 
     public INoteData getContent(Long id) {
-        NoteIndex noteMeta = noteIndexMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
         AnyFile anyFile = fileStoreService.loadFile(noteMeta.getSiteId());
         ArchiveMeta archiveMeta = new ArchiveMeta();
         archiveMeta.setNotMeta(noteMeta);

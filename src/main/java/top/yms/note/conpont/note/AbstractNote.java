@@ -26,7 +26,7 @@ import top.yms.note.exception.NoteSystemException;
 import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteDataVersionMapper;
 import top.yms.note.mapper.NoteFileMapper;
-import top.yms.note.mapper.NoteIndexMapper;
+import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.msgcd.NoteIndexErrorCode;
@@ -61,7 +61,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     protected NoteDataVersionMapper noteDataVersionMapper;
 
     @Resource
-    protected NoteIndexMapper noteIndexMapper;
+    protected NoteMetaMapper noteMetaMapper;
 
     @Resource
     protected NoteFileMapper noteFileMapper;
@@ -136,8 +136,8 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         if (noteFiles.size() > 0) {
             return noteFiles.get(0);
         }
-        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
-        return noteFileService.findOne(noteIndex.getSiteId());
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        return noteFileService.findOne(noteMeta.getSiteId());
     }
 
     protected boolean beforeGetContent(INoteData iNoteData) {
@@ -161,10 +161,10 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
 
     protected void afterGetContent(INoteData iNoteData) {
         //修改访问时间
-        NoteIndex upNoteIndex = new NoteIndex();
-        upNoteIndex.setId(iNoteData.getId());
-        upNoteIndex.setViewTime(new Date());
-        noteIndexMapper.updateByPrimaryKeySelective(upNoteIndex);
+        NoteMeta upNoteMeta = new NoteMeta();
+        upNoteMeta.setId(iNoteData.getId());
+        upNoteMeta.setViewTime(new Date());
+        noteMetaMapper.updateByPrimaryKeySelective(upNoteMeta);
         //解密处理
         if (supportEncrypt() && NoteConstants.ENCRYPTED_FLAG.equals(iNoteData.getNoteIndex().getEncrypted())) {
             String content = decryptContent(iNoteData.getContent());
@@ -176,7 +176,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     }
 
     public INoteData getContent(Long id) {
-        NoteIndex noteMeta = noteIndexMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
         NoteDataExtendDto nde = new NoteDataExtendDto();
         nde.setNoteIndex(noteMeta);
         nde.setUserId(LocalThreadUtils.getUserId());
@@ -240,29 +240,29 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     /**
      * 更新笔记元数据
      *
-     * @param noteIndex
+     * @param noteMeta
      * @param iNoteData
      */
-    protected void updateNoteMetaInfo(NoteIndex noteIndex, INoteData iNoteData) {
-        if (noteIndex == null) noteIndex = new NoteIndex();
-        noteIndex.setId(iNoteData.getId());
-        noteIndex.setUpdateTime(new Date());
+    protected void updateNoteMetaInfo(NoteMeta noteMeta, INoteData iNoteData) {
+        if (noteMeta == null) noteMeta = new NoteMeta();
+        noteMeta.setId(iNoteData.getId());
+        noteMeta.setUpdateTime(new Date());
         //更新大小
         long noteSize = iNoteData.getContent().getBytes(StandardCharsets.UTF_8).length;
         List<NoteFile> noteFiles = noteFileMapper.selectByNoteRef(iNoteData.getId());
         for (NoteFile noteFile : noteFiles) {
             noteSize += noteFile.getSize();
         }
-        noteIndex.setSize(noteSize);
-        noteIndexMapper.updateByPrimaryKeySelective(noteIndex);
+        noteMeta.setSize(noteSize);
+        noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
     }
 
     /**
      * 更新全局搜索索引
      *
-     * @param noteIndex
+     * @param noteMeta
      */
-    protected void updateNoteMetaToLuceneSearch(NoteIndex noteIndex) {
+    protected void updateNoteMetaToLuceneSearch(NoteMeta noteMeta) {
         DelayExecuteAsyncTask indexUpdateDelayTask = DelayExecuteAsyncTask.Builder
                 .build()
                 .type(AsyncTaskEnum.SYNC_Note_Index_UPDATE)
@@ -271,7 +271,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
                 .taskName(AsyncTaskEnum.SYNC_Note_Index_UPDATE.getName())
                 .createTime(new Date())
                 .userId(LocalThreadUtils.getUserId())
-                .taskInfo(NoteIndexLuceneUpdateDto.Builder.build().type(NoteIndexLuceneUpdateDto.updateNoteContent).data(noteIndex.getId()).get())
+                .taskInfo(NoteIndexLuceneUpdateDto.Builder.build().type(NoteIndexLuceneUpdateDto.updateNoteContent).data(noteMeta.getId()).get())
                 .get();
         noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
     }
@@ -310,7 +310,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         //加密处理
         if (supportEncrypt()) {
             Long id = iNoteData.getId();
-            NoteIndex noteMeta = noteIndexMapper.selectByPrimaryKey(id);
+            NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
             if (NoteConstants.ENCRYPTED_FLAG.equals(noteMeta.getEncrypted())) {
                 //设置加密内容
                 String content = iNoteData.getContent();
@@ -335,7 +335,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
 
     protected void afterSave(INoteData iNoteData) {
         //更新笔记元数据
-        NoteIndex noteMeta = noteIndexMapper.selectByPrimaryKey(iNoteData.getId());
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(iNoteData.getId());
         updateNoteMetaInfo(noteMeta, iNoteData);
         //更新全局搜索
         updateNoteMetaToLuceneSearch(noteMeta);
@@ -363,17 +363,17 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     abstract void doSave(INoteData iNoteData) throws BusinessException;
 
     protected NoteLuceneIndex packNoteIndexForNoteLuceneIndex(Long id) {
-        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
-        if (noteIndex == null) {
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        if (noteMeta == null) {
             log.error("noteIndex目标不存在, 使用id={} 进行查询时", id);
             throw new BusinessException(NoteIndexErrorCode.E_203117);
         }
         NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
-        BeanUtils.copyProperties(noteIndex, noteLuceneIndex);
+        BeanUtils.copyProperties(noteMeta, noteLuceneIndex);
         //NoteIndex中的创建时间是 createTime， 而NoteLuceneIndex中是createDate。要注意
-        noteLuceneIndex.setCreateDate(noteIndex.getCreateTime());
+        noteLuceneIndex.setCreateDate(noteMeta.getCreateTime());
         //bug 2025-03-22 没有设置title
-        noteLuceneIndex.setTitle(noteIndex.getName());
+        noteLuceneIndex.setTitle(noteMeta.getName());
         return noteLuceneIndex;
     }
 
@@ -464,15 +464,15 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     }
 
     protected boolean beforeShareNoteGet(NoteShareReqDto noteShareReqDto) {
-        NoteIndex noteIndex = noteShareReqDto.getNoteIndex();
-        if (NoteConstants.SHARE_UN_FLAG.equals(noteIndex.getShare())) {
+        NoteMeta noteMeta = noteShareReqDto.getNoteIndex();
+        if (NoteConstants.SHARE_UN_FLAG.equals(noteMeta.getShare())) {
             throw new BusinessException(BusinessErrorCode.E_204014);
         }
         return true;
     }
 
     protected NoteShareVo doShareNoteGet(NoteShareReqDto noteShareReqDto) {
-        NoteIndex noteMeta = noteShareReqDto.getNoteIndex();
+        NoteMeta noteMeta = noteShareReqDto.getNoteIndex();
         Long noteId = noteShareReqDto.getNoteIndex().getId();
         NoteData noteData = noteDataMapper.selectByPrimaryKey(noteId);
         NoteShareInfo noteShareInfo = noteShareInfoRepository.findByNoteId(noteId);
@@ -527,10 +527,10 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     public void shareNoteClose(NoteShareReqDto noteShareReqDto) {
         Long noteId = noteShareReqDto.getNoteIndex().getId();
         //更新noteMeta
-        NoteIndex noteMeta = new NoteIndex();
+        NoteMeta noteMeta = new NoteMeta();
         noteMeta.setId(noteId);
         noteMeta.setShare(NoteConstants.SHARE_UN_FLAG);
-        noteIndexMapper.updateByPrimaryKeySelective(noteMeta);
+        noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
         //删除分享信息
         NoteShareInfo oldShareInfo = noteShareInfoRepository.findByNoteId(noteId);
         if (oldShareInfo != null) {
@@ -548,10 +548,10 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
             return oldShareInfo;
         }
         //更新noteMeta
-        NoteIndex noteMeta = new NoteIndex();
+        NoteMeta noteMeta = new NoteMeta();
         noteMeta.setId(noteId);
         noteMeta.setShare(NoteConstants.SHARE_FLAG);
-        noteIndexMapper.updateByPrimaryKeySelective(noteMeta);
+        noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
         //新增noteShareInfo
         String viewShareUrl = getViewShareUrl();
         String shareUrl = viewShareUrl + noteId;

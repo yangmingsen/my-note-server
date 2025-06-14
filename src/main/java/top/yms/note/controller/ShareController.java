@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RestController;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.NoteShareService;
 import top.yms.note.entity.RestOut;
+import top.yms.note.other.ResourceSync;
+import top.yms.note.scheduled.MySQLBackupTask;
 import top.yms.note.vo.NoteShareVo;
 
 import javax.annotation.Resource;
@@ -32,5 +34,13 @@ public class ShareController {
         file.writeTo(resp.getOutputStream());
     }
 
+    @Resource
+    private ResourceSync resourceSync;
+
+    @GetMapping("/testSync")
+    public RestOut<String> testSync() {
+        resourceSync.sync();
+        return RestOut.succeed();
+    }
 
 }

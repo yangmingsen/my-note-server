@@ -7,9 +7,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.entity.NoteData;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.exception.BusinessException;
-import top.yms.note.mapper.NoteIndexMapper;
+import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.service.NoteDataService;
 import top.yms.note.utils.IdWorker;
@@ -31,7 +31,7 @@ public abstract class AbstractNoteFetch implements NoteFetch {
     protected IdWorker idWorker;
 
     @Resource
-    protected NoteIndexMapper noteIndexMapper;
+    protected NoteMetaMapper noteMetaMapper;
 
     @Resource
     protected NoteDataService noteDataService;
@@ -39,7 +39,7 @@ public abstract class AbstractNoteFetch implements NoteFetch {
     public static class FetchMeta {
         private String url;
         private Long parentId;
-        private NoteIndex noteIndex;
+        private NoteMeta noteMeta;
         private String content;
 
         public FetchMeta(String url, Long parentId) {
@@ -77,12 +77,12 @@ public abstract class AbstractNoteFetch implements NoteFetch {
             this.parentId = parentId;
         }
 
-        public NoteIndex getNoteIndex() {
-            return noteIndex;
+        public NoteMeta getNoteIndex() {
+            return noteMeta;
         }
 
-        public void setNoteIndex(NoteIndex noteIndex) {
-            this.noteIndex = noteIndex;
+        public void setNoteIndex(NoteMeta noteMeta) {
+            this.noteMeta = noteMeta;
         }
     }
 
@@ -122,7 +122,7 @@ public abstract class AbstractNoteFetch implements NoteFetch {
         if (fetchMeta.getNoteIndex() == null) {
             Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
             long id = idWorker.nextId();
-            NoteIndex noteMeta = new NoteIndex();
+            NoteMeta noteMeta = new NoteMeta();
             noteMeta.setId(id);
             noteMeta.setParentId(fetchMeta.getParentId());
             noteMeta.setUserId(uid);
@@ -132,7 +132,7 @@ public abstract class AbstractNoteFetch implements NoteFetch {
             noteMeta.setCreateTime(new Date());
             noteMeta.setStoreSite(NoteConstants.MYSQL);
             //插入meta
-            noteIndexMapper.insertSelective(noteMeta);
+            noteMetaMapper.insertSelective(noteMeta);
             fetchMeta.setNoteIndex(noteMeta);
         }
         return true;
@@ -141,7 +141,7 @@ public abstract class AbstractNoteFetch implements NoteFetch {
     abstract Long doFetch(FetchMeta fetchMeta);
 
     protected void afterFetch(FetchMeta fetchMeta) {
-        NoteIndex noteMeta = fetchMeta.getNoteIndex();
+        NoteMeta noteMeta = fetchMeta.getNoteIndex();
         //插入到data
         String content = fetchMeta.getContent();
         NoteData noteData = new NoteData();
@@ -155,7 +155,7 @@ public abstract class AbstractNoteFetch implements NoteFetch {
         //更新大小
         noteMeta.setSize((long)content.getBytes(StandardCharsets.UTF_8).length);
         //再更新一次
-        noteIndexMapper.updateByPrimaryKeySelective(noteMeta);
+        noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
     }
 
 }

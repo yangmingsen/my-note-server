@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.*;
 import top.yms.note.conpont.search.NoteLuceneIndex;
+import top.yms.note.conpont.task.AsyncTask;
 import top.yms.note.conpont.task.DelayExecuteAsyncTask;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dao.NoteIndexQuery;
@@ -29,8 +30,9 @@ import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.*;
 import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.msgcd.NoteIndexErrorCode;
-import top.yms.note.service.NoteIndexService;
+import top.yms.note.service.NoteMetaService;
 import top.yms.note.utils.IdWorker;
+import top.yms.note.utils.IdWorkerUtils;
 import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.NoteInfoVo;
 import top.yms.note.vo.NoteSearchVo;
@@ -43,11 +45,11 @@ import java.util.stream.Collectors;
  * Created by yangmingsen on 2024/3/30.
  */
 @Service
-public class NoteIndexServiceImpl implements NoteIndexService {
-    private static final Logger log = LoggerFactory.getLogger(NoteIndexServiceImpl.class);
+public class NoteMetaServiceImpl implements NoteMetaService {
+    private static final Logger log = LoggerFactory.getLogger(NoteMetaServiceImpl.class);
 
     @Resource
-    private NoteIndexMapper noteIndexMapper;
+    private NoteMetaMapper noteMetaMapper;
 
     @Resource
     private NoteIndexUpdateLogMapper noteIndexLogMapper;
@@ -88,7 +90,7 @@ public class NoteIndexServiceImpl implements NoteIndexService {
 
 
 
-    public List<NoteIndex> findByUserId(Long userid) {
+    public List<NoteMeta> findByUserId(Long userid) {
         return Optional.of(findNoteList(userid, 1)).orElse(Collections.emptyList());
     }
 
@@ -98,8 +100,8 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      * @param filter 1.查找所有(含文件和目录); 2.只查目录
      * @return
      */
-    private List<NoteIndex> findNoteList(Long uid, int filter) {
-        return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).filter(filter).get().example());
+    private List<NoteMeta> findNoteList(Long uid, int filter) {
+        return noteMetaMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).filter(filter).get().example());
     }
 
 
@@ -108,8 +110,8 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      * @param siteId
      * @return
      */
-    public NoteIndex findBySiteId(String siteId) {
-        return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().siteId(siteId).get().example()).get(0);
+    public NoteMeta findBySiteId(String siteId) {
+        return noteMetaMapper.selectByExample(NoteIndexQuery.Builder.build().siteId(siteId).get().example()).get(0);
     }
 
     /**
@@ -119,23 +121,36 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      * @return
      */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
-    public List<NoteIndex> findSubBy(Long parentId, Long uid) {
+    public List<NoteMeta> findNoteMetaList(Long parentId, Long uid) {
         //修改访问时间
-        NoteIndex upNoteIndex = new NoteIndex();
-        upNoteIndex.setId(parentId);
-        upNoteIndex.setViewTime(new Date());
-        noteIndexMapper.updateByPrimaryKeySelective(upNoteIndex);
-
-        return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().parentId(parentId).uid(uid).get().example());
+        NoteMeta upNoteMeta = new NoteMeta();
+        upNoteMeta.setId(parentId);
+        upNoteMeta.setViewTime(new Date());
+        noteMetaMapper.updateByPrimaryKeySelective(upNoteMeta);
+        List<NoteMeta> noteMetaList = noteMetaMapper.selectByExample(NoteIndexQuery.Builder.build().parentId(parentId).uid(uid).get().example());
+        //获取目录List
+        List<Long> dirIds = noteMetaList.stream().filter(note -> NoteConstants.DIR_FLAG.equals(note.getIsFile())).map(NoteMeta::getId).collect(Collectors.toList());
+        AsyncTask asyncTask = AsyncTask.Builder.build()
+                .taskId(IdWorkerUtils.getId())
+                .executeType(AsyncExcuteTypeEnum.SYNC_TASK)
+                .type(AsyncTaskEnum.NOTE_DIR_SIZE_COMPUTE_TASK)
+                .taskName(AsyncTaskEnum.NOTE_DIR_SIZE_COMPUTE_TASK.getName())
+                .createTime(new Date())
+                .userId(LocalThreadUtils.getUserId())
+                .taskInfo(dirIds)
+                .get();
+        noteAsyncExecuteTaskService.addTask(asyncTask);
+        //ret
+        return noteMetaList;
     }
 
     /**
      * 查找某个用户的顶级目录
      * @return
      */
-    public NoteIndex findRoot() {
+    public NoteMeta findRoot() {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
-        return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).parentId(0L).del(false).get().example()).get(0);
+        return noteMetaMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).parentId(0L).del(false).get().example()).get(0);
     }
 
     /**
@@ -143,11 +158,10 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      * @param id
      * @return
      */
-    public List<NoteIndex> findBackParentDir(Long id) {
+    public List<NoteMeta> findBackParentDir(Long id) {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
-        NoteIndex note = noteIndexMapper.selectByPrimaryKey(id);
-
-        return findSubBy(note.getParentId(), uid);
+        NoteMeta note = noteMetaMapper.selectByPrimaryKey(id);
+        return findNoteMetaList(note.getParentId(), uid);
     }
 
     /**
@@ -155,8 +169,8 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      * @param id
      * @return
      */
-    public NoteIndex findOne(Long id) {
-        return noteIndexMapper.selectByPrimaryKey(id);
+    public NoteMeta findOne(Long id) {
+        return noteMetaMapper.selectByPrimaryKey(id);
     }
 
     /**
@@ -179,20 +193,20 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      */
     public NoteTree findCurUserRootNoteTree() {
         Long userId = LocalThreadUtils.getUserId();
-        List<NoteIndex> noteIndexList =  noteIndexMapper.selectByExample(
+        List<NoteMeta> noteMetaList =  noteMetaMapper.selectByExample(
                 NoteIndexQuery.Builder.build().uid(userId).del(false).get().example()
         );
-        List<NoteTree> noteTreeList = transferNoteTree(noteIndexList);
+        List<NoteTree> noteTreeList = transferNoteTree(noteMetaList);
         if (noteTreeList.size() > 0) {
             return noteTreeList.get(0);
         }
         return null;
     }
 
-    private List<NoteTree> transferNoteTree(List<NoteIndex> noteIndexList) {
+    private List<NoteTree> transferNoteTree(List<NoteMeta> noteMetaList) {
         //列表转换为结构树
         Map<Long, NoteTree> noteTreeMap = new HashMap<>();
-        for (NoteIndex note : noteIndexList) {
+        for (NoteMeta note : noteMetaList) {
             NoteTree tmpNoteTree = new NoteTree();
             tmpNoteTree.setId(note.getId());
             tmpNoteTree.setLabel(note.getName());
@@ -225,11 +239,11 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      * @return
      */
     public List<NoteTree> findNoteTreeByUid(Long uid) {
-        List<NoteIndex> noteIndexList =  noteIndexMapper.selectByExample(
+        List<NoteMeta> noteMetaList =  noteMetaMapper.selectByExample(
                 NoteIndexQuery.Builder.build().uid(uid).del(false).filter(2).get().example()
         );
         //列表转换为结构树
-        return transferNoteTree(noteIndexList);
+        return transferNoteTree(noteMetaList);
     }
 
     /**
@@ -240,13 +254,13 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      * @return
      */
     public List<AntTreeNode> findAntTreeExcludeEncrypted(Long userId) {
-        List<NoteIndex> noteIndexList =  noteIndexMapper.selectByExample(
+        List<NoteMeta> noteMetaList =  noteMetaMapper.selectByExample(
                 NoteIndexQuery.Builder.build().uid(userId).del(false).filter(2).get().example()
         );
         //列表转换为结构树
         Map<Long, NoteTree> noteTreeMap = new HashMap<>();
-        Map<Long, NoteIndex> noteIndexMap = new HashMap<>();
-        for (NoteIndex note : noteIndexList) {
+        Map<Long, NoteMeta> noteIndexMap = new HashMap<>();
+        for (NoteMeta note : noteMetaList) {
             NoteTree tmpNoteTree = new NoteTree();
             tmpNoteTree.setId(note.getId());
             tmpNoteTree.setLabel(note.getName());
@@ -282,7 +296,7 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      * @param noteTreeMap
      * @return
      */
-    private AntTreeNode transferToAntTree(NoteTree noteTree, final Map<Long, NoteIndex> noteTreeMap) {
+    private AntTreeNode transferToAntTree(NoteTree noteTree, final Map<Long, NoteMeta> noteTreeMap) {
         if (noteTree == null) return null;
         List<AntTreeNode> antTreeNodeList = new LinkedList<>();
         if (noteTree.getChildren() != null) {
@@ -292,8 +306,8 @@ public class NoteIndexServiceImpl implements NoteIndexService {
                 }
                 //增加排序
                 antTreeNodeList = antTreeNodeList.stream().sorted((o1, o2) -> {
-                    NoteIndex note1 = noteTreeMap.get(Long.valueOf(o1.getKey()));
-                    NoteIndex note2 = noteTreeMap.get(Long.valueOf(o2.getKey()));
+                    NoteMeta note1 = noteTreeMap.get(Long.valueOf(o1.getKey()));
+                    NoteMeta note2 = noteTreeMap.get(Long.valueOf(o2.getKey()));
                     //默认对访问时间的排序，规则为，如果访问时间不为空就就用访问时间, 如果空就用updateTime, 如果updateTime空，就用createTime
                     Date t1 = note1.getViewTime() != null ? note1.getViewTime() : note1.getUpdateTime() != null ? note1.getUpdateTime(): note1.getCreateTime();
                     Date t2 = note2.getViewTime() != null ? note2.getViewTime() : note2.getUpdateTime() != null ? note2.getUpdateTime(): note2.getCreateTime();
@@ -344,11 +358,11 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      * @param note
      */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
-    public void add(NoteIndex note) {
+    public void add(NoteMeta note) {
         String mindMapMongoId = null;
         try {
-            List<NoteIndex> noteIndexList = noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().nid(note.getParentId()).get().example());
-            if (noteIndexList.size() == 0) {
+            List<NoteMeta> noteMetaList = noteMetaMapper.selectByExample(NoteIndexQuery.Builder.build().nid(note.getParentId()).get().example());
+            if (noteMetaList.size() == 0) {
                 throw new BusinessException(NoteIndexErrorCode.E_203110);
             }
             Date opTime = new Date();
@@ -385,7 +399,7 @@ public class NoteIndexServiceImpl implements NoteIndexService {
                 note.setParentId(0L);
             }
             note.setCreateTime(opTime);
-            noteIndexMapper.insertSelective(note);
+            noteMetaMapper.insertSelective(note);
             NoteIndexUpdateLog logData = new NoteIndexUpdateLog();
             logData.setIndexId(genId);
             logData.setCreateTime(opTime);
@@ -430,14 +444,14 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      * @param note
      */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
-    public void update(NoteIndex note) {
+    public void update(NoteMeta note) {
         Long id = note.getId();
-        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
-        if (noteIndex == null) {
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        if (noteMeta == null) {
             throw new BusinessException(NoteIndexErrorCode.E_203106);
         }
         if (StringUtils.isNotBlank(note.getName())) {
-            if (!note.getName().equals(noteIndex.getName())) {
+            if (!note.getName().equals(noteMeta.getName())) {
                 //update index service
                 NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
                 noteLuceneIndex.setId(id);
@@ -462,7 +476,7 @@ public class NoteIndexServiceImpl implements NoteIndexService {
             }
         }
         note.setUpdateTime(new Date());
-        noteIndexMapper.updateByPrimaryKeySelective(note);
+        noteMetaMapper.updateByPrimaryKeySelective(note);
         NoteIndexUpdateLog logData = new NoteIndexUpdateLog();
         logData.setIndexId(note.getId());
         logData.setCreateTime(new Date());
@@ -480,19 +494,19 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      */
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 10)
     public void destroyNote(Long id) {
-        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
-        if (noteIndex == null) {
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        if (noteMeta == null) {
             log.error("destroyNote id={}, 未找到索引信息", id);
             return ;
         }
-        if (noteIndex.getParentId() == 0L) {
+        if (noteMeta.getParentId() == 0L) {
             throw new BusinessException(NoteIndexErrorCode.E_203114);
         }
-        if (NoteTypeEnum.File == NoteTypeEnum.apply(noteIndex.getIsFile())) {
+        if (NoteTypeEnum.File == NoteTypeEnum.apply(noteMeta.getIsFile())) {
             //删除t_note_index
-            noteIndexMapper.deleteByPrimaryKey(id);
+            noteMetaMapper.deleteByPrimaryKey(id);
             //删除t_note_data
-            if (NoteConstants.MYSQL.equals(noteIndex.getStoreSite())) {
+            if (NoteConstants.MYSQL.equals(noteMeta.getStoreSite())) {
                 noteDataMapper.deleteByPrimaryKey(id);
                 noteDataVersionMapper.deleteByNoteId(id);
                 noteFileMapper.selectByNoteRef(id)
@@ -500,8 +514,8 @@ public class NoteIndexServiceImpl implements NoteIndexService {
                 noteFileMapper.deleteByNoteRef(id);
             }
             //删除t_note_file
-            if (NoteConstants.MONGO.equals(noteIndex.getStoreSite())) {
-                String siteId = noteIndex.getSiteId();
+            if (NoteConstants.MONGO.equals(noteMeta.getStoreSite())) {
+                String siteId = noteMeta.getSiteId();
                 noteFileMapper.deleteByFileId(siteId);
                 fileStoreService.delFile(siteId);
             }
@@ -524,12 +538,12 @@ public class NoteIndexServiceImpl implements NoteIndexService {
                     .get();
             noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
         }
-        if (NoteTypeEnum.Directory == NoteTypeEnum.apply(noteIndex.getIsFile())) {
-            final List<NoteIndex> noteIndexList = bfsSearchTree(id);
+        if (NoteTypeEnum.Directory == NoteTypeEnum.apply(noteMeta.getIsFile())) {
+            final List<NoteMeta> noteMetaList = bfsSearchTree(id);
             final List<NoteIndexUpdateLog> addLogList = new LinkedList<>();
             final List<Long> delIdxList = new LinkedList<>();
-            for (NoteIndex note : noteIndexList) {
-                noteIndexMapper.deleteByPrimaryKey(note.getId());
+            for (NoteMeta note : noteMetaList) {
+                noteMetaMapper.deleteByPrimaryKey(note.getId());
                 if (NoteTypeEnum.File == NoteTypeEnum.apply(note.getIsFile())) {
                     delIdxList.add(note.getId());
                     //删除t_note_data
@@ -568,7 +582,7 @@ public class NoteIndexServiceImpl implements NoteIndexService {
                     .taskInfo(NoteIndexLuceneUpdateDto.Builder.build().type(NoteIndexLuceneUpdateDto.deleteList).data(delIdxList).get())
                     .get();
             noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
-            log.debug("删除目录[{}]成功, 共[{}]条数据", noteIndex.getName(), addLogList.size());
+            log.debug("删除目录[{}]成功, 共[{}]条数据", noteMeta.getName(), addLogList.size());
         }
     }
 
@@ -578,12 +592,12 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      */
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 10)
     public void delNote(Long id) {
-        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
-        if (noteIndex == null) return;
-        if (noteIndex.getParentId() == 0L) {
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        if (noteMeta == null) return;
+        if (noteMeta.getParentId() == 0L) {
             throw new BusinessException(NoteIndexErrorCode.E_203114);
         }
-        NoteIndex up = new NoteIndex();
+        NoteMeta up = new NoteMeta();
         up.setId(id);
         up.setDel("1");
         up.setUpdateTime(new Date());
@@ -591,7 +605,7 @@ public class NoteIndexServiceImpl implements NoteIndexService {
         addLog.setIndexId(id);
         addLog.setType(NoteOpTypeEnum.DELETE);
         addLog.setCreateTime(new Date());
-        noteIndexMapper.updateByPrimaryKeySelective(up);
+        noteMetaMapper.updateByPrimaryKeySelective(up);
         noteIndexLogMapper.insert(addLog);
     }
 
@@ -600,16 +614,16 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      * @param parentId
      * @return
      */
-    private List<NoteIndex> bfsSearchTree(Long parentId) {
+    private List<NoteMeta> bfsSearchTree(Long parentId) {
         Queue<Long> queue = new LinkedList<>();
-        List<NoteIndex> resList = new LinkedList<>();
-        resList.add(noteIndexMapper.selectByPrimaryKey(parentId));
+        List<NoteMeta> resList = new LinkedList<>();
+        resList.add(noteMetaMapper.selectByPrimaryKey(parentId));
         queue.add(parentId);
         while (!queue.isEmpty()) {
             Long id = queue.poll();
-            List<NoteIndex> noteList = noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().parentId(id).get().example());
+            List<NoteMeta> noteList = noteMetaMapper.selectByExample(NoteIndexQuery.Builder.build().parentId(id).get().example());
             if (noteList.size() > 0) {
-                queue.addAll(noteList.stream().map(NoteIndex::getId).collect(Collectors.toList()));
+                queue.addAll(noteList.stream().map(NoteMeta::getId).collect(Collectors.toList()));
                 resList.addAll(noteList);
             }
         }
@@ -629,9 +643,9 @@ public class NoteIndexServiceImpl implements NoteIndexService {
         //BFS Search delete
         while (!queue.isEmpty()) {
             Long id = queue.poll();
-            List<NoteIndex> noteList = noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().parentId(id).get().example());
+            List<NoteMeta> noteList = noteMetaMapper.selectByExample(NoteIndexQuery.Builder.build().parentId(id).get().example());
             if (noteList.size() > 0) {
-                queue.addAll(noteList.stream().map(NoteIndex::getId).collect(Collectors.toList()));
+                queue.addAll(noteList.stream().map(NoteMeta::getId).collect(Collectors.toList()));
             }
             NoteIndexUpdateLog addLog = new NoteIndexUpdateLog();
             addLog.setIndexId(id);
@@ -640,13 +654,13 @@ public class NoteIndexServiceImpl implements NoteIndexService {
             addList.add(addLog);
             delList.add(id);
         }
-        noteIndexMapper.delByListIds(delList);
+        noteMetaMapper.delByListIds(delList);
         noteIndexLogMapper.insertBatch(addList);
         log.debug("delDir: 删除成功, 共计 {} 条数据", delList.size());
     }
 
-    public List<NoteIndex> findBy(NoteIndexQuery query) {
-        return Optional.ofNullable(noteIndexMapper.selectByExample(query.example())).orElse(Collections.emptyList());
+    public List<NoteMeta> findBy(NoteIndexQuery query) {
+        return Optional.ofNullable(noteMetaMapper.selectByExample(query.example())).orElse(Collections.emptyList());
     }
 
     /**
@@ -655,18 +669,18 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      * @param id
      * @param list
      */
-    public void findBreadcrumb(Long id, List<NoteIndex> list) {
+    public void findBreadcrumb(Long id, List<NoteMeta> list) {
         if (id == 0L) {
             return;
         }
-        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
-        Long parentId = noteIndex.getParentId();
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        Long parentId = noteMeta.getParentId();
         if (parentId == 0) {
-            list.add(noteIndex);
+            list.add(noteMeta);
             return ;
         }
         findBreadcrumb(parentId, list);
-        list.add(noteIndex);
+        list.add(noteMeta);
     }
 
 
@@ -676,7 +690,7 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      * @return
      */
     public String findBreadcrumbForSearch(Long noteId) {
-        List<NoteIndex> resList = new LinkedList<>();
+        List<NoteMeta> resList = new LinkedList<>();
         findBreadcrumb(noteId, resList);
         final StringBuilder tmpPath = new StringBuilder();
         for(int i=0; i<resList.size(); i++) {
@@ -696,12 +710,12 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      * @return
      */
     public NoteInfoVo getNoteAndSite(Long id) {
-        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
         NoteInfoVo res = new NoteInfoVo();
-        res.setNoteIndex(noteIndex);
-        if (StringUtils.isNotBlank(noteIndex.getStoreSite())) {
-            if (NoteConstants.MONGO.equals(noteIndex.getStoreSite())) {
-                String siteId = noteIndex.getSiteId();
+        res.setNoteIndex(noteMeta);
+        if (StringUtils.isNotBlank(noteMeta.getStoreSite())) {
+            if (NoteConstants.MONGO.equals(noteMeta.getStoreSite())) {
+                String siteId = noteMeta.getSiteId();
                 List<NoteFile> noteFiles = noteFileMapper.selectByExample(NoteFileQuery.Builder.build().fileId(siteId).get().example());
                 if (noteFiles != null && noteFiles.size() >0) {
                     res.setNoteFile(noteFiles.get(0));
@@ -715,9 +729,9 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      * 获取最近新添加或者修改过的文件列表
      * @return
      */
-    public List<NoteIndex> getRecentFiles() {
+    public List<NoteMeta> getRecentFiles() {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
-        return noteIndexMapper.selectRecentUpdate(uid).stream()
+        return noteMetaMapper.selectRecentUpdate(uid).stream()
                 .limit(30).collect(Collectors.toList());
     }
 
@@ -725,9 +739,9 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      * 获取被标记为删除的文件列表
      * @return
      */
-    public List<NoteIndex> getDeletedFiles() {
+    public List<NoteMeta> getDeletedFiles() {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
-        return noteIndexMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).del(true).get().example());
+        return noteMetaMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).del(true).get().example());
     }
 
     /**
@@ -737,8 +751,8 @@ public class NoteIndexServiceImpl implements NoteIndexService {
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 15)
     public int allDestroy() {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
-        List<NoteIndex> destroyNoteList = noteIndexMapper.selectDestroyNotes(uid);
-        for(NoteIndex destroyNote : destroyNoteList) {
+        List<NoteMeta> destroyNoteList = noteMetaMapper.selectDestroyNotes(uid);
+        for(NoteMeta destroyNote : destroyNoteList) {
             destroyNote(destroyNote.getId());
         }
         return destroyNoteList.size();
@@ -751,7 +765,7 @@ public class NoteIndexServiceImpl implements NoteIndexService {
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public int allRecover() {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
-        return noteIndexMapper.allRecover(uid);
+        return noteMetaMapper.allRecover(uid);
     }
 
     /**
@@ -761,14 +775,14 @@ public class NoteIndexServiceImpl implements NoteIndexService {
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void updateMove(NoteMoveDto noteMoveDto) {
         Long toId = noteMoveDto.getToId();
-        NoteIndex noteIndex = noteIndexMapper.selectByPrimaryKey(toId);
-        if (!NoteConstants.DIR_FLAG.equals(noteIndex.getIsFile())) {
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(toId);
+        if (!NoteConstants.DIR_FLAG.equals(noteMeta.getIsFile())) {
             throw new BusinessException(BusinessErrorCode.E_204011);
         }
-        NoteIndex upDo = new NoteIndex();
+        NoteMeta upDo = new NoteMeta();
         upDo.setId(noteMoveDto.getFromId());
         upDo.setParentId(noteMoveDto.getToId());
-        noteIndexMapper.updateByPrimaryKeySelective(upDo);
+        noteMetaMapper.updateByPrimaryKeySelective(upDo);
     }
 
     /**
@@ -778,10 +792,10 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void encryptedReadNote(Long id) {
-        NoteIndex upDao = new NoteIndex();
+        NoteMeta upDao = new NoteMeta();
         upDao.setEncrypted("1");
         upDao.setId(id);
-        noteIndexMapper.updateByPrimaryKeySelective(upDao);
+        noteMetaMapper.updateByPrimaryKeySelective(upDao);
         //加密内容
         noteService.encryptNote(id);
     }
@@ -792,10 +806,10 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      */
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void unEncryptedReadNote(Long id) {
-        NoteIndex upDao = new NoteIndex();
+        NoteMeta upDao = new NoteMeta();
         upDao.setEncrypted("0");
         upDao.setId(id);
-        noteIndexMapper.updateByPrimaryKeySelective(upDao);
+        noteMetaMapper.updateByPrimaryKeySelective(upDao);
         //解密
         noteService.decryptNote(id);
     }
@@ -804,11 +818,11 @@ public class NoteIndexServiceImpl implements NoteIndexService {
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void autoScanEncrypt() {
         Long userId = LocalThreadUtils.getUserId();
-        NoteIndex qry = new NoteIndex();
+        NoteMeta qry = new NoteMeta();
         qry.setUserId(userId);
         qry.setEncrypted(NoteConstants.ENCRYPTED_FLAG);
-        List<NoteIndex> encryptedList = noteIndexMapper.selectByCondition(qry);
-        for (NoteIndex noteMeta : encryptedList) {
+        List<NoteMeta> encryptedList = noteMetaMapper.selectByCondition(qry);
+        for (NoteMeta noteMeta : encryptedList) {
             noteService.encryptNote(noteMeta.getId());
         }
     }
@@ -817,15 +831,15 @@ public class NoteIndexServiceImpl implements NoteIndexService {
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void autoDecryptedAllNote() {
         Long userId = LocalThreadUtils.getUserId();
-        NoteIndex qry = new NoteIndex();
+        NoteMeta qry = new NoteMeta();
         qry.setUserId(userId);
         qry.setEncrypted(NoteConstants.ENCRYPTED_FLAG);
-        List<NoteIndex> encryptedList = noteIndexMapper.selectByCondition(qry);
-        for (NoteIndex noteMeta : encryptedList) {
+        List<NoteMeta> encryptedList = noteMetaMapper.selectByCondition(qry);
+        for (NoteMeta noteMeta : encryptedList) {
             noteService.decryptNote(noteMeta.getId());
             //更新为未加密
             noteMeta.setEncrypted(NoteConstants.ENCRYPTED_UN_FLAG);
-            noteIndexMapper.updateByPrimaryKeySelective(noteMeta);
+            noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
         }
     }
 
@@ -833,7 +847,7 @@ public class NoteIndexServiceImpl implements NoteIndexService {
      * 获取最近访问列表
      * @return
      */
-    public List<NoteIndex> findRecentVisitList() {
+    public List<NoteMeta> findRecentVisitList() {
         return noteRecentVisitService.getRecentVisitList();
     }
 }

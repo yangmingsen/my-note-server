@@ -15,7 +15,7 @@ import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.dto.INoteData;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteDataVersion;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.msgcd.CommonErrorCode;
@@ -91,8 +91,8 @@ public class MarkdownNote extends AbstractNote {
         super.updateNoteData(noteData);
     }
 
-    public void updateNoteMetaInfo(NoteIndex noteIndex,
-                            INoteData iNoteData) {
+    public void updateNoteMetaInfo(NoteMeta noteMeta,
+                                   INoteData iNoteData) {
         //update noteIndex meta
         super.updateNoteMetaInfo(null, iNoteData);
     }

@@ -19,18 +19,18 @@ import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dto.NoteDataDto;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteFile;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.entity.NoteTree;
 import top.yms.note.enums.FileTypeEnum;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.exception.WangEditorUploadException;
 import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteFileMapper;
-import top.yms.note.mapper.NoteIndexMapper;
+import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.service.NoteDataService;
 import top.yms.note.service.NoteFileService;
-import top.yms.note.service.NoteIndexService;
+import top.yms.note.service.NoteMetaService;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.LocalNoteSyncResult;
@@ -65,7 +65,7 @@ public class NoteFileServiceImpl implements NoteFileService {
     private NoteFileMapper noteFileMapper;
 
     @Resource
-    private NoteIndexService noteIndexService;
+    private NoteMetaService noteMetaService;
 
     @Resource
     private IdWorker idWorker;
@@ -74,7 +74,7 @@ public class NoteFileServiceImpl implements NoteFileService {
     private NoteDataService noteDataService;
 
     @Resource
-    private NoteIndexMapper noteIndexMapper;
+    private NoteMetaMapper noteMetaMapper;
 
     @Resource
     private FileStoreService fileStoreService;
@@ -170,12 +170,12 @@ public class NoteFileServiceImpl implements NoteFileService {
         return null;
     }
 
-    private void handleMarkdown(MultipartFile file, NoteIndex note) throws Exception {
+    private void handleMarkdown(MultipartFile file, NoteMeta note) throws Exception {
         long genId = idWorker.nextId();
         note.setStoreSite(NoteConstants.MYSQL);
         note.setId(genId);
         //存储到t_note_index
-        noteIndexService.add(note);
+        noteMetaService.add(note);
 
         StringBuilder sb = new StringBuilder();
         try(InputStreamReader isr = new InputStreamReader(file.getInputStream())) {
@@ -196,7 +196,7 @@ public class NoteFileServiceImpl implements NoteFileService {
     }
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
-    public void addNote(MultipartFile file, NoteIndex note) throws Exception {
+    public void addNote(MultipartFile file, NoteMeta note) throws Exception {
         String fileId = null;
         try {
             if (NoteConstants.markdownSuffix.equals(note.getType())) {
@@ -208,7 +208,7 @@ public class NoteFileServiceImpl implements NoteFileService {
             note.setStoreSite(NoteConstants.MONGO);
             note.setSiteId(fileId);
             //存储到t_note_index
-            noteIndexService.add(note);
+            noteMetaService.add(note);
             String tmpViewUrl = NoteConstants.getFileViewUrlSuffix(fileId);
             //store to t_note_file
             NoteFile noteFile = new NoteFile();
@@ -280,20 +280,20 @@ public class NoteFileServiceImpl implements NoteFileService {
             return;
         }
         Long userId = LocalThreadUtils.getUserId();
-        NoteIndex noteIndex = new NoteIndex();
+        NoteMeta noteMeta = new NoteMeta();
         long id = idWorker.nextId();
-        noteIndex.setId(id);
-        noteIndex.setParentId(parentId);
-        noteIndex.setUserId(userId);
+        noteMeta.setId(id);
+        noteMeta.setParentId(parentId);
+        noteMeta.setUserId(userId);
         boolean isFile = file.isFile();
         if (isFile) {
-            noteIndex.setIsFile("1");
+            noteMeta.setIsFile("1");
         } else {
-            noteIndex.setIsFile("0");
+            noteMeta.setIsFile("0");
         }
         String fileName = file.getName();
-        noteIndex.setName(fileName);
-        noteIndex.setCreateTime(new Date());
+        noteMeta.setName(fileName);
+        noteMeta.setCreateTime(new Date());
         if (isFile) {
             int dot = fileName.lastIndexOf('.');
             if (dot > 0) {
@@ -301,17 +301,17 @@ public class NoteFileServiceImpl implements NoteFileService {
                 //获取文件后缀
                 String fileType = fileName.substring(dot + 1, len).toLowerCase();
                 if (fileType.length() > 10) {
-                    noteIndex.setType(FileTypeEnum.UNKNOWN.getValue());
+                    noteMeta.setType(FileTypeEnum.UNKNOWN.getValue());
                 } else {
-                    noteIndex.setType(fileType);
+                    noteMeta.setType(fileType);
                 }
 
             } else {
-                noteIndex.setType(FileTypeEnum.UNKNOWN.getValue());
+                noteMeta.setType(FileTypeEnum.UNKNOWN.getValue());
             }
 
-            if (NoteConstants.markdownSuffix.equals(noteIndex.getType())) {
-                noteIndex.setStoreSite(NoteConstants.MYSQL);
+            if (NoteConstants.markdownSuffix.equals(noteMeta.getType())) {
+                noteMeta.setStoreSite(NoteConstants.MYSQL);
                 StringBuilder sb = new StringBuilder();
 
                 try(InputStreamReader isr = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
@@ -336,7 +336,7 @@ public class NoteFileServiceImpl implements NoteFileService {
                 noteData.setCreateTime(new Date());
 
                 //设置内容大小
-                noteIndex.setSize((long)contentStr.getBytes(StandardCharsets.UTF_8).length);
+                noteMeta.setSize((long)contentStr.getBytes(StandardCharsets.UTF_8).length);
 
                 noteDataMapper.insertSelective(noteData);
 
@@ -344,18 +344,18 @@ public class NoteFileServiceImpl implements NoteFileService {
                 String fileId = fileStoreService.saveFile(file);
                 mongoRollBackList.add(fileId);
                 //先默认上传到mongo
-                noteIndex.setStoreSite(NoteConstants.MONGO);
-                noteIndex.setSiteId(fileId);
+                noteMeta.setStoreSite(NoteConstants.MONGO);
+                noteMeta.setSiteId(fileId);
                 //设置大小
-                noteIndex.setSize(file.length());
+                noteMeta.setSize(file.length());
 
                 String tmpUrl = NoteConstants.getFileViewUrlSuffix(fileId);
 //                String url = NoteConstants.BASE_URL+fileId;
                 //store to t_note_file
                 NoteFile noteFile = new NoteFile();
                 noteFile.setFileId(fileId);
-                noteFile.setName(noteIndex.getName());
-                noteFile.setType(noteIndex.getType());
+                noteFile.setName(noteMeta.getName());
+                noteFile.setType(noteMeta.getType());
                 noteFile.setSize(file.length());
                 noteFile.setUserId(userId);
                 noteFile.setUrl(tmpUrl);
@@ -376,7 +376,7 @@ public class NoteFileServiceImpl implements NoteFileService {
         //统计信息
         syncStatisticList.add(new LocalNoteSyncResult(id, isFile));
 
-        noteIndexMapper.insertSelective(noteIndex);
+        noteMetaMapper.insertSelective(noteMeta);
     }
 
     private  String replaceImageUrls(String content, File srcFile, Long noteId, final List<String> mongoRollBackList) throws Exception{
@@ -488,7 +488,7 @@ public class NoteFileServiceImpl implements NoteFileService {
         String fileName = "临时文本"+id;
         String fileType = FileTypeEnum.TXT.getValue();
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
-        NoteIndex note = new NoteIndex();
+        NoteMeta note = new NoteMeta();
         note.setId(id);
         note.setParentId(parentId);
         note.setUserId(uid);
@@ -548,7 +548,7 @@ public class NoteFileServiceImpl implements NoteFileService {
                 }
             }
         }
-        noteIndexMapper.insertSelective(note);
+        noteMetaMapper.insertSelective(note);
 
         return resJson;
     }
@@ -566,7 +566,7 @@ public class NoteFileServiceImpl implements NoteFileService {
         String fileName = "url转Pdf_"+id;
         String fileType = FileTypeEnum.PDF.getValue();
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
-        NoteIndex note = new NoteIndex();
+        NoteMeta note = new NoteMeta();
         note.setId(id);
         note.setParentId(parentId);
         note.setUserId(uid);
@@ -623,7 +623,7 @@ public class NoteFileServiceImpl implements NoteFileService {
             }
         }
 
-        noteIndexMapper.insertSelective(note);
+        noteMetaMapper.insertSelective(note);
     }
 
     @Override

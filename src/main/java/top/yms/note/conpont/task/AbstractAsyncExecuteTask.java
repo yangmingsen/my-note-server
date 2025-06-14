@@ -100,7 +100,9 @@ public abstract class AbstractAsyncExecuteTask implements AsyncExecuteTask{
      * 是否需要事务. true 需要
      * @return
      */
-    abstract boolean needTx() ;
+    boolean needTx()  {
+        return false;
+    }
 
     @Override
     public void run() {

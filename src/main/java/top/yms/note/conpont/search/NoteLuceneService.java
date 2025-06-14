@@ -22,10 +22,10 @@ import top.yms.note.conpont.NoteDataIndexService;
 import top.yms.note.conpont.NoteLuceneDataService;
 import top.yms.note.conpont.NoteSearchService;
 import top.yms.note.dto.NoteSearchDto;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.entity.SearchLog;
-import top.yms.note.mapper.NoteIndexMapper;
-import top.yms.note.service.NoteIndexService;
+import top.yms.note.mapper.NoteMetaMapper;
+import top.yms.note.service.NoteMetaService;
 import top.yms.note.service.impl.NoteSearchLogServiceImpl;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.vo.NoteSearchResult;
@@ -57,10 +57,10 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
     IdWorker idWorker;
 
     @Resource
-    private NoteIndexMapper noteIndexMapper;
+    private NoteMetaMapper noteMetaMapper;
 
     @Resource
-    private NoteIndexService noteIndexService;
+    private NoteMetaService noteMetaService;
 
     @Qualifier(NoteConstants.noteLuceneDataServiceImpl)
     @Resource
@@ -264,9 +264,9 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
                 directory = FSDirectory.open(Paths.get(indexPath));
                 config = new IndexWriterConfig(new IKAnalyzer());
                 indexWriter = new IndexWriter(directory, config);
-                List<NoteIndex> noteIndexList = noteIndexMapper.findAll();
-                for (NoteIndex noteIndex : noteIndexList) {
-                    NoteLuceneIndex noteLuceneIndex = getLuceneIndexFromNoteId(noteIndex.getId());
+                List<NoteMeta> noteMetaList = noteMetaMapper.findAll();
+                for (NoteMeta noteMeta : noteMetaList) {
+                    NoteLuceneIndex noteLuceneIndex = getLuceneIndexFromNoteId(noteMeta.getId());
                     Document document = packDocument(noteLuceneIndex);
                     //添加文档
                     indexWriter.addDocument(document);
@@ -316,7 +316,7 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
         document.add(new LongPoint(NoteConstants.IDX_CREATE_DATE, createDate.getTime()));
         document.add(new StoredField(NoteConstants.IDX_CREATE_DATE, createDate.getTime()));
         document.add(new StoredField(NoteConstants.IDX_ENCRYPTED, encrypted));
-        String breadcrumbStr = noteIndexService.findBreadcrumbForSearch(parentId);
+        String breadcrumbStr = noteMetaService.findBreadcrumbForSearch(parentId);
         if (!StringUtils.isEmpty(breadcrumbStr)) {
             document.add(new StoredField(NoteConstants.IDX_NOTE_PATH, breadcrumbStr));
         }

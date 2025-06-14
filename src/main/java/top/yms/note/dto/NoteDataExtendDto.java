@@ -2,7 +2,7 @@ package top.yms.note.dto;
 
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteDataVersion;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 
 import java.io.Serializable;
 import java.util.List;
@@ -10,7 +10,7 @@ import java.util.List;
 public class NoteDataExtendDto implements INoteData, Serializable {
     private Long userId;
 
-    private NoteIndex noteIndex;
+    private NoteMeta noteMeta;
 
     private NoteData noteData;
 
@@ -22,7 +22,7 @@ public class NoteDataExtendDto implements INoteData, Serializable {
 
     @Override
     public Long getId() {
-        return noteIndex.getId();
+        return noteMeta.getId();
     }
 
     @Override
@@ -41,12 +41,12 @@ public class NoteDataExtendDto implements INoteData, Serializable {
     }
 
     @Override
-    public NoteIndex getNoteIndex() {
-        return noteIndex;
+    public NoteMeta getNoteIndex() {
+        return noteMeta;
     }
 
-    public void setNoteIndex(NoteIndex noteIndex) {
-        this.noteIndex = noteIndex;
+    public void setNoteIndex(NoteMeta noteMeta) {
+        this.noteMeta = noteMeta;
     }
 
     @Override

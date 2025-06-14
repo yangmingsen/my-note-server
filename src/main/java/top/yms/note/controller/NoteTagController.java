@@ -3,7 +3,7 @@ package top.yms.note.controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.entity.NoteTag;
 import top.yms.note.service.NoteTagService;
 
@@ -30,7 +30,7 @@ public class NoteTagController {
     }
 
     @GetMapping("/findByTag")
-    List<NoteIndex> findByTag(Long tagId) {
+    List<NoteMeta> findByTag(Long tagId) {
         return noteTagService.findByTag(tagId);
     }
 

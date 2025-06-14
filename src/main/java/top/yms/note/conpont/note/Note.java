@@ -2,7 +2,7 @@ package top.yms.note.conpont.note;
 
 import top.yms.note.conpont.ComponentComparable;
 import top.yms.note.dto.INoteData;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.exception.BusinessException;
 
 /**
@@ -26,10 +26,10 @@ public interface Note extends NoteExport, NoteEncrypt, NoteVersion,
 
     /**
      * 根据noteIdex对象获取，暂时未实现。 请用 getContent(id)
-     * @param noteIndex
+     * @param noteMeta
      * @return
      */
-    default INoteData getContent(NoteIndex noteIndex) {
+    default INoteData getContent(NoteMeta noteMeta) {
         return null;
     }
 

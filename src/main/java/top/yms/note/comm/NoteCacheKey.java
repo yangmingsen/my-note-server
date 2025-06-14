@@ -7,4 +7,11 @@ public abstract class NoteCacheKey {
     public static final String SERVER_SHARE_RESOURCE_KEY = "SERVER_SHARE_RESOURCE_KEY";
 
     public static final String VIEW_SHARE_KEY = "VIEW_SHARE_KEY";
+
+    /**
+     * DirSizeComputeTask cache key
+     */
+    public static final String DIR_SIZE_COMPUTE_TASK_KEY = "DSCTK:";
+
+
 }

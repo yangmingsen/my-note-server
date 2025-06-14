@@ -9,13 +9,13 @@ import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteAsyncExecuteTaskService;
 import top.yms.note.conpont.NoteCacheService;
 import top.yms.note.conpont.task.AsyncTask;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.entity.RestOut;
 import top.yms.note.enums.AsyncExcuteTypeEnum;
 import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.msgcd.CommonErrorCode;
-import top.yms.note.service.NoteIndexService;
+import top.yms.note.service.NoteMetaService;
 import top.yms.note.service.impl.CustomConfServiceImpl;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
@@ -45,7 +45,7 @@ public class CustomConfController {
     private NoteCacheService noteCacheService;
 
     @Resource
-    private NoteIndexService noteIndexService;
+    private NoteMetaService noteMetaService;
 
     @PostMapping("/update-user-config")
     public RestOut updateUserConfig(@RequestParam("content") String jsonContent) {
@@ -73,7 +73,7 @@ public class CustomConfController {
         if (userConfigJsonData.containsKey(NoteConstants.lastvisit)) {
             JSONObject lastVisitJson = userConfigJsonData.getJSONObject(NoteConstants.lastvisit);
             String noteId = lastVisitJson.getString("id");
-            NoteIndex noteMeta = noteIndexService.findOne(Long.valueOf(noteId));
+            NoteMeta noteMeta = noteMetaService.findOne(Long.valueOf(noteId));
             AsyncTask visitComputeTask = AsyncTask.Builder
                     .build()
                     .taskId(idWorker.nextId())

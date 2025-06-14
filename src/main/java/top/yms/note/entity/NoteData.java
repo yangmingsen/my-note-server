@@ -85,7 +85,7 @@ public class NoteData implements INoteData {
     }
 
     @Override
-    public NoteIndex getNoteIndex() {
+    public NoteMeta getNoteIndex() {
         return null;
     }
 

@@ -3,7 +3,7 @@ package top.yms.note.controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.service.NoteStarsService;
 
 import javax.annotation.Resource;
@@ -16,7 +16,7 @@ public class NoteStarsController {
     private NoteStarsService noteStarsService;
 
     @GetMapping("/findByUser")
-    public List<NoteIndex> findByUser() {
+    public List<NoteMeta> findByUser() {
         return noteStarsService.findByUser();
     }
 

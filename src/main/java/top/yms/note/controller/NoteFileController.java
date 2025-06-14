@@ -15,7 +15,7 @@ import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStoreService;
 import top.yms.note.conpont.NoteCacheService;
 import top.yms.note.entity.NoteFile;
-import top.yms.note.entity.NoteIndex;
+import top.yms.note.entity.NoteMeta;
 import top.yms.note.entity.NoteTree;
 import top.yms.note.entity.RestOut;
 import top.yms.note.enums.FileTypeEnum;
@@ -25,7 +25,7 @@ import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.msgcd.NoteIndexErrorCode;
 import top.yms.note.service.NoteFileService;
-import top.yms.note.service.NoteIndexService;
+import top.yms.note.service.NoteMetaService;
 import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.LocalNoteSyncResult;
 
@@ -70,7 +70,7 @@ public class NoteFileController {
     private String syncLocalNotePath;
 
     @Resource
-    private NoteIndexService noteIndexService;
+    private NoteMetaService noteMetaService;
 
     /**
      * 目前用于wangeditor的图片上传
@@ -157,7 +157,7 @@ public class NoteFileController {
         if (StringUtils.isBlank(fileName)) {
             throw new BusinessException(NoteIndexErrorCode.E_203109);
         }
-        NoteIndex note = new NoteIndex();
+        NoteMeta note = new NoteMeta();
         note.setParentId(parentId);
         note.setUserId(uid);
         note.setName(fileName);
@@ -180,21 +180,21 @@ public class NoteFileController {
 
     //todo 加密访问先放着
     private boolean checkIsEncryptedNote(NoteFile noteFile, HttpServletRequest req, HttpServletResponse response, String msg) {
-        NoteIndex noteIndex = null;
+        NoteMeta noteMeta = null;
         if (noteFile.getNoteRef() != 0L) {
-            noteIndex = noteIndexService.findOne(noteFile.getNoteRef());
+            noteMeta = noteMetaService.findOne(noteFile.getNoteRef());
         } else {
-            noteIndex = noteIndexService.findBySiteId(noteFile.getFileId());
+            noteMeta = noteMetaService.findBySiteId(noteFile.getFileId());
         }
 
-        if ("1".equals(noteIndex.getEncrypted())) {
+        if ("1".equals(noteMeta.getEncrypted())) {
             String tmpToken = req.getParameter("tmpToken");
             if (StringUtils.isNotBlank(tmpToken)) {
                 Long noteIdRef = noteFile.getNoteRef();
                 if (noteIdRef == 0L) {
                     String fileId = noteFile.getFileId();
-                    NoteIndex tmpNoteIndex = noteIndexService.findBySiteId(fileId);
-                    noteIdRef = tmpNoteIndex.getId();
+                    NoteMeta tmpNoteMeta = noteMetaService.findBySiteId(fileId);
+                    noteIdRef = tmpNoteMeta.getId();
                 }
                 String cacheId = NoteConstants.tmpReadPasswordToken+noteIdRef;
                 String tmpTokenValue  = (String) noteCacheService.find(cacheId);
@@ -364,7 +364,7 @@ public class NoteFileController {
 
     @GetMapping("/syncAll")
     public RestOut syncAllFromLocalFs() throws Exception {
-        NoteTree rootNoteTree = noteIndexService.findCurUserRootNoteTree();
+        NoteTree rootNoteTree = noteMetaService.findCurUserRootNoteTree();
         Map<String, NoteTree> fileNameMap = rootNoteTree.getChildren().stream().collect(Collectors.toMap(NoteTree::getLabel, Function.identity(), (k1, k2) -> k1));
         File baseDir = new File(syncLocalNotePath);
         if (!baseDir.isDirectory()) {
@@ -431,7 +431,7 @@ public class NoteFileController {
 
 
     private RestOut syncNoteFromLocalFS(String syncName) throws Exception {
-        NoteTree rootNoteTree = noteIndexService.findCurUserRootNoteTree();
+        NoteTree rootNoteTree = noteMetaService.findCurUserRootNoteTree();
         if (StringUtils.isBlank(syncName)) {
             throw new RuntimeException("syncName is empty");
         }
