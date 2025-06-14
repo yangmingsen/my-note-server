@@ -102,7 +102,7 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
     @Override
     public void regScheduledTask(NoteScheduledExecutorService noteScheduledExecuteService) {
         noteScheduledExecuteService.scheduleWithFixedDelay(this, 5, 30, TimeUnit.SECONDS);
-        log.debug("UserConfigSyncTask注册到ScheduledTask成功...");
+        log.info("UserConfigSyncTask注册到ScheduledTask成功...");
     }
 
 }

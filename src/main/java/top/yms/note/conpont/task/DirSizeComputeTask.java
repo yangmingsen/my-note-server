@@ -22,7 +22,7 @@ public class DirSizeComputeTask extends AbstractAsyncExecuteTask{
     @Resource
     private NoteMetaMapper noteMetaMapper;
 
-    @Qualifier(NoteConstants.noteExpireTimeCache)
+    @Qualifier(NoteConstants.accessDelayExpireTimeCacheService)
     @Resource
     private NoteCacheService noteCacheService;
 

@@ -39,6 +39,7 @@ public abstract class NoteConstants {
     public final static String userMemoryNoteCache = "userMemoryNoteCache";
     public final static String weakMemoryNoteCache = "weakMemoryNoteCache";
     public final static String noteExpireTimeCache = "noteExpireTimeCache";
+    public final static String accessDelayExpireTimeCacheService = "accessDelayExpireTimeCacheService";
     public final static String noteLuceneSearch = "noteLuceneSearch";
     public final static String noteDefaultSearch = "noteDefaultSearch";
     public final static String noteLuceneIndexMemoryQueue = "noteLuceneIndexMemoryQueue";

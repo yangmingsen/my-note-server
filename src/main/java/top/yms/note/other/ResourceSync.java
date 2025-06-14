@@ -31,7 +31,6 @@ public class ResourceSync {
 
 
     public void sync() {
-
         List<NoteFile> noteFiles = noteFileMapper.findAll();
         int totalSize = noteFiles.size();
         if (totalSize == 0) {
@@ -68,7 +67,7 @@ public class ResourceSync {
                 int idx = curIdx.get();
                 double progress = ((idx*1.0) / (totalSize*1.0))*100.0d;
                 String  progressStr = String.format("%.2f",progress);
-                log.info("progress = {}", progressStr);
+                log.info("progress = {}%", progressStr);
                 if (idx >= totalSize) {
                     break;
                 }

@@ -18,9 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 @Component(NoteConstants.noteExpireTimeCache)
-public class NoteExpireTimeCacheService implements NoteExpireCacheService, ScheduledExecuteTask, NoteTask {
+public class ExpireTimeCacheService implements NoteExpireCacheService, ScheduledExecuteTask, NoteTask {
 
-    private static  final Logger log = LoggerFactory.getLogger(NoteExpireTimeCacheService.class);
+    private static  final Logger log = LoggerFactory.getLogger(ExpireTimeCacheService.class);
 
     @Value("${cache.default-expire.time:120}")
     private long defaultExpireTime;
@@ -128,7 +128,7 @@ public class NoteExpireTimeCacheService implements NoteExpireCacheService, Sched
     @Override
     public void regScheduledTask(NoteScheduledExecutorService noteScheduledExecuteService) {
         noteScheduledExecuteService.scheduleWithFixedDelay(this, 5, 25, TimeUnit.SECONDS);
-        log.debug("NoteExpireTimeCacheService注册到ScheduledTask成功...");
+        log.info("{} 注册到ScheduledTask成功...", this);
     }
 
     @Override

@@ -52,7 +52,7 @@ public class MySQLBackupTask {
         return Arrays.asList(backupDatabaseList.split(","));
     }
 
-    @Scheduled(cron = "0 0 12 * * ?") // 每天12点
+   // @Scheduled(cron = "0 0 12 * * ?") // 每天12点
     public void backupEachDatabase() {
         log.info("=============开始备份数据===========");
         for (String db : getBackupDatabaseList()) {

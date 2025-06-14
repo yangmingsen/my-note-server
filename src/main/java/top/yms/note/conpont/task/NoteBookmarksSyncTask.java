@@ -194,6 +194,6 @@ public class NoteBookmarksSyncTask  extends AbstractAsyncExecuteTask implements 
     @Override
     public void regScheduledTask(NoteScheduledExecutorService noteScheduledExecuteService) {
         noteScheduledExecuteService.scheduleWithFixedDelay(threadPoolCheckTask, 5, 10, TimeUnit.SECONDS);
-        log.debug("threadPoolCheckTask注册到ScheduledTask成功...");
+        log.info("threadPoolCheckTask注册到ScheduledTask成功...");
     }
 }
