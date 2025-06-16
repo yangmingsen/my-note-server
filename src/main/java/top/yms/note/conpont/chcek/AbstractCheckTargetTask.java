@@ -111,6 +111,8 @@ public abstract class AbstractCheckTargetTask implements CheckTargetTask {
         //插入执行记录
         CheckTargetRecord checkTargetRecord = new CheckTargetRecord();
         BeanUtils.copyProperties(checkTarget, checkTargetRecord);
+        checkTargetRecord.setId(null);
+        checkTargetRecord.setCheckId(checkTarget.getId());
         checkTargetRecord.setExcTime(new Date());
         checkTargetRecord.setCreateTime(new Date());
         checkTargetRecordMapper.insertSelective(checkTargetRecord);
@@ -133,6 +135,8 @@ public abstract class AbstractCheckTargetTask implements CheckTargetTask {
         //插入执行记录
         CheckTargetRecord checkTargetRecord = new CheckTargetRecord();
         BeanUtils.copyProperties(checkTarget, checkTargetRecord);
+        checkTargetRecord.setId(null);
+        checkTargetRecord.setCheckId(checkTarget.getId());
         checkTargetRecord.setExcTime(new Date());
         checkTargetRecord.setCreateTime(new Date());
         checkTargetRecordMapper.insertSelective(checkTargetRecord);

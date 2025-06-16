@@ -12,16 +12,10 @@ import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.FileStoreService;
 import top.yms.note.dto.INoteData;
 import top.yms.note.dto.NoteDataExtendDto;
-import top.yms.note.entity.NoteData;
-import top.yms.note.entity.NoteExport;
-import top.yms.note.entity.NoteFile;
-import top.yms.note.entity.NoteMeta;
+import top.yms.note.entity.*;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.exception.NoteSystemException;
-import top.yms.note.mapper.NoteDataMapper;
-import top.yms.note.mapper.NoteExportMapper;
-import top.yms.note.mapper.NoteFileMapper;
-import top.yms.note.mapper.NoteMetaMapper;
+import top.yms.note.mapper.*;
 import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.msgcd.NoteSystemErrorCode;
 import top.yms.note.utils.IdWorker;
@@ -55,6 +49,9 @@ public abstract class AbstractNoteConvert implements NoteConvert{
 
     @Resource
     private NoteFileMapper noteFileMapper;
+
+    @Resource
+    private ResourceFileMapper resourceFileMapper;
 
     @Value("${note.export.tmp-path}")
     private String tmpExportPath;
@@ -133,17 +130,28 @@ public abstract class AbstractNoteConvert implements NoteConvert{
         exportMeta.setCreateTime(new Date());
         noteExportMapper.insertSelective(exportMeta);
         //save note file info
-        NoteFile noteFile = new NoteFile();
-        noteFile.setFileId(fileId);
-        noteFile.setName(eid+"."+getExportType());
-        noteFile.setType(getExportType());
-        noteFile.setSize((long)iNoteData.getContent().getBytes(StandardCharsets.UTF_8).length);
-        noteFile.setUserId(iNoteData.getUserId());
-        noteFile.setUrl(NoteConstants.getFileViewUrlSuffix(fileId));
-        noteFile.setCreateTime(new Date());
-        noteFile.setUpdateTime(new Date());
-        noteFile.setNoteRef(iNoteData.getId());
-        noteFileMapper.insertSelective(noteFile);
+//        NoteFile noteFile = new NoteFile();
+//        noteFile.setFileId(fileId);
+//        noteFile.setName(eid+"."+getExportType());
+//        noteFile.setType(getExportType());
+//        noteFile.setSize((long)iNoteData.getContent().getBytes(StandardCharsets.UTF_8).length);
+//        noteFile.setUserId(iNoteData.getUserId());
+//        noteFile.setUrl(NoteConstants.getFileViewUrlSuffix(fileId));
+//        noteFile.setCreateTime(new Date());
+//        noteFile.setUpdateTime(new Date());
+//        noteFile.setNoteRef(iNoteData.getId());
+//        noteFileMapper.insertSelective(noteFile);
+        //save to resource file
+        String name = iNoteData.getNoteIndex().getName();
+        ResourceFile resourceFile = new ResourceFile();
+        resourceFile.setFileId(fileId);
+        resourceFile.setName(name+"[导出]."+getExportType());
+        resourceFile.setType(getExportType());
+        resourceFile.setSize((long)iNoteData.getContent().getBytes(StandardCharsets.UTF_8).length);
+        resourceFile.setSource("export:"+iNoteData.getId());
+        resourceFile.setCreateTime(new Date());
+        resourceFile.setUpdateTime(new Date());
+        resourceFileMapper.insertSelective(resourceFile);
         return fileId;
     }
 

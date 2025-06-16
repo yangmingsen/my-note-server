@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteConstants;
 
@@ -15,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by yangmingsen on 2024/10/2.
  */
+@Primary
 @Component(NoteConstants.noteScheduledThreadPoolExecutor)
 public class NoteScheduledThreadPoolExecutor implements NoteScheduledExecutorService , InitializingBean {
 
