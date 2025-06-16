@@ -27,6 +27,8 @@ public class DateUtil {
 
 	public static final String YYYYMM = "yyyyMM";
 
+	public static final String yyy_MM_dd = "yyyy-MM-dd";
+
 	private DateUtil() {
 	}
 

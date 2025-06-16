@@ -25,6 +25,10 @@ public class ExpireTimeCacheService implements NoteExpireCacheService, Scheduled
     @Value("${cache.default-expire.time:120}")
     private long defaultExpireTime;
 
+    protected long getExpireTime() {
+        return defaultExpireTime;
+    }
+
     private static class ExpireObjectEntity {
         private String key;
         private Object obj;
@@ -92,7 +96,7 @@ public class ExpireTimeCacheService implements NoteExpireCacheService, Scheduled
 
     @Override
     public Object add(String id, Object data) {
-        return add(id, data, defaultExpireTime);
+        return add(id, data, getExpireTime());
     }
 
     @Override
@@ -102,7 +106,7 @@ public class ExpireTimeCacheService implements NoteExpireCacheService, Scheduled
 
     @Override
     public Object update(String id, Object data) {
-        return update(id, data, defaultExpireTime);
+        return update(id, data, getExpireTime());
     }
 
     @Override

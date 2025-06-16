@@ -8,7 +8,7 @@ import top.yms.note.vo.SearchResult;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
+//@Component
 public class SearchResultSortFilter implements SearchResultFilter{
 
     private static  final Logger log = LoggerFactory.getLogger(SearchResultSortFilter.class);

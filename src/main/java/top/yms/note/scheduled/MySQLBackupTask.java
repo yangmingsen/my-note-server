@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.FileStoreService;
 import top.yms.note.entity.BackupRecord;
+import top.yms.note.entity.ResourceFile;
+import top.yms.note.mapper.ResourceFileMapper;
 import top.yms.note.repo.BackupRecordRepository;
 
 import javax.annotation.Resource;
@@ -26,9 +28,9 @@ public class MySQLBackupTask {
     private final static Logger log = LoggerFactory.getLogger(MySQLBackupTask.class);
 
     //host port username
-    private final String host = "localhost";
-    private final String port = "3306";
-    private final String username = "root";
+    private static final String host = "localhost";
+    private static final String port = "3306";
+    private static final String username = "root";
 
     @Value("${system.backup.mysqldump-path}")
     private  String mysqldumpPath ; // 改为绝对路径或配置 PATH
@@ -47,6 +49,9 @@ public class MySQLBackupTask {
 
     @Resource
     private BackupRecordRepository backupRecordRepository;
+
+    @Resource
+    private ResourceFileMapper resourceFileMapper;
 
     private List<String> getBackupDatabaseList() {
         return Arrays.asList(backupDatabaseList.split(","));
@@ -90,7 +95,8 @@ public class MySQLBackupTask {
                 }
                 log.info("✅ 备份成功：{}", backupFilePath);
                 //上传备份文件
-                String fileId = fileStoreService.saveFile(new File(backupFilePath));
+                File file = new File(backupFilePath);
+                String fileId = fileStoreService.saveFile(file);
                 BackupRecord backupRecord = new BackupRecord();
                 backupRecord.setFileId(fileId);
                 backupRecord.setBackFrom(NoteConstants.MYSQL);
@@ -101,6 +107,16 @@ public class MySQLBackupTask {
                 log.info("🚀 上传成功：数据库 {} → 文件ID = {}" , db, fileId);
                 // 可选：备份成功后删除本地文件
                  new File(backupFilePath).delete();
+                //resource reg
+                ResourceFile resourceFile = new ResourceFile();
+                resourceFile.setFileId(fileId);
+                resourceFile.setName(backupFileName);
+                resourceFile.setType("sql");
+                resourceFile.setSource("backup");
+                resourceFile.setSize(file.length());
+                resourceFile.setCreateTime(new Date());
+                resourceFile.setUpdateTime(new Date());
+                resourceFileMapper.insertSelective(resourceFile);
             } catch (Exception e) {
                 log.error("❌ 数据库备份异常: "+ db, e);
             }
