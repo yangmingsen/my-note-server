@@ -24,4 +24,8 @@ public class MysqlDataBaseBackupTask extends AbstractCheckTargetTask{
     void doCheckTask(CheckTarget checkTarget) {
         mySQLBackupTask.backupEachDatabase();
     }
+
+    public int getSortValue() {
+        return 10;
+    }
 }
