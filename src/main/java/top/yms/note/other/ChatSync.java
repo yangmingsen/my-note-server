@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.entity.*;
 
+import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.mapper.NoteUserMapper;
 import top.yms.note.repo.ChatNoteRepository;
@@ -37,7 +38,7 @@ public class ChatSync  {
     private NoteMetaMapper noteMetaMapper;
 
     @Resource
-    private NoteDataService noteDataService;
+    private NoteDataMapper noteDataMapper;
 
     @Resource
     private IdWorker idWorker;
@@ -99,40 +100,46 @@ public class ChatSync  {
                 parentNoteMeta = newParentDir;
             }
             ChatNote oldChatNote = chatNoteRepository.findByChatId(cmr.id);
-            if (oldChatNote != null) {
-                log.info("已存在chatNote记录, id={}", cmr.id);
-                continue;
-            }
-            Long pid = parentNoteMeta.getId();
             long noteId = idWorker.nextId();
-            NoteMeta noteMeta = new NoteMeta();
-            noteMeta.setId(noteId);
-            noteMeta.setName(cmr.title);
-            noteMeta.setParentId(pid);
-            noteMeta.setUserId(userId);
-            noteMeta.setIsFile(NoteConstants.FILE_FLAG);
-            noteMeta.setType(NoteConstants.markdownSuffix);
-            noteMeta.setCreateTime(date);
-            noteMeta.setUpdateTime(date);
-            noteMeta.setStoreSite(NoteConstants.MYSQL);
-            noteMeta.setSize((long)cmr.markdownContent.getBytes(StandardCharsets.UTF_8).length);
-            noteMetaService.add(noteMeta);
-            //note data
-            NoteData noteData = new NoteData();
-            noteData.setId(noteId);
-            noteData.setContent(cmr.markdownContent);
-            noteData.setUserId(userId);
-            noteData.setCreateTime(date);
-            noteData.setUpdateTime(date);
-            noteDataService.save(noteData);
-            //relation
-            ChatNote chatNote = new ChatNote();
-            chatNote.setNoteId(noteId);
-            chatNote.setChatId(cmr.id);
-            chatNote.setTitle(cmr.title);
-            chatNote.setCreateTime(date);
-            chatNote.setUpdateTime(cmr.updateTime);
-            chatNoteRepository.save(chatNote);
+            if (oldChatNote == null) {
+                Long pid = parentNoteMeta.getId();
+                NoteMeta noteMeta = new NoteMeta();
+                noteMeta.setId(noteId);
+                noteMeta.setName(cmr.title);
+                noteMeta.setParentId(pid);
+                noteMeta.setUserId(userId);
+                noteMeta.setIsFile(NoteConstants.FILE_FLAG);
+                noteMeta.setType(NoteConstants.markdownSuffix);
+                noteMeta.setCreateTime(date);
+                noteMeta.setUpdateTime(date);
+                noteMeta.setStoreSite(NoteConstants.MYSQL);
+                noteMeta.setSize((long)cmr.markdownContent.getBytes(StandardCharsets.UTF_8).length);
+                noteMetaMapper.insertSelective(noteMeta);
+                NoteData noteData = new NoteData();
+                noteData.setId(noteId);
+                noteData.setContent(cmr.markdownContent);
+                noteData.setUserId(userId);
+                noteData.setCreateTime(date);
+                noteData.setUpdateTime(date);
+                noteDataMapper.insertSelective(noteData);
+                //relation
+                ChatNote chatNote = new ChatNote();
+                chatNote.setNoteId(noteId);
+                chatNote.setChatId(cmr.id);
+                chatNote.setTitle(cmr.title);
+                chatNote.setCreateTime(date);
+                chatNote.setUpdateTime(cmr.updateTime);
+                chatNoteRepository.save(chatNote);
+            } else {
+                //note data
+                noteId = oldChatNote.getNoteId();
+                NoteData noteData = new NoteData();
+                noteData.setId(noteId);
+                noteData.setContent(cmr.markdownContent);
+                noteData.setUpdateTime(new Date());
+                noteDataMapper.updateByPrimaryKeySelective(noteData);
+            }
+
         }
         log.info("sync ok=================");
     }
@@ -180,6 +187,16 @@ public class ChatSync  {
         if (mapping.has("client-created-root")) {
             for (JsonNode child : mapping.get("client-created-root").path("children")) {
                 stack.add(child.asText());
+            }
+        } else { //fix bug 202506181156 发现部分不以`client-created-root`作为头节点的
+            for (Iterator<Map.Entry<String, JsonNode>> it = mapping.fields(); it.hasNext(); ) {
+                Map.Entry<String, JsonNode> entry = it.next();
+                JsonNode parentNode = entry.getValue().get("parent");
+                if (parentNode.isNull()) {
+                    for (JsonNode child : entry.getValue().path("children")) {
+                        stack.add(child.asText());
+                    }
+                }
             }
         }
 
