@@ -107,7 +107,9 @@ public class MarkdownNote extends AbstractNote {
         NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
         if (noteData == null) {
             log.error("noteData目标不存在, 使用id={} 进行查询时", id);
-            throw new BusinessException(CommonErrorCode.E_200206);
+            return noteLuceneIndex;
+            //bug202506180924 发现若是noteData不存在会报错，这种场景是存在的
+//            throw new BusinessException(CommonErrorCode.E_200206);
         }
         String content = noteData.getContent();
         if (NoteConstants.ENCRYPTED_FLAG.equals(noteLuceneIndex.getEncrypted())) {

@@ -106,7 +106,17 @@ public class ResourceReferenceCountTask extends AbstractCheckTargetTask implemen
             if (StringUtils.equalsAny(type, NoteConstants.markdownSuffix, NoteConstants.defaultSuffix)) {
                 //内置笔记类型处理
                 NoteData noteData = noteDataMapper.selectByPrimaryKey(noteId);
+                if (noteData == null) {
+                    log.error("未找到noteData, noteId={}", noteId);
+                    updateProgress(value.size());
+                    continue;
+                }
                 String content = noteData.getContent();
+                if (StringUtils.isBlank(content)) {
+                    log.error("发现空内容，noteId={}", noteId);
+                    updateProgress(value.size());
+                    continue;
+                }
                 for (NoteFile noteFile : value) {
                     String fileId = noteFile.getFileId();
                     boolean unRefFlag = false;

@@ -379,7 +379,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
 
     @Override
     public NoteLuceneIndex findNoteLuceneDataOne(Long id) {
-        throw new BusinessException(CommonErrorCode.E_200214);
+        return packNoteIndexForNoteLuceneIndex(id);
     }
 
     public boolean supportGetLuceneData(String type) {

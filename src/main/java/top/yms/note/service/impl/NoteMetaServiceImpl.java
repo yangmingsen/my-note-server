@@ -674,6 +674,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
             return;
         }
         NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        if (noteMeta == null) return; //bug202506180932 发现若是存在错误数据则会NPE
         Long parentId = noteMeta.getParentId();
         if (parentId == 0) {
             list.add(noteMeta);
@@ -841,6 +842,24 @@ public class NoteMetaServiceImpl implements NoteMetaService {
             noteMeta.setEncrypted(NoteConstants.ENCRYPTED_UN_FLAG);
             noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
         }
+    }
+
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
+    @Override
+    public Long createParentDir(String dirName, Long parentId) {
+        long id = idWorker.nextId();
+        NoteMeta noteMeta = new NoteMeta();
+        noteMeta.setId(id);
+        noteMeta.setParentId(parentId);
+        noteMeta.setName(dirName);
+        noteMeta.setUserId(LocalThreadUtils.getUserId());
+        noteMeta.setIsFile(NoteConstants.DIR_FLAG);
+        Date date = new Date();
+        noteMeta.setCreateTime(date);
+        noteMeta.setUpdateTime(date);
+        noteMetaMapper.insertSelective(noteMeta);
+        //ret
+        return id;
     }
 
     /**

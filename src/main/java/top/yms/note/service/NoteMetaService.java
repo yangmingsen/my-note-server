@@ -83,4 +83,6 @@ public interface NoteMetaService {
      * 自动取消加密标记笔记
      */
     void autoDecryptedAllNote();
+
+    Long createParentDir(String dirName, Long parentId);
 }
