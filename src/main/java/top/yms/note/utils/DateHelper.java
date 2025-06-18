@@ -89,6 +89,11 @@ public abstract class DateHelper {
         return timeStampStr;
     }
 
+    public static String dateStrMatch(Date date, String pattern) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+        return simpleDateFormat.format(date);
+    }
+
     public static String getYYYY_MM_DD() {
         return match(PATTERN1);
     }

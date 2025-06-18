@@ -83,4 +83,22 @@ public interface NoteMetaService {
      * 自动取消加密标记笔记
      */
     void autoDecryptedAllNote();
+
+    /**
+     * 根据名称和名称应该所在的parentId创建目录
+     * @param dirName 名称
+     * @param parentId 名称应该所在目录
+     * @return 创建的目录
+     */
+    NoteMeta createParentDir(String dirName, Long parentId);
+
+
+    /**
+     * <h2>找到当前parentId下所有的元数据信息，包含深层数据</h2>
+     * <p>注意：返回的数据包含parentId自己</p>
+     * @param parentId parentId
+     * @return List<noteMeta>
+     */
+    List<NoteMeta> findNoteMetaByParentId(Long parentId);
+
 }

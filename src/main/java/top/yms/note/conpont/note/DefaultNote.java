@@ -29,8 +29,12 @@ public class DefaultNote extends AbstractNote implements NoteTikaService {
         throw new BusinessException(CommonErrorCode.E_200211);
     }
 
+    public int getSortValue() {
+        return 999;
+    }
+
     public boolean supportGetLuceneData(String type) {
-        return false;
+        return true;
     }
 
     public NoteLuceneIndex findNoteLuceneDataOne(Long id) {

@@ -71,7 +71,7 @@ public class PrintSqlInterceptor implements Interceptor {
             String methodId = ms.getId(); // 获取具体是哪个 Mapper 方法
             if (rows == 0) {
                 log.error("数据库操作无效：" + methodId + " 未影响任何行");
-                throw new NoteSystemException( NoteSystemErrorCode.E_400000);
+                //throw new NoteSystemException( NoteSystemErrorCode.E_400000);
             }
             log.debug("methodId={} affected rows= {}", methodId, rows);
         }

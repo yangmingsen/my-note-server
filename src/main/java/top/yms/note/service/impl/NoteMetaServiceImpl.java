@@ -365,7 +365,12 @@ public class NoteMetaServiceImpl implements NoteMetaService {
             if (noteMetaList.size() == 0) {
                 throw new BusinessException(NoteIndexErrorCode.E_203110);
             }
-            Date opTime = new Date();
+            Date opTime;
+            if (note.getCreateTime() != null) {
+                opTime = note.getCreateTime();
+            } else {
+                opTime = new Date();
+            }
             long genId;
             if (note.getId() == null) {
                 genId = idWorker.nextId();
@@ -674,6 +679,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
             return;
         }
         NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        if (noteMeta == null) return; //bug202506180932 发现若是存在错误数据则会NPE
         Long parentId = noteMeta.getParentId();
         if (parentId == 0) {
             list.add(noteMeta);
@@ -843,11 +849,35 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         }
     }
 
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
+    @Override
+    public NoteMeta createParentDir(String dirName, Long parentId) {
+        long id = idWorker.nextId();
+        NoteMeta noteMeta = new NoteMeta();
+        noteMeta.setId(id);
+        noteMeta.setParentId(parentId);
+        noteMeta.setName(dirName);
+        noteMeta.setUserId(LocalThreadUtils.getUserId());
+        noteMeta.setIsFile(NoteConstants.DIR_FLAG);
+        Date date = new Date();
+        noteMeta.setCreateTime(date);
+        noteMeta.setUpdateTime(date);
+        noteMetaMapper.insertSelective(noteMeta);
+        //ret
+        noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        return noteMeta;
+    }
+
     /**
      * 获取最近访问列表
      * @return
      */
     public List<NoteMeta> findRecentVisitList() {
         return noteRecentVisitService.getRecentVisitList();
+    }
+
+    @Override
+    public List<NoteMeta> findNoteMetaByParentId(Long parentId) {
+        return bfsSearchTree(parentId);
     }
 }

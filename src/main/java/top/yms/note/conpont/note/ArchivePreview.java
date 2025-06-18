@@ -325,6 +325,9 @@ public class ArchivePreview extends AbstractNote{
         }
     }
 
+    public int getSortValue() {
+        return 20;
+    }
 
 
     @Override
