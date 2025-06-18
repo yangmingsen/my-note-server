@@ -83,9 +83,6 @@ public class NoteMetaServiceImpl implements NoteMetaService {
     private NoteAsyncExecuteTaskService noteAsyncExecuteTaskService;
 
     @Resource
-    private NoteStoreService noteStoreService;
-
-    @Resource
     private NoteService noteService;
 
 

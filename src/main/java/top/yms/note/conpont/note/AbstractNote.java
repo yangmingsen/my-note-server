@@ -582,4 +582,5 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         //ret
         return url;
     }
+
 }

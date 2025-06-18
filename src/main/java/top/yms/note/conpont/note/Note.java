@@ -4,6 +4,7 @@ import top.yms.note.conpont.ComponentComparable;
 import top.yms.note.dto.INoteData;
 import top.yms.note.entity.NoteMeta;
 import top.yms.note.exception.BusinessException;
+import top.yms.note.msgcd.CommonErrorCode;
 
 /**
  * 笔记抽象接口
@@ -47,5 +48,11 @@ public interface Note extends NoteExport, NoteEncrypt, NoteVersion,
      * @return true-是 , - false
      */
     boolean supportSave();
+
+    /**
+     * 获取当前笔记占用空间（B-字节)
+     * @return size byte
+     */
+    default long getNoteSize() {throw new BusinessException(CommonErrorCode.E_200211);}
 
 }
