@@ -115,7 +115,7 @@ public class DirNote implements Note, NoteLuceneDataService {
         noteLuceneIndex.setParentId(noteMeta.getParentId());
         noteLuceneIndex.setUserId(noteMeta.getUserId());
         noteLuceneIndex.setCreateDate(noteMeta.getCreateTime());
-        noteLuceneIndex.setTitle(noteLuceneIndex.getTitle());
+        noteLuceneIndex.setTitle(noteMeta.getName());
         noteLuceneIndex.setType(noteMeta.getType());
         noteLuceneIndex.setIsFile(noteMeta.getIsFile());
         noteLuceneIndex.setEncrypted(noteMeta.getEncrypted());

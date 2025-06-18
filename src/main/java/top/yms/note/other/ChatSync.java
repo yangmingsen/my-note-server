@@ -115,6 +115,7 @@ public class ChatSync  {
                 noteMeta.setStoreSite(NoteConstants.MYSQL);
                 noteMeta.setSize((long)cmr.markdownContent.getBytes(StandardCharsets.UTF_8).length);
                 noteMetaMapper.insertSelective(noteMeta);
+                //note data
                 NoteData noteData = new NoteData();
                 noteData.setId(noteId);
                 noteData.setContent(cmr.markdownContent);
@@ -131,8 +132,13 @@ public class ChatSync  {
                 chatNote.setUpdateTime(cmr.updateTime);
                 chatNoteRepository.save(chatNote);
             } else {
-                //note data
                 noteId = oldChatNote.getNoteId();
+                NoteMeta noteMeta = new NoteMeta();
+                noteMeta.setId(noteId);
+                noteMeta.setUpdateTime(new Date());
+                noteMeta.setSize((long)cmr.markdownContent.getBytes(StandardCharsets.UTF_8).length);
+                noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
+                //note data
                 NoteData noteData = new NoteData();
                 noteData.setId(noteId);
                 noteData.setContent(cmr.markdownContent);
