@@ -365,7 +365,12 @@ public class NoteMetaServiceImpl implements NoteMetaService {
             if (noteMetaList.size() == 0) {
                 throw new BusinessException(NoteIndexErrorCode.E_203110);
             }
-            Date opTime = new Date();
+            Date opTime;
+            if (note.getCreateTime() != null) {
+                opTime = note.getCreateTime();
+            } else {
+                opTime = new Date();
+            }
             long genId;
             if (note.getId() == null) {
                 genId = idWorker.nextId();
@@ -846,7 +851,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     @Override
-    public Long createParentDir(String dirName, Long parentId) {
+    public NoteMeta createParentDir(String dirName, Long parentId) {
         long id = idWorker.nextId();
         NoteMeta noteMeta = new NoteMeta();
         noteMeta.setId(id);
@@ -859,7 +864,8 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         noteMeta.setUpdateTime(date);
         noteMetaMapper.insertSelective(noteMeta);
         //ret
-        return id;
+        noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        return noteMeta;
     }
 
     /**
@@ -868,5 +874,10 @@ public class NoteMetaServiceImpl implements NoteMetaService {
      */
     public List<NoteMeta> findRecentVisitList() {
         return noteRecentVisitService.getRecentVisitList();
+    }
+
+    @Override
+    public List<NoteMeta> findNoteMetaByParentId(Long parentId) {
+        return bfsSearchTree(parentId);
     }
 }
