@@ -244,4 +244,8 @@ public class WerNote extends AbstractNote {
     public String export(Long noteId, String exportType) {
         return noteFileExport.noteExport(noteId, NoteConstants.WER, exportType);
     }
+
+    public boolean supportShare(String noteType) {
+        return support(noteType);
+    }
 }
