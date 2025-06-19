@@ -1,5 +1,6 @@
 package top.yms.note.conpont.note;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import top.yms.note.conpont.NoteTikaService;
 import top.yms.note.conpont.search.NoteLuceneIndex;
@@ -8,12 +9,29 @@ import top.yms.note.exception.BusinessException;
 import top.yms.note.msgcd.CommonErrorCode;
 
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by yangmingsen on 2024/8/21.
  */
 @Component
 public class DefaultNote extends AbstractNote implements NoteTikaService {
+
+    @Value("${other.share-support-type}")
+    private String otherShareSupport;
+
+    private Set<String> shareSupportSet;
+
+    private Set<String> getShareSupportSet() {
+        if (shareSupportSet == null) {
+            shareSupportSet = new HashSet<>();
+            shareSupportSet.addAll(Arrays.asList(otherShareSupport.split(",")));
+        }
+        return shareSupportSet;
+    }
+
     @Override
     public boolean support(String type) {
         return true;
@@ -48,4 +66,8 @@ public class DefaultNote extends AbstractNote implements NoteTikaService {
     public String streamToString(InputStream inputStream) {
         return null;
     }
+
+//    public boolean supportShare(String type) {
+//        return getShareSupportSet().contains(type);
+//    }
 }

@@ -396,7 +396,6 @@ public class NoteIndexController {
     public RestOut<NoteMetaExtVo> notePasswordAuth(@RequestParam("id") Long id,
                                                    @RequestParam("password") String password) {
         log.debug("notePasswordAuth: id={}, password={}", id, password);
-        //todo 去做密码验证， 暂时先不验证，因为密码还不知道存哪里
         if (StringUtils.isBlank(password) || id == null) {
             throw new BusinessException(CommonErrorCode.E_200202);
         }
