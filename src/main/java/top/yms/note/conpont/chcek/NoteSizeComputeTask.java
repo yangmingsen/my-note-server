@@ -34,7 +34,7 @@ public class NoteSizeComputeTask extends AbstractCheckTargetTask implements Note
     }
 
     @Override
-    void doCheckTask(CheckTarget checkTarget) {
+    void doCheckTask(CheckTarget checkTarget) throws Exception {
 
     }
 

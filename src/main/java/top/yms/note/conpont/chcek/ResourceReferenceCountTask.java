@@ -80,7 +80,7 @@ public class ResourceReferenceCountTask extends AbstractCheckTargetTask implemen
     }
 
     @Override
-    void doCheckTask(CheckTarget checkTarget) {
+    void doCheckTask(CheckTarget checkTarget) throws Exception {
         //初始化
         init();
         //获取数据

@@ -63,7 +63,7 @@ public abstract class AbstractCheckTargetTask implements CheckTargetTask {
             } catch (Throwable e) {
                 log.error("excTask 【事务模式】 执行异常：", e);
                 transactionManager.rollback(status);
-                throwException(checkTarget);
+                throwException(checkTarget, e);
             }
         } else {
             log.debug("------------Check Task [无]事务模式执行------------------");
@@ -71,20 +71,30 @@ public abstract class AbstractCheckTargetTask implements CheckTargetTask {
                 doExcTask(checkTarget);
             } catch (Exception e) {
                 log.error("excTask 【无事务模式】 执行异常", e);
-                throwException(checkTarget);
+                throwException(checkTarget, e);
             }
         }
     }
 
     /**
      * 当发生异常时，回调子类
-     * @param currentData
+     *
      */
-    protected void throwException(Object currentData) {
+    protected void throwException(CheckTarget checkTarget, Throwable t) {
+        //插入执行记录
+        //update
+        checkTarget.setStatus(CheckTargetStatus.RUNNING.getValue());
+        CheckTargetRecord checkTargetRecord = new CheckTargetRecord();
+        BeanUtils.copyProperties(checkTarget, checkTargetRecord);
+        checkTargetRecord.setId(null);
+        checkTargetRecord.setCheckId(checkTarget.getId());
+        checkTargetRecord.setExcTime(new Date());
+        checkTargetRecord.setCreateTime(new Date());
+        checkTargetRecordMapper.insertSelective(checkTargetRecord);
 
     }
 
-    private void doExcTask(CheckTarget checkTarget) {
+    private void doExcTask(CheckTarget checkTarget) throws Exception{
         if (!beforeExc(checkTarget)) return;
         doCheckTask(checkTarget);
         afterExc(checkTarget);
@@ -124,7 +134,7 @@ public abstract class AbstractCheckTargetTask implements CheckTargetTask {
      * 子类实现该方法：用于具体任务执行
      * @param checkTarget
      */
-    abstract void doCheckTask(CheckTarget checkTarget);
+    abstract void doCheckTask(CheckTarget checkTarget) throws Exception;
 
     /**
      * 后置执行
