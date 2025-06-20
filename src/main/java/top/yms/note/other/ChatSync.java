@@ -1,7 +1,10 @@
 package top.yms.note.other;
 
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -210,14 +213,37 @@ public class ChatSync  {
             String nodeId = stack.remove(0);
             Message msg = messages.get(nodeId);
             if (msg != null && msg.text != null && !msg.text.trim().isEmpty()) {
+                //=================================================
+                //bug 20250620 不想用alibaba 的 JSONObject的， 可惜JsonNode太难用
+                String content = msg.text;
+                if (content.startsWith("{")) {
+                    try {
+                        JSONObject jsonObject = JSONObject.parseObject(content);
+                        JSONArray updates = jsonObject.getJSONArray("updates");
+                        if (updates != null) {
+                            int size = updates.size();
+                            for (int i=0; i<size; i++) {
+                                JSONObject js1 = updates.getJSONObject(i);
+                                String replacement = js1.getString("replacement");
+                                content = replacement;
+                            }
+                        }
+                        String prompt = jsonObject.getString("prompt");
+                        if (StringUtils.isNoneBlank(prompt)) {
+                            content = prompt;
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                //===================================================
                 if ("user".equals(msg.role)) {
-                    String userContent = msg.text;
                     sb.append("## 🤔 用户提问：\n\n")
                             .append("时间: ").append(DateHelper.dateStrMatch(fromUnix(msg.createTime), DateHelper.PATTERN4)).append("\n\n")
-                            .append(userContent)
+                            .append(content)
                             .append("\n\n");
                 } else if ("assistant".equals(msg.role)) {
-                    sb.append("### 💡 ChatGPT 回答：\n\n").append(msg.text).append("\n\n---\n\n");
+                    sb.append("### 💡 ChatGPT 回答：\n\n").append(content).append("\n\n---\n\n");
                 }
             }
             JsonNode children = mapping.path(nodeId).path("children");

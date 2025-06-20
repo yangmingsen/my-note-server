@@ -10,8 +10,7 @@ public class CheckTargetTaskExecutorBootstrap {
 
     public static void start() {
         CheckTargetTaskExecutor checkTargetTaskExecutor = SpringContext.getBean(CheckTargetTaskExecutor.class);
-        Thread thread = new Thread(checkTargetTaskExecutor);
-        thread.start();
+        checkTargetTaskExecutor.start();
         log.info("CheckTargetTaskExecutorBootstrap started......");
     }
 }

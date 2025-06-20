@@ -4,6 +4,7 @@ public enum CheckTargetStatus {
     UN_RUN("未执行","1"),
     RUNNING("执行中","2"),
     COMPLETED("执行完成","3"),
+    FAILED("执行失败","4"),
     ;
 
     private String name;

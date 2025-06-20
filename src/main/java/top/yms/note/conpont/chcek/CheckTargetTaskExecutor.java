@@ -5,10 +5,13 @@ import com.alibaba.fastjson2.JSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactoryUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
+import top.yms.note.comm.NoteConstants;
+import top.yms.note.conpont.task.NoteExecuteService;
 import top.yms.note.conpont.task.NoteTask;
 import top.yms.note.entity.CheckTarget;
 import top.yms.note.mapper.CheckTargetMapper;
@@ -25,12 +28,20 @@ public class CheckTargetTaskExecutor implements NoteTask, ApplicationListener<Ap
 
     private final static Logger log = LoggerFactory.getLogger(CheckTargetTaskExecutor.class);
 
+    @Qualifier(NoteConstants.noteThreadPoolExecutor)
+    @Resource
+    private NoteExecuteService noteExecuteService;
+
     @Resource
     private CheckTargetMapper checkTargetMapper;
 
     private final AtomicBoolean status = new AtomicBoolean(false);
 
     private final List<CheckTargetTask> list = new LinkedList<>();
+
+    public void start() {
+        noteExecuteService.execute(this);
+    }
 
     @Override
     public void run() {
