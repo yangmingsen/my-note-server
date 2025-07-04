@@ -33,6 +33,7 @@ import top.yms.note.msgcd.NoteIndexErrorCode;
 import top.yms.note.msgcd.NoteSystemErrorCode;
 import top.yms.note.repo.NoteShareInfoRepository;
 import top.yms.note.service.NoteFileService;
+import top.yms.note.service.NoteMetaService;
 import top.yms.note.utils.*;
 import top.yms.note.vo.NoteShareVo;
 
@@ -92,7 +93,10 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     protected NoteShareInfoRepository noteShareInfoRepository;
 
     @Resource
-    private SysConfigService sysConfigService;
+    protected SysConfigService sysConfigService;
+
+    @Resource
+    protected NoteMetaService noteMetaService;
 
     protected String getEncryptedKey() {
         String key = Base64Util.decodeStr(encryptedKey);
@@ -553,8 +557,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         noteMeta.setShare(NoteConstants.SHARE_FLAG);
         noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
         //新增noteShareInfo
-        String viewShareUrl = getViewShareUrl();
-        String shareUrl = viewShareUrl + noteId;
+        String shareUrl = getShareUrl(noteId);
         NoteShareInfo noteShareInfo = new NoteShareInfo();
         noteShareInfo.setNoteId(noteId);
         noteShareInfo.setShareUrl(shareUrl);
@@ -565,22 +568,44 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         return noteShareInfo;
     }
 
-    private String getViewShareUrl() {
-        String cacheKey = NoteCacheKey.VIEW_SHARE_KEY;
+    private String getShareUrl(Long noteId) {
+        String cacheKey = NoteCacheKey.VIEW_SHARE_KEY+noteId;
         Object o = noteExpireCacheService.find(cacheKey);
         if (o != null) {
             return (String)o;
         }
+        String url = doGetShareUrl(noteId);
+        //add cache
+        noteExpireCacheService.add(cacheKey, url);
+        return url;
+    }
+
+    protected String doGetShareUrl(Long noteId) {
         String curLocalIp = HostIPUtil.getLocalIP();
         String url = "http://" + curLocalIp +
                 ":" +
                 sysConfigService.getStringValue("system.base_share_view_port") +
                 "/share/";
         log.debug("getViewShareUrl = {}", url);
-        //add cache
-        noteExpireCacheService.add(cacheKey, url);
-        //ret
-        return url;
+        return url + noteId;
     }
+
+//    private String getViewShareUrl() {
+//        String cacheKey = NoteCacheKey.VIEW_SHARE_KEY;
+//        Object o = noteExpireCacheService.find(cacheKey);
+//        if (o != null) {
+//            return (String)o;
+//        }
+//        String curLocalIp = HostIPUtil.getLocalIP();
+//        String url = "http://" + curLocalIp +
+//                ":" +
+//                sysConfigService.getStringValue("system.base_share_view_port") +
+//                "/share/";
+//        log.debug("getViewShareUrl = {}", url);
+//        //add cache
+//        noteExpireCacheService.add(cacheKey, url);
+//        //ret
+//        return url;
+//    }
 
 }

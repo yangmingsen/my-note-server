@@ -204,6 +204,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
     public AnyFile shareResource(String id) {
         NoteFile noteFile = noteFileMapper.findOneByFileId(id);
         if (noteFile == null) {
+            log.error("resource not found with id={}", id);
             throw new BusinessException(BusinessErrorCode.E_204015);
         }
         Long noteId = noteFile.getNoteRef();
