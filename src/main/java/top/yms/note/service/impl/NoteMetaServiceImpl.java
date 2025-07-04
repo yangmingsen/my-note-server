@@ -358,10 +358,11 @@ public class NoteMetaServiceImpl implements NoteMetaService {
     public void add(NoteMeta note) {
         String mindMapMongoId = null;
         try {
-            List<NoteMeta> noteMetaList = noteMetaMapper.selectByExample(NoteIndexQuery.Builder.build().nid(note.getParentId()).get().example());
-            if (noteMetaList.size() == 0) {
-                throw new BusinessException(NoteIndexErrorCode.E_203110);
-            }
+            //父目录检查，考虑取消。 因为多文件上传可能次序不一致。 考虑用定时任务去检查无父目录的情况 2025-06-25
+//            List<NoteMeta> noteMetaList = noteMetaMapper.selectByExample(NoteIndexQuery.Builder.build().nid(note.getParentId()).get().example());
+//            if (noteMetaList.size() == 0) {
+//                throw new BusinessException(NoteIndexErrorCode.E_203110);
+//            }
             Date opTime;
             if (note.getCreateTime() != null) {
                 opTime = note.getCreateTime();

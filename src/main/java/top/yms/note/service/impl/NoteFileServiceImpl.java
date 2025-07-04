@@ -43,11 +43,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -193,6 +191,67 @@ public class NoteFileServiceImpl implements NoteFileService {
         noteData.setUserId(note.getUserId());
         noteData.setContent(sb.toString());
         noteDataService.save(noteData);
+    }
+
+    @Override
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 60)
+    public void uploadMultiNote(Long rootParentId, List<MultipartFile> files) throws Exception {
+        Long userId = LocalThreadUtils.getUserId();
+        Map<String, Long> pathToId = new HashMap<>();
+//        List<NoteMeta> result = new ArrayList<>();
+        for (MultipartFile file : files) {
+            // 获取相对路径（重点）
+            String relativePath = file.getOriginalFilename(); // 自动带上 webkitRelativePath
+            if (relativePath == null) continue;
+            Path path = Paths.get(relativePath);
+            Long parentId = rootParentId;
+            // 依次处理目录结构
+            for (int i = 0; i < path.getNameCount(); i++) {
+                String currentName = path.getName(i).toString();
+                String subPath = path.subpath(0, i + 1).toString();
+                if (i < path.getNameCount() - 1) { // 是目录
+                    if (!pathToId.containsKey(subPath)) {
+                        Long dirId = idWorker.nextId();
+                        pathToId.put(subPath, dirId);
+                        NoteMeta dir = new NoteMeta();
+                        dir.setId(dirId);
+                        dir.setParentId(parentId);
+                        dir.setName(currentName);
+                        dir.setIsFile("0");
+                        dir.setUserId(userId);
+                        dir.setCreateTime(new Date());
+                        dir.setUpdateTime(new Date());
+                        dir.setType(null);
+                        //add noteMeta
+                        noteMetaService.add(dir);
+//                        result.add(dir);
+                        parentId = dirId;
+                    } else {
+                        parentId = pathToId.get(subPath);
+                    }
+                } else { // 是文件
+                    Long fileId = idWorker.nextId();
+                    NoteMeta fileNote = new NoteMeta();
+                    fileNote.setId(fileId);
+                    fileNote.setParentId(parentId);
+                    fileNote.setName(currentName);
+                    fileNote.setUserId(userId);
+                    fileNote.setCreateTime(new Date());
+                    fileNote.setUpdateTime(new Date());
+                    fileNote.setIsFile("1");
+                    fileNote.setSize(file.getSize());
+                    int dotIndex = currentName.lastIndexOf('.');
+                    if (dotIndex != -1) {
+                        fileNote.setType(currentName.substring(dotIndex + 1));
+                    } else {
+                        fileNote.setType("unknown");
+                    }
+                    //add note
+                    addNote(file, fileNote);
+//                    result.add(fileNote);
+                }
+            }
+        }
     }
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)

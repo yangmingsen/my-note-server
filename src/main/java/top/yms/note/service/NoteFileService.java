@@ -33,4 +33,6 @@ public interface NoteFileService {
     void download(String id, HttpServletRequest req, HttpServletResponse resp)  throws Exception;
 
     Long fetch(String url, String toType, Long parentId);
+
+    void uploadMultiNote(Long parentId, List<MultipartFile> file) throws Exception;
 }

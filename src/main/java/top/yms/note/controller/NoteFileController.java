@@ -27,6 +27,7 @@ import top.yms.note.msgcd.NoteIndexErrorCode;
 import top.yms.note.other.ResourceSync;
 import top.yms.note.service.NoteFileService;
 import top.yms.note.service.NoteMetaService;
+import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.LocalNoteSyncResult;
 
@@ -35,10 +36,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -72,6 +72,9 @@ public class NoteFileController {
 
     @Resource
     private NoteMetaService noteMetaService;
+
+    @Resource
+    private IdWorker idWorker;
 
     /**
      * 目前用于wangeditor的图片上传
@@ -139,10 +142,23 @@ public class NoteFileController {
     }
 
 
-    @PostMapping("/uploadMultiFile")
-    public RestOut uploadMultiFile(@RequestParam("files") MultipartFile[] files, @RequestParam("parentId") Long parentId) {
-        throw new RuntimeException("Not implement");
+
+    @PostMapping("/uploadMultiNote")
+    public RestOut<String> uploadMultiNote(@RequestParam("parentId") Long parentId,
+                                   @RequestParam("files") List<MultipartFile> files) throws Exception{
+        if (parentId == null) {
+            log.error("parentId is null");
+            throw new BusinessException(CommonErrorCode.E_200202);
+        }
+        if (files == null || files.size() == 0) {
+            log.error("files is null or empty");
+            throw new BusinessException(CommonErrorCode.E_200202);
+        }
+        noteFileService.uploadMultiNote(parentId, files);
+        return RestOut.succeed();
     }
+
+
 
     @PostMapping("/uploadNote")
     public RestOut uploadNote(@RequestParam(value = "file") MultipartFile file,
