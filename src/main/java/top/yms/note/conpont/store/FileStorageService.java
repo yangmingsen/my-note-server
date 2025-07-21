@@ -1,6 +1,8 @@
 package top.yms.note.conpont.store;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -18,12 +20,18 @@ import top.yms.storage.entity.UploadResp;
 
 import javax.annotation.Resource;
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Primary
 @Component(NoteConstants.storageFileStoreService)
 public class FileStorageService implements FileStoreService {
+
+    private final static Logger log = LoggerFactory.getLogger(FileStorageService.class);
 
     @Qualifier(NoteConstants.mongoFileStoreService)
     @Resource
@@ -60,11 +68,7 @@ public class FileStorageService implements FileStoreService {
         if (qryResp.isEmpty()) {
             AnyFile anyFile = mongoFileStoreService.loadFile(id);
             UploadResp uploadRsp = storageClient.upload(anyFile.getInputStream(), anyFile.getFilename());
-            FileStoreRelation fsr = new FileStoreRelation();
-            fsr.setMongoFileId(id);
-            fsr.setStorageFileId(uploadRsp.getFileId());
-            fsr.setCreateTime(new Date());
-            fileStoreRelationMapper.insertSelective(fsr);
+            insertRelation(uploadRsp.getFileId(), id);
             return new StorageFile(uploadRsp.getFileId(), storageClient);
         }
         return new StorageFile(qryResp.get(0).getStorageFileId(), storageClient);
@@ -75,11 +79,7 @@ public class FileStorageService implements FileStoreService {
     public String saveFile(MultipartFile file) throws Exception {
         UploadResp uploadResp = storageClient.upload(file.getInputStream(), file.getOriginalFilename());
         String id = mongoFileStoreService.saveFile(file);
-        FileStoreRelation fsr = new FileStoreRelation();
-        fsr.setMongoFileId(id);
-        fsr.setStorageFileId(uploadResp.getFileId());
-        fsr.setCreateTime(new Date());
-        fileStoreRelationMapper.insertSelective(fsr);
+        insertRelation(uploadResp.getFileId(), id);
         return id;
     }
 
@@ -87,12 +87,16 @@ public class FileStorageService implements FileStoreService {
     public String saveFile(File file) throws Exception {
         UploadResp uploadResp = storageClient.upload(file);
         String id = mongoFileStoreService.saveFile(file);
+        insertRelation(uploadResp.getFileId(), id);
+        return id;
+    }
+
+    private void insertRelation(String storageFileId, String mongoFileId) {
         FileStoreRelation fsr = new FileStoreRelation();
-        fsr.setMongoFileId(id);
-        fsr.setStorageFileId(uploadResp.getFileId());
+        fsr.setMongoFileId(mongoFileId);
+        fsr.setStorageFileId(storageFileId);
         fsr.setCreateTime(new Date());
         fileStoreRelationMapper.insertSelective(fsr);
-        return id;
     }
 
     @Override
@@ -112,5 +116,38 @@ public class FileStorageService implements FileStoreService {
             mongoFileStoreService.delFile(id);
         }
         return true;
+    }
+
+    public String saveFile(InputStream inputStream, Map<String, Object> option) {
+        String fileName = (String)option.get(NoteConstants.OPTION_FILE_NAME);
+        String fileType = (String)option.get(NoteConstants.OPTION_FILE_TYPE);
+        UploadResp uploadResp = storageClient.upload(inputStream, fileName + fileType);
+        String storageFileId = uploadResp.getFileId();
+        //为什么这么做？ 重新获取文件流再给mongo存储服务，因为inputStream在storageClient.upload后就被close了，所以只能再从storage中获取
+        InputStream fileStream = storageClient.getFileStream(storageFileId);
+        String mongoFileId = mongoFileStoreService.saveFile(fileStream, option);
+        insertRelation(storageFileId, mongoFileId);
+        return mongoFileId;
+    }
+
+    public String getStringContent(String id) {
+        AnyFile anyFile = loadFile(id);
+        StringBuilder contentStr = new StringBuilder();
+        try(InputStream is = anyFile.getInputStream();
+            InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8)) {
+            int bufLen = 1024;
+            char [] cBuf = new char[bufLen];
+            int rLen;
+            while ((rLen = isr.read(cBuf)) > 0) {
+                contentStr.append(new String(cBuf, 0, rLen));
+            }
+        }catch (Exception e) {
+            log.error("读取mongo文件内容出错", e);
+            throw new RuntimeException(e);
+        }
+        if (contentStr.length() == 0) {
+            return null;
+        }
+        return contentStr.toString();
     }
 }

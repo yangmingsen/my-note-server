@@ -74,10 +74,6 @@ public class MongoFileStoreService implements FileStoreService {
         }
     }
 
-    @Override
-    public String saveFile(MultipartFile file, Object[] objs) {
-        throw new BusinessException(CommonErrorCode.E_200211);
-    }
 
     @Override
     public String saveFile(MultipartFile file) throws Exception {
