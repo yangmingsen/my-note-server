@@ -33,6 +33,7 @@ import java.util.List;
 
 /**
  * Created by yangmingsen on 2024/8/21.
+ * <p>note服务处理中心</p>
  */
 @Primary
 @Component(NoteConstants.defaultNoteStoreServiceImpl)
@@ -40,7 +41,16 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
 
     private static  final Logger log = LoggerFactory.getLogger(DefaultNoteServiceImpl.class);
 
+    /**
+     * 笔记组件列表
+     */
     protected final List<Note> noteComponentList = new LinkedList<>();
+
+    /**
+     * 分享组件列表
+     */
+    @Resource
+    private List<NoteShare> noteShareComponentList;
 
     @Resource
     protected NoteMetaMapper noteMetaMapper;
@@ -161,7 +171,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
     @Override
     public NoteShareVo shareNoteGet(Long noteId) {
         NoteMeta noteMeta = getNoteMeta(noteId);
-        for(Note note : noteComponentList) {
+        for(NoteShare note : noteShareComponentList) {
             if (note.supportShare(noteMeta.getType())) {
                 NoteShareReqDto noteShareReqDto = new NoteShareReqDto();
                 noteShareReqDto.setNoteIndex(noteMeta);
@@ -175,7 +185,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
     @Override
     public void shareNoteClose(Long noteId) {
         NoteMeta noteMeta = getNoteMeta(noteId);
-        for(Note note : noteComponentList) {
+        for(NoteShare note : noteShareComponentList) {
             if (note.supportShare(noteMeta.getType())) {
                 NoteShareReqDto noteShareReqDto = new NoteShareReqDto();
                 noteShareReqDto.setNoteIndex(noteMeta);
@@ -190,7 +200,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
     @Override
     public NoteShareInfo shareNoteOpen(Long noteId) {
         NoteMeta noteMeta = getNoteMeta(noteId);
-        for(Note note : noteComponentList) {
+        for(NoteShare note : noteShareComponentList) {
             if (note.supportShare(noteMeta.getType())) {
                 NoteShareReqDto noteShareReqDto = new NoteShareReqDto();
                 noteShareReqDto.setNoteIndex(noteMeta);

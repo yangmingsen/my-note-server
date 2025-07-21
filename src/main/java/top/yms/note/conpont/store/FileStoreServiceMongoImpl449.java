@@ -64,10 +64,6 @@ public class FileStoreServiceMongoImpl449 implements FileStoreService {
         }
     }
 
-    @Override
-    public String saveFile(MultipartFile file, Object[] objs) {
-        throw new RuntimeException("Method Not Implement");
-    }
 
     @Override
     public String saveFile(MultipartFile file) throws Exception{
