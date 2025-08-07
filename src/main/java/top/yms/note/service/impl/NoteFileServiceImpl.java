@@ -193,7 +193,6 @@ public class NoteFileServiceImpl implements NoteFileService {
     public void uploadMultiNote(Long rootParentId, List<MultipartFile> files) throws Exception {
         Long userId = LocalThreadUtils.getUserId();
         Map<String, Long> pathToId = new HashMap<>();
-//        List<NoteMeta> result = new ArrayList<>();
         for (MultipartFile file : files) {
             // 获取相对路径（重点）
             String relativePath = file.getOriginalFilename(); // 自动带上 webkitRelativePath
@@ -219,7 +218,6 @@ public class NoteFileServiceImpl implements NoteFileService {
                         dir.setType(null);
                         //add noteMeta
                         noteMetaService.add(dir);
-//                        result.add(dir);
                         parentId = dirId;
                     } else {
                         parentId = pathToId.get(subPath);
@@ -243,7 +241,6 @@ public class NoteFileServiceImpl implements NoteFileService {
                     }
                     //add note
                     addNote(file, fileNote);
-//                    result.add(fileNote);
                 }
             }
         }
