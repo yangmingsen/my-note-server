@@ -195,7 +195,6 @@ public class NoteFileController {
         return RestOut.succeed();
     }
 
-    //todo 加密访问先放着
     private boolean checkIsEncryptedNote(NoteFile noteFile, HttpServletRequest req, HttpServletResponse response, String msg) {
         NoteMeta noteMeta = null;
         if (noteFile.getNoteRef() != 0L) {

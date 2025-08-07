@@ -77,7 +77,16 @@ public class FileStorageService implements FileStoreService {
 
     @Override
     public String saveFile(MultipartFile file) throws Exception {
-        UploadResp uploadResp = storageClient.upload(file.getInputStream(), file.getOriginalFilename());
+        String originalFilename = file.getOriginalFilename();
+        if (StringUtils.isNotBlank(originalFilename)) {
+            int i = originalFilename.lastIndexOf("/");
+            if (i > -1) {
+                originalFilename = originalFilename.substring(i+1);
+            }
+        }
+        //bug2020807 若是目录上传，比如 xx/aa.xml 会导致file-storage服务存储时还建立一个xx目录再去存aa.xml
+//        UploadResp uploadResp = storageClient.upload(file.getInputStream(), file.getOriginalFilename());
+        UploadResp uploadResp = storageClient.upload(file.getInputStream(), originalFilename);
         String id = mongoFileStoreService.saveFile(file);
         insertRelation(uploadResp.getFileId(), id);
         return id;
