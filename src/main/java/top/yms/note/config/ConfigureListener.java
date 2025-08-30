@@ -44,6 +44,10 @@ public class ConfigureListener implements ApplicationListener<ApplicationEnviron
                     (Map<String, OriginTrackedValue>)propertySource.getSource();
 
 //            String driverClass = String.valueOf(dataBaseSource.get("spring.datasource.driver-class-name").getValue());
+            OriginTrackedValue sdu = dataBaseSource.get("spring.datasource.url");
+            if (sdu == null) {
+                continue;
+            }
             String url = String.valueOf(dataBaseSource.get("spring.datasource.url").getValue());
             String user = String.valueOf(dataBaseSource.get("spring.datasource.username").getValue());
             String password = String.valueOf(dataBaseSource.get("spring.datasource.password").getValue());
