@@ -650,20 +650,21 @@ public class NoteFileServiceImpl implements NoteFileService {
             throw new BusinessException(CommonErrorCode.E_203001);
         }
         NoteFile noteFile = findOne(id);
-//        log.debug("download: noteFile:{}", noteFile);
-        if (noteFile == null) return ;
-//        if (!checkIsEncryptedNote(noteFile, req, resp, "加密笔记不可下载")) {
-//            return;
-//        }
-        NoteFile upCnt = new NoteFile();
-        upCnt.setId(noteFile.getId());
-        upCnt.setDownloadCount(noteFile.getDownloadCount()+1);
-        noteFileMapper.updateByPrimaryKeySelective(upCnt);
+        log.debug("download: noteFile:{}", noteFile);
+        //#20250828 pdf导出后，再次访问时无法访问，因为 noteFile等于null了，本质是这个pdf导出信息不再放入note_file表而是t_resource_file中去了
+        if (noteFile != null) {
+            NoteFile upCnt = new NoteFile();
+            upCnt.setId(noteFile.getId());
+            upCnt.setDownloadCount(noteFile.getDownloadCount()+1);
+            noteFileMapper.updateByPrimaryKeySelective(upCnt);
+        }
         AnyFile file = fileStoreService.loadFile(id);
-        resp.addHeader("Content-Disposition", "attachment; filename=\"" + URLEncoder.encode(file.getFilename(), "UTF-8") + "\"");
-        resp.addHeader("Content-Length", "" + file.getLength());
-        resp.setContentType(file.getContentType());
-        file.writeTo(resp.getOutputStream());
+        if (file != null) {
+            resp.addHeader("Content-Disposition", "attachment; filename=\"" + URLEncoder.encode(file.getFilename(), "UTF-8") + "\"");
+            resp.addHeader("Content-Length", "" + file.getLength());
+            resp.setContentType(file.getContentType());
+            file.writeTo(resp.getOutputStream());
+        }
     }
 
     @Override

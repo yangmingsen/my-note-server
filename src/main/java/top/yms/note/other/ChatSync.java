@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -15,12 +16,14 @@ import top.yms.note.comm.NoteConstants;
 import top.yms.note.entity.*;
 
 import top.yms.note.mapper.NoteDataMapper;
+import top.yms.note.mapper.NoteDataVersionMapper;
 import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.mapper.NoteUserMapper;
 import top.yms.note.repo.ChatNoteRepository;
 import top.yms.note.service.NoteDataService;
 import top.yms.note.service.NoteMetaService;
 import top.yms.note.utils.DateHelper;
+import top.yms.note.utils.FNVHash;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 
@@ -42,6 +45,9 @@ public class ChatSync  {
 
     @Resource
     private NoteDataMapper noteDataMapper;
+
+    @Resource
+    private NoteDataVersionMapper noteDataVersionMapper;
 
     @Resource
     private IdWorker idWorker;
@@ -104,6 +110,12 @@ public class ChatSync  {
             }
             ChatNote oldChatNote = chatNoteRepository.findByChatId(cmr.id);
             long noteId = idWorker.nextId();
+            //version data
+            NoteDataVersion noteDataVersion = new NoteDataVersion();
+            noteDataVersion.setContent(cmr.markdownContent);
+            noteDataVersion.setUserId(userId);
+            noteDataVersion.setCreateTime(new Date());
+            //check
             if (oldChatNote == null) {
                 Long pid = parentNoteMeta.getId();
                 NoteMeta noteMeta = new NoteMeta();
@@ -126,6 +138,8 @@ public class ChatSync  {
                 noteData.setCreateTime(date);
                 noteData.setUpdateTime(date);
                 noteDataMapper.insertSelective(noteData);
+                //version
+                noteDataVersion.setNoteId(noteId);
                 //relation
                 ChatNote chatNote = new ChatNote();
                 chatNote.setNoteId(noteId);
@@ -147,10 +161,37 @@ public class ChatSync  {
                 noteData.setContent(cmr.markdownContent);
                 noteData.setUpdateTime(new Date());
                 noteDataMapper.updateByPrimaryKeySelective(noteData);
+                //version
+                //version
+                noteDataVersion.setNoteId(noteId);
             }
-
+            //add version
+            addToDataVersion(noteDataVersion);
         }
         log.info("sync ok=================");
+    }
+
+    /**
+     * 若是新数据，得做版本。 旧数据看与上次版本是否一致，不一致则加入新版本
+     * @param noteDataVersion
+     */
+    private void addToDataVersion(NoteDataVersion noteDataVersion) {
+        Long noteId = noteDataVersion.getNoteId();
+        List<NoteDataVersion> noteDataVersions = noteDataVersionMapper.selectByNoteId(noteId);
+        NoteDataVersion lastOne = null;
+        if (!noteDataVersions.isEmpty()) {
+            noteDataVersions.sort(Comparator.comparing(NoteDataVersion::getCreateTime));
+            lastOne = noteDataVersions.get(noteDataVersions.size() - 1);
+        }
+        if (lastOne != null) {
+            long h1 = FNVHash.fnv1aHash64(noteDataVersion.getContent());
+            long h2 = FNVHash.fnv1aHash64(lastOne.getContent());
+            if (h1 != h2) {
+                noteDataVersionMapper.insertSelective(noteDataVersion);
+            }
+        } else {
+            noteDataVersionMapper.insertSelective(noteDataVersion);
+        }
     }
 
 

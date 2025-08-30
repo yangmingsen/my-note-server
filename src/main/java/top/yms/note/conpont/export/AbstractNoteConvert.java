@@ -191,6 +191,7 @@ public abstract class AbstractNoteConvert implements NoteConvert{
         // `arialuni.ttf` from https://www.wfonts.com/font/arial-unicode-ms
         String nonLatinFonts = "" +
                 "<style>\n" +
+                " img { max-width: 100%; height: auto; } " +
                 "@font-face {\n" +
                 "  font-family: 'noto-cjk';\n" +
                 "  src: url('file:/C:/Windows/Fonts/STKAITI.TTF');\n" +
