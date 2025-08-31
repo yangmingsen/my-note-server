@@ -18,7 +18,7 @@ public interface NoteFileService {
 
     NoteFile findOne(String fileId);
 
-    void addNote(MultipartFile file, NoteMeta note) throws Exception;
+    NoteMeta addNote(MultipartFile file, NoteMeta note) throws Exception;
 
     void syncNoteFromLocalFS(NoteTree noteTree, File file, List<String> mongoRollBackList, List<LocalNoteSyncResult> syncStatisticList) throws Exception;
 
