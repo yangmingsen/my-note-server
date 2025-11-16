@@ -3,14 +3,17 @@ package top.yms.note.conpont.fetch;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
 import top.yms.note.comm.NoteConstants;
+import top.yms.note.entity.FetchRequestMeta;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteMeta;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.msgcd.CommonErrorCode;
+import top.yms.note.repo.FetchRequestMetaRepository;
 import top.yms.note.service.NoteDataService;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
@@ -36,11 +39,15 @@ public abstract class AbstractNoteFetch implements NoteFetch {
     @Resource
     protected NoteDataService noteDataService;
 
+    @Resource
+    private FetchRequestMetaRepository fetchRequestMetaRepository;
+
     public static class FetchMeta {
         private String url;
         private Long parentId;
         private NoteMeta noteMeta;
         private String content;
+        private String reqUrl;
 
         public FetchMeta(String url, Long parentId) {
             this.url = url;
@@ -51,6 +58,22 @@ public abstract class AbstractNoteFetch implements NoteFetch {
             this.url = url;
         }
         public FetchMeta() {
+        }
+
+        public NoteMeta getNoteMeta() {
+            return noteMeta;
+        }
+
+        public void setNoteMeta(NoteMeta noteMeta) {
+            this.noteMeta = noteMeta;
+        }
+
+        public String getReqUrl() {
+            return reqUrl;
+        }
+
+        public void setReqUrl(String reqUrl) {
+            this.reqUrl = reqUrl;
         }
 
         public String getContent() {
@@ -156,6 +179,10 @@ public abstract class AbstractNoteFetch implements NoteFetch {
         noteMeta.setSize((long)content.getBytes(StandardCharsets.UTF_8).length);
         //再更新一次
         noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
+        //insert record
+        FetchRequestMeta fetchRequestMeta = new FetchRequestMeta();
+        BeanUtils.copyProperties(fetchMeta, fetchRequestMeta);
+        fetchRequestMetaRepository.save(fetchRequestMeta);
     }
 
 }

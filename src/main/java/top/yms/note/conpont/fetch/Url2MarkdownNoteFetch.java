@@ -33,6 +33,7 @@ public class Url2MarkdownNoteFetch extends AbstractNoteFetch {
     Long doFetch(FetchMeta fetchMeta) {
         Long id = fetchMeta.getNoteIndex().getId();
         String requrl = getFetchReqHost()+fetchMdPrefix+fetchMeta.getUrl();
+        fetchMeta.setReqUrl(requrl);
         log.debug("Url2MarkdownNoteFetch reqUrl={}", requrl);
         String html = restTemplate.getForObject(requrl, String.class);
         if (StringUtils.isBlank(html)) {

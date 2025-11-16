@@ -170,6 +170,8 @@ public class NoteFileServiceImpl implements NoteFileService {
         note.setId(genId);
         //存储到t_note_index
         noteMetaService.add(note);
+        //bug20251116 上传markdown文档时出现乱码
+        /*
         StringBuilder sb = new StringBuilder();
         try(InputStreamReader isr = new InputStreamReader(file.getInputStream())) {
             int bufLen = 1024;
@@ -181,10 +183,12 @@ public class NoteFileServiceImpl implements NoteFileService {
         }catch (Exception e) {
             log.error("读取mongo文件内容出错", e);
         }
+         */
+        String content = new String(file.getBytes(), StandardCharsets.UTF_8);
         NoteDataDto noteData = new NoteDataDto();
         noteData.setId(genId);
         noteData.setUserId(note.getUserId());
-        noteData.setContent(sb.toString());
+        noteData.setContent(content);
         noteDataService.save(noteData);
     }
 
