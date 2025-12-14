@@ -16,14 +16,17 @@ public class NoteMeta {
     private Long id;
 
     /**
+     * parent Id
      */
     private Long parentId;
 
     /**
+     * 用户id
      */
     private Long userId;
 
     /**
+     * 笔记名称
      */
     private String name;
 
@@ -43,11 +46,13 @@ public class NoteMeta {
     private String del;
 
     /**
+     * 创建时间
      */
     @JsonFormat(locale = "zh", timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     /**
+     * 更新时间
      */
     private Date updateTime;
 
@@ -71,9 +76,20 @@ public class NoteMeta {
      */
     private String encrypted;
 
+    /**
+     * 访问时间
+     */
     private Date viewTime;
 
+    /**
+     * 分享标志： 1-open , 0-close
+     */
     private String share;
+
+    /**
+     * 分享过期时间
+     */
+    private Date shareExpireTime;
 
     public String getShare() {
         return share;
@@ -187,13 +203,20 @@ public class NoteMeta {
         this.updateTime = updateTime;
     }
 
-
     public Long getSize() {
         return size;
     }
 
     public void setSize(Long size) {
         this.size = size;
+    }
+
+    public Date getShareExpireTime() {
+        return shareExpireTime;
+    }
+
+    public void setShareExpireTime(Date shareExpireTime) {
+        this.shareExpireTime = shareExpireTime;
     }
 
     @Override

@@ -9,15 +9,18 @@ import top.yms.note.dto.NoteAuth;
 import top.yms.note.dto.NoteAuthPassword;
 import top.yms.note.entity.NoteUser;
 import top.yms.note.entity.RestOut;
+import top.yms.note.entity.UserLoginLog;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.mapper.NoteUserMapper;
 import top.yms.note.msgcd.CommonErrorCode;
+import top.yms.note.repo.UserLoginLogRepository;
 import top.yms.note.service.NoteAuthService;
 import top.yms.note.utils.JwtUtil;
 import top.yms.note.vo.AuthResult;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 
 /**
  * Created by yangmingsen on 2024/8/19.
@@ -33,9 +36,18 @@ public class NoteAuthServiceImpl implements NoteAuthService {
     private NoteCacheService noteCacheService;
 
     @Resource
+    private UserLoginLogRepository userLoginLogRepository;
+
+    @Resource
     private JwtUtil jwtUtil;
 
     public RestOut auth(NoteAuth noteAuth) {
+        UserLoginLog userLoginLog = new UserLoginLog();
+        userLoginLog.setLoginTime(new Date());
+        userLoginLog.setUsername(noteAuth.getUsername());
+        userLoginLog.setOtherInfo("login request");
+        userLoginLogRepository.save(userLoginLog);
+        //auth
         if (noteAuth instanceof NoteAuthPassword) {
             NoteUser noteUser = noteUserMapper.selectByUserName(noteAuth.getUsername());
             if (noteUser == null) {

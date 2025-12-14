@@ -17,6 +17,7 @@
     <result column="f_encrypted" jdbcType="VARCHAR" property="encrypted" />
     <result column="f_view_time" jdbcType="TIMESTAMP" property="viewTime" />
     <result column="f_share" jdbcType="VARCHAR" property="share" />
+    <result column="f_share_expire_time" jdbcType="TIMESTAMP" property="shareExpireTime" />
   </resultMap>
   <sql id="commonWhereClause" >
     <where>
@@ -94,7 +95,7 @@
   </sql>
   <sql id="Base_Column_List">
     f_id, f_parent_id, f_user_id, f_name, f_isfile, f_type, f_del, f_create_time, f_update_time,
-        f_store_site, f_site_id, f_size, f_encrypted, f_view_time, f_share
+        f_store_site, f_site_id, f_size, f_encrypted, f_view_time, f_share, f_share_expire_time
   </sql>
   <select id="selectByCondition" parameterType="top.yms.note.entity.NoteMeta" resultMap="BaseResultMap">
     select
@@ -185,6 +186,9 @@
       <if test="encrypted != null">
         f_encrypted,
       </if>
+      <if test="shareExpireTime != null">
+        f_share_expire_time,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="id != null">
@@ -225,6 +229,9 @@
       </if>
       <if test="encrypted != null">
         #{encrypted,jdbcType=VARCHAR},
+      </if>
+      <if test="shareExpireTime != null">
+        #{shareExpireTime,jdbcType=TIMESTAMP},
       </if>
     </trim>
   </insert>
@@ -281,6 +288,9 @@
       </if>
       <if test="record.share != null">
         f_share = #{record.share,jdbcType=VARCHAR},
+      </if>
+      <if test="record.shareExpireTime != null">
+        f_share_expire_time = #{record.shareExpireTime,jdbcType=TIMESTAMP},
       </if>
     </set>
     <if test="_parameter != null">
@@ -350,6 +360,9 @@
       </if>
       <if test="share != null">
         f_share = #{share,jdbcType=VARCHAR},
+      </if>
+      <if test="shareExpireTime != null">
+        f_share_expire_time = #{shareExpireTime,jdbcType=TIMESTAMP},
       </if>
     </set>
     where f_id = #{id,jdbcType=BIGINT}

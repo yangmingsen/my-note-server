@@ -18,6 +18,7 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 public abstract class AbstractCheckTargetTask implements CheckTargetTask {
@@ -100,6 +101,20 @@ public abstract class AbstractCheckTargetTask implements CheckTargetTask {
         afterExc(checkTarget);
     }
 
+    protected boolean needExcImmediately(String excDateStr, String nowDateStr) {
+        // 1. 创建格式化器（默认支持 yyyy-MM-dd 格式）
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        // 2. 解析字符串为 LocalDate
+        LocalDate date1 = LocalDate.parse(excDateStr, formatter);
+        LocalDate date2 = LocalDate.parse(nowDateStr, formatter);
+        // 计算相差天数
+        long daysBetween = ChronoUnit.DAYS.between(date1, date2);
+        if (daysBetween > 31) { //excDate在nowDate前且之间相差31天以上，立刻执行
+            return true;
+        }
+        return false;
+    }
+
     /**
      * 执行前做些事情
      * @param checkTarget
@@ -108,7 +123,12 @@ public abstract class AbstractCheckTargetTask implements CheckTargetTask {
     boolean beforeExc(CheckTarget checkTarget) {
         String excDate = checkTarget.getExcDate();
         String nowDateStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DateUtil.yyy_MM_dd));
-        log.info("excDate = {} , nowDate={}", excDate, nowDateStr);
+        boolean needExcImmediately = needExcImmediately(excDate, nowDateStr);
+        log.info("excDate = {} , nowDate={}, needExcImmediately={}", excDate, nowDateStr, needExcImmediately);
+        if (needExcImmediately) {
+            checkTarget.setExcDate(nowDateStr);//更新为当前执行时间
+            return true;
+        }
         if (!excDate.equals(nowDateStr)) {
             return false;
         }

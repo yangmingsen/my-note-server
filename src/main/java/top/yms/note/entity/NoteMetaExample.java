@@ -836,6 +836,12 @@ public class NoteMetaExample {
             addCriterion("f_site_id not between", value1, value2, "siteId");
             return (Criteria) this;
         }
+
+        public Criteria andShareEqualTo(String value) {
+            addCriterion("f_share =", value, "share");
+            return (Criteria) this;
+        }
+
     }
 
     public static class Criteria extends GeneratedCriteria {
