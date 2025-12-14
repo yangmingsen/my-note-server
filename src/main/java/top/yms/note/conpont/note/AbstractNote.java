@@ -39,6 +39,7 @@ import top.yms.note.vo.NoteShareVo;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
@@ -555,6 +556,21 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         NoteMeta noteMeta = new NoteMeta();
         noteMeta.setId(noteId);
         noteMeta.setShare(NoteConstants.SHARE_FLAG);
+        //获取分享过期时间
+        String expireSeconds = sysConfigService.getStringValue("system.base_share_expire_time");
+        if (StringUtils.isBlank(expireSeconds)) {
+            throw new BusinessException(BusinessErrorCode.E_204016);
+        }
+        Long tmpExpireSeconds = null;
+        try {
+            tmpExpireSeconds = Long.parseLong(expireSeconds);
+        } catch (Exception ex) {
+            throw new BusinessException(BusinessErrorCode.E_204017);
+        }
+        // 方式1：Instant -> 加秒 -> 转回Date
+        Instant instant = Instant.now().plusSeconds(tmpExpireSeconds);
+        Date shareExpireTime = Date.from(instant);
+        noteMeta.setShareExpireTime(shareExpireTime);
         noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
         //新增noteShareInfo
         String shareUrl = getShareUrl(noteId);

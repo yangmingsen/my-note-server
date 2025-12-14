@@ -1,6 +1,6 @@
 package top.yms.note.conpont.task;
 
-public interface ScheduledExecuteTask {
+public interface ScheduledExecuteTask extends NoteTask {
 
     /**
      * 注册定时任务

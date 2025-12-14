@@ -3,6 +3,8 @@ package top.yms.note.dao;
 import org.apache.commons.lang3.StringUtils;
 import top.yms.note.entity.NoteMetaExample;
 
+import java.util.Date;
+
 /**
  * Created by yangmingsen on 2024/4/5.
  */
@@ -32,7 +34,10 @@ public class NoteIndexQuery {
      */
     private int filter = 1;
 
-
+    /**
+     * 分享
+     */
+    private String share;
 
 
     private NoteMetaExample example;
@@ -71,6 +76,9 @@ public class NoteIndexQuery {
         }
         if (filter == 3) {
             criteria.andIsFileEqualTo("1");
+        }
+        if (StringUtils.isNotBlank(share)) {
+            criteria.andShareEqualTo(share);
         }
 
         return example;
@@ -124,6 +132,10 @@ public class NoteIndexQuery {
         }
         public Builder storeSite(String storeSite) {
             query.storeSite= storeSite;
+            return this;
+        }
+        public Builder share(String share) {
+            query.share= share;
             return this;
         }
 
