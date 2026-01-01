@@ -11,7 +11,6 @@ import org.springframework.web.filter.CorsFilter;
 import top.yms.note.utils.HostIPUtil;
 
 import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 public class GlobalCorsConfig {

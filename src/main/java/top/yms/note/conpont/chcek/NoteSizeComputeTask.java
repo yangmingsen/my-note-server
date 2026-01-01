@@ -3,7 +3,6 @@ package top.yms.note.conpont.chcek;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.task.NoteExecuteService;
 import top.yms.note.conpont.task.NoteTask;

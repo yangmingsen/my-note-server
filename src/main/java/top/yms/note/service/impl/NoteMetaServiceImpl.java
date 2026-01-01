@@ -849,7 +849,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
 
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     @Override
-    public NoteMeta createParentDir(String dirName, Long parentId) {
+    public NoteMeta createDir(String dirName, Long parentId) {
         long id = idWorker.nextId();
         NoteMeta noteMeta = new NoteMeta();
         noteMeta.setId(id);

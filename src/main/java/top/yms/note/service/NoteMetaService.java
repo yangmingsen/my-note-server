@@ -90,7 +90,7 @@ public interface NoteMetaService {
      * @param parentId 名称应该所在目录
      * @return 创建的目录
      */
-    NoteMeta createParentDir(String dirName, Long parentId);
+    NoteMeta createDir(String dirName, Long parentId);
 
 
     /**
