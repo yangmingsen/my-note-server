@@ -7,20 +7,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.entity.*;
-
 import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteDataVersionMapper;
 import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.mapper.NoteUserMapper;
 import top.yms.note.repo.ChatNoteRepository;
-import top.yms.note.service.NoteDataService;
 import top.yms.note.service.NoteMetaService;
 import top.yms.note.utils.DateHelper;
 import top.yms.note.utils.FNVHash;
@@ -32,7 +29,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -82,15 +78,16 @@ public class ChatSync  {
 //        List<ChatMarkdownResult> newList = chatMarkdownResults.subList(0, 10);
         //get parent dir
         String defaultName = "Chat";
+        Long userId = LocalThreadUtils.getUserId();
         NoteMetaExample example = new NoteMetaExample();
         NoteMetaExample.Criteria criteria = example.createCriteria();
         criteria.andNameEqualTo(defaultName);
+        criteria.andUserIdEqualTo(userId);
         List<NoteMeta> noteMetas = noteMetaMapper.selectByExample(example);
         Long defaultParentId;
-        Long userId = LocalThreadUtils.getUserId();
         if (noteMetas.isEmpty()) {
             NoteUser noteUser = noteUserMapper.selectByPrimaryKey(userId);
-            defaultParentId = noteMetaService.createParentDir(defaultName, noteUser.getNoteRootTreeId()).getId();
+            defaultParentId = noteMetaService.createDir(defaultName, noteUser.getNoteRootTreeId()).getId();
         } else {
             defaultParentId = noteMetas.get(0).getId();
         }
@@ -104,7 +101,7 @@ public class ChatSync  {
             NoteMeta parentNoteMeta = metaNameMap.get(dateStr);
             if (parentNoteMeta == null) {
                 //create new dateDir
-                NoteMeta newParentDir = noteMetaService.createParentDir(dateStr, defaultParentId);
+                NoteMeta newParentDir = noteMetaService.createDir(dateStr, defaultParentId);
                 metaNameMap.put(newParentDir.getName(), newParentDir);
                 parentNoteMeta = newParentDir;
             }

@@ -16,9 +16,8 @@ public abstract class DateHelper {
     public static final String PATTERN6 = "yyyy年MM月dd日HH时";
 
     private final static int [] MONTH = {0,31,28,31,30,31,30,31,31,30,31,30,31};
-
-
     public static final String PATTERN7 = "yyyy/MM/dd HH:mm";
+    public static final String PATTERN8 = "yyyy";
 
 
     /**

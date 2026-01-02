@@ -1,6 +1,5 @@
 package top.yms.note.conpont.search;
 
-import org.springframework.stereotype.Component;
 import top.yms.note.vo.SearchResult;
 
 import java.util.HashSet;
