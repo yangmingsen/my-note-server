@@ -13,8 +13,10 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import top.yms.note.comm.NoteCacheKey;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.*;
+import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.conpont.task.AsyncTask;
 import top.yms.note.conpont.task.DelayExecuteAsyncTask;
@@ -85,7 +87,8 @@ public class NoteMetaServiceImpl implements NoteMetaService {
     @Resource
     private NoteService noteService;
 
-
+    @Resource
+    private NoteRedisCacheService cacheService;
 
     public List<NoteMeta> findByUserId(Long userid) {
         return Optional.of(findNoteList(userid, 1)).orElse(Collections.emptyList());
@@ -111,6 +114,17 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         return noteMetaMapper.selectByExample(NoteIndexQuery.Builder.build().siteId(siteId).get().example()).get(0);
     }
 
+    public List<NoteMeta> selectByParentId(Long parentId) {
+        //find from cache
+        Object cVal = cacheService.hGet(NoteCacheKey.NOTE_META_PARENT_LIST_KEY, parentId.toString());
+        if (cVal != null) {
+            return (List<NoteMeta>) cVal;
+        }
+        List<NoteMeta>  resList = noteMetaMapper.selectByParentId(parentId);
+        cacheService.hSet(NoteCacheKey.NOTE_META_PARENT_LIST_KEY, parentId.toString(), resList);
+        return resList;
+    }
+
     /**
      * 查询noteIndex列表, 顺便修改访问时间
      * @param parentId
@@ -124,7 +138,14 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         upNoteMeta.setId(parentId);
         upNoteMeta.setViewTime(new Date());
         noteMetaMapper.updateByPrimaryKeySelective(upNoteMeta);
-        List<NoteMeta> noteMetaList = noteMetaMapper.selectByExample(NoteIndexQuery.Builder.build().parentId(parentId).uid(uid).get().example());
+        //add cache search
+//        String cKey = NoteCacheKey.NOTE_META_SUB_KEY+parentId+"_"+uid;
+//        Object cVal = cacheService.get(cKey);
+//        if (cVal != null) {
+//            return (List<NoteMeta>) cVal;
+//        }
+//        List<NoteMeta> noteMetaList = noteMetaMapper.selectByExample(NoteIndexQuery.Builder.build().parentId(parentId).uid(uid).get().example());
+        List<NoteMeta> noteMetaList = selectByParentId(parentId);
         //获取目录List
         List<Long> dirIds = noteMetaList.stream().filter(note -> NoteConstants.DIR_FLAG.equals(note.getIsFile())).map(NoteMeta::getId).collect(Collectors.toList());
         AsyncTask asyncTask = AsyncTask.Builder.build()
@@ -137,6 +158,8 @@ public class NoteMetaServiceImpl implements NoteMetaService {
                 .taskInfo(dirIds)
                 .get();
         noteAsyncExecuteTaskService.addTask(asyncTask);
+        //to cache.
+//        cacheService.set(cKey, noteMetaList, 3 * 60L);
         //ret
         return noteMetaList;
     }
@@ -157,7 +180,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
      */
     public List<NoteMeta> findBackParentDir(Long id) {
         Long uid = (Long) LocalThreadUtils.get().get(NoteConstants.USER_ID);
-        NoteMeta note = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta note = findOne(id);
         return findNoteMetaList(note.getParentId(), uid);
     }
 
@@ -167,7 +190,14 @@ public class NoteMetaServiceImpl implements NoteMetaService {
      * @return
      */
     public NoteMeta findOne(Long id) {
-        return noteMetaMapper.selectByPrimaryKey(id);
+        Object cVal = cacheService.hGet(NoteCacheKey.NOTE_META_LIST_KEY, id.toString());
+        if (cVal != null) {
+            return (NoteMeta) cVal;
+        }
+        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        //to cache
+        cacheService.hSet(NoteCacheKey.NOTE_META_LIST_KEY, id.toString(), noteMeta);
+        return noteMeta;
     }
 
     /**
@@ -251,6 +281,12 @@ public class NoteMetaServiceImpl implements NoteMetaService {
      * @return
      */
     public List<AntTreeNode> findAntTreeExcludeEncrypted(Long userId) {
+        String cacheKey = NoteCacheKey.NOTE_META_TREE_KEY+userId;
+        //add cache
+        Object metaTreeCache = cacheService.get(cacheKey);
+        if (metaTreeCache != null) {
+            return (List<AntTreeNode>)metaTreeCache;
+        }
         List<NoteMeta> noteMetaList =  noteMetaMapper.selectByExample(
                 NoteIndexQuery.Builder.build().uid(userId).del(false).filter(2).get().example()
         );
@@ -284,6 +320,8 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         for (NoteTree noteTree : resList) {
             antTreeList.add(transferToAntTree(noteTree, noteIndexMap));
         }
+        //to cache
+        cacheService.set(cacheKey, antTreeList, 10*60L);
         return antTreeList;
     }
 
@@ -403,6 +441,9 @@ public class NoteMetaServiceImpl implements NoteMetaService {
             }
             note.setCreateTime(opTime);
             noteMetaMapper.insertSelective(note);
+            //update cache
+            cacheService.hDel(NoteCacheKey.NOTE_META_PARENT_LIST_KEY, note.getParentId().toString());
+            //insert log
             NoteIndexUpdateLog logData = new NoteIndexUpdateLog();
             logData.setIndexId(genId);
             logData.setCreateTime(opTime);
@@ -446,10 +487,10 @@ public class NoteMetaServiceImpl implements NoteMetaService {
      * noteIndex笔记更新
      * @param note
      */
-    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 60)
     public void update(NoteMeta note) {
         Long id = note.getId();
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = findOne(id);
         if (noteMeta == null) {
             throw new BusinessException(NoteIndexErrorCode.E_203106);
         }
@@ -480,6 +521,15 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         }
         note.setUpdateTime(new Date());
         noteMetaMapper.updateByPrimaryKeySelective(note);
+        //update cache
+        //1.del cache
+        cacheService.hDel(NoteCacheKey.NOTE_META_LIST_KEY, noteMeta.getId().toString());
+        //1.1 del sub tree
+        cacheService.hDel(NoteCacheKey.NOTE_META_PARENT_LIST_KEY, noteMeta.getParentId().toString());
+        //1.2 del ant tree
+        String cKey =  NoteCacheKey.NOTE_META_TREE_KEY+noteMeta.getUserId();
+        cacheService.del(cKey);
+        //udpate log insert
         NoteIndexUpdateLog logData = new NoteIndexUpdateLog();
         logData.setIndexId(note.getId());
         logData.setCreateTime(new Date());
@@ -497,7 +547,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
      */
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 10)
     public void destroyNote(Long id) {
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = findOne(id);
         if (noteMeta == null) {
             log.error("destroyNote id={}, 未找到索引信息", id);
             return ;
@@ -595,7 +645,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
      */
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 10)
     public void delNote(Long id) {
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = findOne(id);
         if (noteMeta == null) return;
         if (noteMeta.getParentId() == 0L) {
             throw new BusinessException(NoteIndexErrorCode.E_203114);
@@ -609,6 +659,9 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         addLog.setType(NoteOpTypeEnum.DELETE);
         addLog.setCreateTime(new Date());
         noteMetaMapper.updateByPrimaryKeySelective(up);
+        //update cache
+        cacheService.hDel(NoteCacheKey.NOTE_META_PARENT_LIST_KEY, noteMeta.getParentId().toString());
+        //insert log
         noteIndexLogMapper.insert(addLog);
     }
 
@@ -620,7 +673,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
     private List<NoteMeta> bfsSearchTree(Long parentId) {
         Queue<Long> queue = new LinkedList<>();
         List<NoteMeta> resList = new LinkedList<>();
-        resList.add(noteMetaMapper.selectByPrimaryKey(parentId));
+        resList.add(findOne(parentId));
         queue.add(parentId);
         while (!queue.isEmpty()) {
             Long id = queue.poll();
@@ -658,6 +711,10 @@ public class NoteMetaServiceImpl implements NoteMetaService {
             delList.add(id);
         }
         noteMetaMapper.delByListIds(delList);
+        //update cache
+        NoteMeta noteMeta = findOne(parentId); //查询当前删除母元数据
+        //更新父目录缓存
+        cacheService.hDel(NoteCacheKey.NOTE_META_PARENT_LIST_KEY, noteMeta.getParentId().toString());
         noteIndexLogMapper.insertBatch(addList);
         log.debug("delDir: 删除成功, 共计 {} 条数据", delList.size());
     }
@@ -676,7 +733,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         if (id == 0L) {
             return;
         }
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = findOne(id);
         if (noteMeta == null) return; //bug202506180932 发现若是存在错误数据则会NPE
         Long parentId = noteMeta.getParentId();
         if (parentId == 0) {
@@ -714,7 +771,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
      * @return
      */
     public NoteInfoVo getNoteAndSite(Long id) {
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = findOne(id);
         NoteInfoVo res = new NoteInfoVo();
         res.setNoteIndex(noteMeta);
         if (StringUtils.isNotBlank(noteMeta.getStoreSite())) {
@@ -779,7 +836,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
     @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 10)
     public void updateMove(NoteMoveDto noteMoveDto) {
         Long toId = noteMoveDto.getToId();
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(toId);
+        NoteMeta noteMeta = findOne(toId);
         if (!NoteConstants.DIR_FLAG.equals(noteMeta.getIsFile())) {
             throw new BusinessException(BusinessErrorCode.E_204011);
         }
@@ -787,6 +844,8 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         upDo.setId(noteMoveDto.getFromId());
         upDo.setParentId(noteMoveDto.getToId());
         noteMetaMapper.updateByPrimaryKeySelective(upDo);
+        //update cache
+        cacheService.hDel(NoteCacheKey.NOTE_META_PARENT_LIST_KEY, noteMeta.getParentId().toString(), noteMoveDto.getToId().toString());
     }
 
     /**
@@ -862,7 +921,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         noteMeta.setUpdateTime(date);
         noteMetaMapper.insertSelective(noteMeta);
         //ret
-        noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        noteMeta = findOne(id);
         return noteMeta;
     }
 

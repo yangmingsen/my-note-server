@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import top.yms.note.comm.NoteCacheKey;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.*;
+import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.conpont.export.NoteFileExport;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.conpont.task.AsyncTask;
@@ -32,6 +33,7 @@ import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.msgcd.NoteIndexErrorCode;
 import top.yms.note.msgcd.NoteSystemErrorCode;
 import top.yms.note.repo.NoteShareInfoRepository;
+import top.yms.note.service.NoteDataService;
 import top.yms.note.service.NoteFileService;
 import top.yms.note.service.NoteMetaService;
 import top.yms.note.utils.*;
@@ -99,6 +101,12 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     @Resource
     protected NoteMetaService noteMetaService;
 
+    @Resource
+    protected NoteDataService noteDataService;
+
+    @Resource
+    protected NoteRedisCacheService cacheService;
+
     protected String getEncryptedKey() {
         String key = Base64Util.decodeStr(encryptedKey);
         log.debug("getEncryptedKey={}", key);
@@ -141,7 +149,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         if (noteFiles.size() > 0) {
             return noteFiles.get(0);
         }
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaService.findOne(id);
         return noteFileService.findOne(noteMeta.getSiteId());
     }
 
@@ -181,7 +189,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     }
 
     public INoteData getContent(Long id) {
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaService.findOne(id);
         NoteDataExtendDto nde = new NoteDataExtendDto();
         nde.setNoteIndex(noteMeta);
         nde.setUserId(LocalThreadUtils.getUserId());
@@ -199,7 +207,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     }
 
     protected INoteData doGetContent(Long id) {
-        INoteData iNoteData = noteDataMapper.selectByPrimaryKey(id);
+        INoteData iNoteData = noteDataService.findOneByPk(id);
         return iNoteData;
     }
 
@@ -315,7 +323,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         //加密处理
         if (supportEncrypt()) {
             Long id = iNoteData.getId();
-            NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+            NoteMeta noteMeta = noteMetaService.findOne(id);
             if (NoteConstants.ENCRYPTED_FLAG.equals(noteMeta.getEncrypted())) {
                 //设置加密内容
                 String content = iNoteData.getContent();
@@ -339,8 +347,10 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     }
 
     protected void afterSave(INoteData iNoteData) {
+        //更新缓存
+        cacheService.hDel(NoteCacheKey.NOTE_DATA_LIST_KEY, iNoteData.getId().toString());
         //更新笔记元数据
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(iNoteData.getId());
+        NoteMeta noteMeta = noteMetaService.findOne(iNoteData.getId());
         updateNoteMetaInfo(noteMeta, iNoteData);
         //更新全局搜索
         updateNoteMetaToLuceneSearch(noteMeta);
@@ -368,7 +378,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     abstract void doSave(INoteData iNoteData) throws BusinessException;
 
     protected NoteLuceneIndex packNoteIndexForNoteLuceneIndex(Long id) {
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaService.findOne(id);
         if (noteMeta == null) {
             log.error("noteIndex目标不存在, 使用id={} 进行查询时", id);
             throw new BusinessException(NoteIndexErrorCode.E_203117);
@@ -479,7 +489,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     protected NoteShareVo doShareNoteGet(NoteShareReqDto noteShareReqDto) {
         NoteMeta noteMeta = noteShareReqDto.getNoteIndex();
         Long noteId = noteShareReqDto.getNoteIndex().getId();
-        NoteData noteData = noteDataMapper.selectByPrimaryKey(noteId);
+        NoteData noteData = noteDataService.findOneByPk(noteId);
         NoteShareInfo noteShareInfo = noteShareInfoRepository.findByNoteId(noteId);
         //resp
         NoteShareVo resp = new NoteShareVo();

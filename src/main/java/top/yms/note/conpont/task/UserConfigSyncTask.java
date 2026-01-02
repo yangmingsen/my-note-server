@@ -9,8 +9,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
+import top.yms.note.comm.NoteCacheKey;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.SensitiveService;
+import top.yms.note.conpont.cache.NoteRedisCacheService;
+import top.yms.note.conpont.queue.IMessage;
+import top.yms.note.conpont.queue.MessageListener;
 import top.yms.note.enums.AsyncTaskEnum;
 
 import javax.annotation.Resource;
@@ -22,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  * Created by yangmingsen on 2024/10/3.
  */
 @Component
-public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements ScheduledExecuteTask{
+public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements ScheduledExecuteTask {
 
     private final static Logger log = LoggerFactory.getLogger(UserConfigSyncTask.class);
 
@@ -33,6 +37,14 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
 
     @Value("${user-config.task.immediately}")
     private int immediatelySize;
+
+    @Resource
+    private NoteRedisCacheService cacheService;
+
+    /**
+     * 缓存失效时间
+     */
+    private  long cacheExpireTime = 2*60;
 
     public int getSortValue() {
         return 1;
@@ -49,6 +61,11 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
     @Override
     boolean needTx() {
         return false;
+    }
+
+    private void updateCache(String key, Object doc) {
+        cacheService.delete(key);
+        cacheService.set(key, doc, cacheExpireTime);
     }
 
     @Override
@@ -75,11 +92,15 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
                 }
             }
             Long userId = asyncTask.getUserId();
+            //cache key
+            String cacheKey = NoteCacheKey.NOTE_USER_CONFIG_KEY+userId;
             Document oldDoc = mongoTemplate.findOne(Query.query(Criteria.where(NoteConstants.userid).is(userId)), Document.class, NoteConstants.customConfig);
             if (oldDoc == null) {
                 userConfig.put(NoteConstants.userid, userId);
                 Document newDoc = Document.parse(userConfig.toString());
                 mongoTemplate.save(newDoc, NoteConstants.customConfig);
+                //cache it
+                updateCache(cacheKey, newDoc.toJson());
             } else {
                 for (Map.Entry<String, Object> entry : userConfig.entrySet()) {
                     String key = entry.getKey();
@@ -87,6 +108,8 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
                     oldDoc.put(key, value);
                 }
                 mongoTemplate.save(oldDoc,  NoteConstants.customConfig);
+                //cache it
+                updateCache(cacheKey, oldDoc.toJson());
                 log.debug("updateUserConfig_更新成功: {}", oldDoc.toJson());
             }
         }

@@ -49,7 +49,7 @@ public class MarkdownNote extends AbstractNote {
         if (!super.noteDecrypt(id)) {
             return false;
         }
-        NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
+        NoteData noteData = noteDataService.findOneByPk(id);
         //解密
         noteData.setContent(decryptContent(noteData.getContent()));
         noteDataMapper.updateByPrimaryKeySelective(noteData);
@@ -66,7 +66,7 @@ public class MarkdownNote extends AbstractNote {
         if (!super.noteEncrypt(id)) {
             return false;
         }
-        NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
+        NoteData noteData = noteDataService.findOneByPk(id);
         //加密
         noteData.setContent(encryptContent(noteData.getContent()));
         noteDataMapper.updateByPrimaryKeySelective(noteData);
@@ -103,7 +103,7 @@ public class MarkdownNote extends AbstractNote {
 
     public NoteLuceneIndex findNoteLuceneDataOne(Long id) {
         NoteLuceneIndex noteLuceneIndex = packNoteIndexForNoteLuceneIndex(id);
-        NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
+        NoteData noteData = noteDataService.findOneByPk(id);
         if (noteData == null) {
             log.error("noteData目标不存在, 使用id={} 进行查询时", id);
             return noteLuceneIndex;

@@ -3,7 +3,6 @@ package top.yms.note.config;
 /**
  * Created by yangmingsen on 2022/11/3.
  */
-//import com.baomidou.mybatisplus.core.toolkit.StringPool;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.cache.CacheKey;
@@ -129,7 +128,7 @@ public class PrintSqlInterceptor implements Interceptor {
                 .append(" ms - ID：").append(sqlId)
                 .append("\n").append("Execute SQL：")
                 .append(sql);//.append("\n");
-        log.debug(sb.toString());
+        log.info(sb.toString());
     }
 
     @Override

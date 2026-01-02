@@ -342,7 +342,7 @@ public class ArchivePreview extends AbstractNote{
 
 
     public INoteData getContent(Long id) {
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaService.findOne(id);
         AnyFile anyFile = fileStoreService.loadFile(noteMeta.getSiteId());
         ArchiveMeta archiveMeta = new ArchiveMeta();
         archiveMeta.setNotMeta(noteMeta);

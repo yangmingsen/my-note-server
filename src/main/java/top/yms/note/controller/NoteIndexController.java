@@ -7,10 +7,12 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
+import top.yms.note.comm.NoteCacheKey;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteAsyncExecuteTaskService;
 import top.yms.note.conpont.NoteCacheService;
 import top.yms.note.conpont.NoteShareService;
+import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.conpont.task.AsyncTask;
 import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.dto.NoteListQueryDto;
@@ -60,6 +62,9 @@ public class NoteIndexController {
 
     @Resource
     private NoteShareService noteShareService;
+
+    @Resource
+    private NoteRedisCacheService cacheService;
 
     @GetMapping("/list")
     public RestOut<List<NoteMeta>> findByUid() {
@@ -301,9 +306,15 @@ public class NoteIndexController {
         if (id == null) {
             throw new BusinessException(CommonErrorCode.E_203001);
         }
+        String cacheKey = NoteCacheKey.NOTE_META_BREADCRUMB_KEY+id;
+        Object cVal = cacheService.get(cacheKey);
+        if (cVal != null) {
+            return RestOut.success((List<NoteMeta>)cVal);
+        }
         List<NoteMeta> res = new LinkedList<>();
         noteMetaService.findBreadcrumb(id, res);
-//        log.debug("findBreadcrumb Result: 共{}条", res.size());
+        //to cache. 注意删除某个目录时，需要删除删除此缓存
+        cacheService.set(cacheKey, res, 4*60L);
         return RestOut.success(res);
     }
 

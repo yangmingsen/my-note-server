@@ -23,6 +23,18 @@ public interface NoteDataService {
 
     void save(INoteData iNoteData);
 
+    /**
+     * 查询笔记数据应该使用此方法
+     * @param id
+     * @return
+     */
     NoteData findNoteData(Long id);
+
+    /**
+     * 查询， 此方法仅供 NoteStoreService 使用
+     * @param id
+     * @return
+     */
+    NoteData findOneByPk(Long id);
 
 }

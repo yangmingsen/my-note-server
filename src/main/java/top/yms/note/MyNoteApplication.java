@@ -8,6 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import top.yms.note.config.ConfigureListener;
 import top.yms.note.conpont.chcek.CheckTargetTaskExecutorBootstrap;
+import top.yms.note.other.CacheInit;
 
 import java.util.Arrays;
 
@@ -31,5 +32,7 @@ public class MyNoteApplication {
 
     public static void otherStaticRun() {
         CheckTargetTaskExecutorBootstrap.start();
+        //cache init
+        CacheInit.start();
     }
 }

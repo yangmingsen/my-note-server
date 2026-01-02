@@ -30,7 +30,7 @@ public class NoteLuceneDataServiceImpl extends DefaultNoteServiceImpl implements
      * @return
      */
     private NoteLuceneDataService findCanApplyNoteIndexNoteType(Long id) {
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaService.findOne(id);
         for(Note note : noteComponentList) {
             NoteLuceneDataService noteLuceneDataService = (NoteLuceneDataService) note;
             if (noteLuceneDataService.supportGetLuceneData(noteMeta.getType())) {

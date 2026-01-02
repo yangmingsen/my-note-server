@@ -19,3 +19,14 @@ spring:
     maxPoolPreparedStatementPerConnectionSize: 20
     useGlobalDataSourceStat: true
     connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+  redis:
+    host: localhost
+    port: 6379
+    password: redis123456
+    database: 0
+    lettuce:
+      pool:
+        max-idle: 8
+        max-active: 16
+        min-idle: 4
+    timeout: 1500

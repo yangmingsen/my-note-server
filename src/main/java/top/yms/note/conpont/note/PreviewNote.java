@@ -65,7 +65,7 @@ public class PreviewNote extends AbstractNote implements NotePreview, Initializi
             throw new BusinessException(NoteIndexErrorCode.E_203113);
         }
         NoteData noteData = new NoteData();
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaService.findOne(id);
         //目前访问必须在mongo上
         if (!NoteConstants.MONGO.equals(noteMeta.getStoreSite())) {
             throw new BusinessException(NoteIndexErrorCode.E_203119);
@@ -117,7 +117,7 @@ public class PreviewNote extends AbstractNote implements NotePreview, Initializi
      * @return
      */
     private boolean checkFileCanPreview(Long id) {
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaService.findOne(id);
         //1. 先通过noteIndex的f_type判断是否在 SUPPORT_View_FILE 列表中
         if (typeSet.contains(noteMeta.getType())) {
             return true;
@@ -156,7 +156,7 @@ public class PreviewNote extends AbstractNote implements NotePreview, Initializi
 
     public NoteLuceneIndex findNoteLuceneDataOne(Long id) {
         NoteLuceneIndex noteLuceneIndex = packNoteIndexForNoteLuceneIndex(id);
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaService.findOne(id);
         if (StringUtils.isEmpty(noteMeta.getSiteId())) {
             throw new BusinessException(ComponentErrorCode.E_204000);
         }

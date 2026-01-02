@@ -2,6 +2,7 @@ package top.yms.note.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -10,7 +11,7 @@ import java.util.Date;
  * t_note_index
  * 笔记元数据
  */
-public class NoteMeta {
+public class NoteMeta implements Serializable {
     /**
      */
     private Long id;

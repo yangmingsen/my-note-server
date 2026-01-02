@@ -12,11 +12,13 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import top.yms.note.comm.NoteCacheKey;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStoreService;
 import top.yms.note.conpont.NoteDataIndexService;
 import top.yms.note.conpont.NoteStoreService;
+import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.conpont.search.NoteLuceneIndex;
 import top.yms.note.dao.NoteFileQuery;
 import top.yms.note.dao.NoteIndexQuery;
@@ -32,6 +34,7 @@ import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.msgcd.NoteIndexErrorCode;
 import top.yms.note.service.NoteDataService;
+import top.yms.note.service.NoteMetaService;
 import top.yms.note.utils.LocalThreadUtils;
 
 import javax.annotation.Resource;
@@ -75,6 +78,13 @@ public class NoteDataServiceImpl implements NoteDataService {
     @Resource
     private NoteFileMapper noteFileMapper;
 
+    @Resource
+    private NoteMetaService noteMetaService;
+
+
+    @Resource
+    private NoteRedisCacheService cacheService;
+
     private final String noteMindMap = NoteConstants.noteMindMap;
 
     /**
@@ -91,7 +101,7 @@ public class NoteDataServiceImpl implements NoteDataService {
         Document oldDoc = null;
         try {
             Document document = Document.parse(jsonContent);
-            NoteMeta noteMeta1 = noteMetaMapper.selectByPrimaryKey(noteId);
+            NoteMeta noteMeta1 = noteMetaService.findOne(noteId);
             if (StringUtils.isBlank(noteMeta1.getSiteId())) {
                 Document saveRes = mongoTemplate.save(document, noteMindMap);
                 objId = saveRes.getObjectId("_id");
@@ -128,6 +138,19 @@ public class NoteDataServiceImpl implements NoteDataService {
         return (NoteData)noteStoreService.findOne(id);
     }
 
+    public NoteData findOneByPk(Long id) {
+        //cache it
+        Object cVal = cacheService.hGet(NoteCacheKey.NOTE_DATA_LIST_KEY, id.toString());
+        if (cVal != null) {
+            return (NoteData) cVal;
+        }
+        //find it
+        NoteData noteData =noteDataMapper.selectByPrimaryKey(id);
+        //to data
+        cacheService.hSet(NoteCacheKey.NOTE_DATA_LIST_KEY, id.toString(), noteData);
+        return noteData;
+    }
+
     /**
      * 过期于20240927, 请使用 NoteStoreService#save
      * @param noteDataDto
@@ -153,7 +176,7 @@ public class NoteDataServiceImpl implements NoteDataService {
                 noteData.setUpdateTime(opTime);
                 noteDataMapper.updateByPrimaryKeySelective(noteData);
             }
-            NoteMeta noteMeta1 = noteMetaMapper.selectByPrimaryKey(id);
+            NoteMeta noteMeta1 = noteMetaService.findOne(id);
             //更新index信息
             NoteMeta noteMeta = new NoteMeta();
             noteMeta.setId(id);
@@ -262,7 +285,7 @@ public class NoteDataServiceImpl implements NoteDataService {
      * @return
      */
     private boolean checkFileCanPreview(Long id) {
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaService.findOne(id);
         //1. 先通过noteIndex的f_type判断是否在 SUPPORT_View_FILE 列表中
         for (String st : SUPPORT_View_FILE) {
             if (st.equals(noteMeta.getType())) {
@@ -299,6 +322,7 @@ public class NoteDataServiceImpl implements NoteDataService {
         return true;
     }
 
+
     /**
      * 过期与20240927, 请使用 NoteStoreService#findOne
      * @param id
@@ -306,10 +330,10 @@ public class NoteDataServiceImpl implements NoteDataService {
      */
     @Deprecated
     public NoteData findOne(Long id) {
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaService.findOne(id);
         NoteData noteData = new NoteData();
         if (NoteConstants.MYSQL.equals(noteMeta.getStoreSite())) {
-            noteData = noteDataMapper.selectByPrimaryKey(id);
+            noteData = findOneByPk(id);
         } else {
             if (FileTypeEnum.MINDMAP.compare(noteMeta.getType())) {
                 NoteData res = new NoteData();
@@ -356,8 +380,7 @@ public class NoteDataServiceImpl implements NoteDataService {
         noteMetaMapper.selectByExample(NoteIndexQuery.Builder.build().uid(uid).filter(3).storeSite(NoteConstants.MYSQL).get().example())
                 .forEach(index -> {
                     Long id = index.getId();
-                    NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
-
+                    NoteData noteData = findOneByPk(id);
                     if (noteData != null) {
                         NoteMeta upIndex = new NoteMeta();
                         upIndex.setId(id);

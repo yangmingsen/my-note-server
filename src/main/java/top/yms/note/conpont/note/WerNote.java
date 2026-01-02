@@ -55,7 +55,7 @@ public class WerNote extends AbstractNote {
         if (!super.noteEncrypt(id)) {
             return false;
         }
-        NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
+        NoteData noteData = noteDataService.findOneByPk(id);
         //加密 content
         noteData.setContent(encryptContent(noteData.getContent()));
         //更新
@@ -82,7 +82,7 @@ public class WerNote extends AbstractNote {
         Document document = Document.parse(jsonObject.toString());
         //更新mongo内容
         //get note 旧元数据
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaService.findOne(id);
         mongoTemplate.findById(noteMeta.getSiteId(), Document.class, NoteConstants.noteWerTextContent);
         ObjectId objectId = new ObjectId(noteMeta.getSiteId());
         document.put(NoteConstants._id, objectId);
@@ -100,7 +100,7 @@ public class WerNote extends AbstractNote {
         if (!super.noteDecrypt(id)) {
             return false;
         }
-        NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
+        NoteData noteData = noteDataService.findOneByPk(id);
         //解密
         noteData.setContent(decryptContent(noteData.getContent()));
         //更新
@@ -126,7 +126,7 @@ public class WerNote extends AbstractNote {
         Document document = Document.parse(jsonObject.toString());
         //更新mongo内容
         //get note 旧元数据
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaService.findOne(id);
         mongoTemplate.findById(noteMeta.getSiteId(), Document.class, NoteConstants.noteWerTextContent);
         ObjectId objectId = new ObjectId(noteMeta.getSiteId());
         document.put(NoteConstants._id, objectId);
@@ -153,7 +153,7 @@ public class WerNote extends AbstractNote {
             //更新笔记内容
             super.updateNoteData(noteData);
             //get note 旧元数据
-            NoteMeta oldNoteMeta = noteMetaMapper.selectByPrimaryKey(iNoteData.getId());
+            NoteMeta oldNoteMeta = noteMetaService.findOne(iNoteData.getId());
             //更新mongo
             JSONObject jsonObject = new JSONObject();
             jsonObject.put(NoteConstants.id, iNoteDataExt.getId());
@@ -198,7 +198,7 @@ public class WerNote extends AbstractNote {
 
     public NoteLuceneIndex findNoteLuceneDataOne(Long id) {
         NoteLuceneIndex noteLuceneIndex = packNoteIndexForNoteLuceneIndex(id);
-        NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
+        NoteData noteData = noteDataService.findOneByPk(id);
         if (noteData == null) {
             log.error("noteData目标不存在, 使用id={} 进行查询时", id);
             throw new BusinessException(NoteIndexErrorCode.E_203117);

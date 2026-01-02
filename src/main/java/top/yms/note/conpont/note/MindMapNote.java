@@ -47,7 +47,7 @@ public class MindMapNote extends AbstractNote {
 
     @Override
     public INoteData doGetContent(Long id) {
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaService.findOne(id);
         NoteData res = new NoteData();
         Document resDoc = mongoTemplate.findById(noteMeta.getSiteId(), Document.class, noteMindMap);
         if (resDoc == null) {
@@ -69,7 +69,7 @@ public class MindMapNote extends AbstractNote {
         Document oldDoc = null;
         try {
             Document document = Document.parse(jsonContent);
-            NoteMeta noteMeta1 = noteMetaMapper.selectByPrimaryKey(noteId);
+            NoteMeta noteMeta1 = noteMetaService.findOne(noteId);
             if (StringUtils.isBlank(noteMeta1.getSiteId())) {
                 Document saveRes = mongoTemplate.save(document, noteMindMap);
                 objId = saveRes.getObjectId(NoteConstants._id);

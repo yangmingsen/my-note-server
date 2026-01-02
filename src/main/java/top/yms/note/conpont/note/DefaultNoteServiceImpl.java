@@ -24,6 +24,7 @@ import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.msgcd.CommonErrorCode;
+import top.yms.note.service.NoteMetaService;
 import top.yms.note.vo.NoteShareVo;
 
 import javax.annotation.Resource;
@@ -61,6 +62,9 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
     @Resource
     private FileStoreService fileStoreService;
 
+    @Resource
+    protected NoteMetaService noteMetaService;
+
     @Override
     public void decryptNote(Long id) {
         NoteMeta noteMeta = getNoteMeta(id);
@@ -86,7 +90,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
     }
 
     private NoteMeta getNoteMeta(Long id) {
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaService.findOne(id);
         if (noteMeta == null) {
             throw new BusinessException(CommonErrorCode.E_200201);
         }
@@ -222,7 +226,7 @@ public class DefaultNoteServiceImpl implements NoteService, ApplicationListener<
             throw new BusinessException(BusinessErrorCode.E_204015);
         }
         //查看当前资源是否正在分享中
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(noteId);
+        NoteMeta noteMeta = noteMetaService.findOne(noteId);
         if (NoteConstants.SHARE_UN_FLAG.equals(noteMeta.getShare())) {
             throw new BusinessException(BusinessErrorCode.E_204014);
         }

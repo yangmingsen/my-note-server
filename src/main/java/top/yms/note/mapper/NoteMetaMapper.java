@@ -66,4 +66,7 @@ public interface NoteMetaMapper {
     List<NoteMeta> selectByUserId(@Param("userId") Long userId);
 
     List<NoteMeta> selectByCondition(NoteMeta qry);
+
+    @Select("select f_id from t_note_index  where f_del='0'")
+    List<Long> findAllById();
 }

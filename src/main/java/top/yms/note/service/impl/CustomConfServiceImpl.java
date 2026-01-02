@@ -9,9 +9,12 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import top.yms.note.comm.NoteCacheKey;
 import top.yms.note.comm.NoteConstants;
+import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.exception.BusinessException;
 import top.yms.note.msgcd.CommonErrorCode;
+import top.yms.note.service.NoteCustomConfService;
 import top.yms.note.utils.LocalThreadUtils;
 
 import javax.annotation.Resource;
@@ -21,13 +24,15 @@ import java.util.Map;
  * Created by yangmingsen on 2024/9/27.
  */
 @Service
-public class CustomConfServiceImpl {
+public class CustomConfServiceImpl implements NoteCustomConfService {
 
     private static final Logger log = LoggerFactory.getLogger(CustomConfServiceImpl.class);
 
     @Resource
     private MongoTemplate mongoTemplate;
 
+    @Resource
+    private NoteRedisCacheService cacheService;
 
     public void updateUserConfig(JSONObject jsonObject) {
         Long userId = LocalThreadUtils.getUserId();
@@ -51,6 +56,12 @@ public class CustomConfServiceImpl {
     }
 
     public Object findUserConfig(Long userId) {
+        //add cache
+        String cacheKey = NoteCacheKey.NOTE_USER_CONFIG_KEY+userId;
+        Object cVal = cacheService.get(cacheKey);
+        if (cVal != null) {
+            return cVal;
+        }
         Document doc = mongoTemplate.findOne(Query.query(Criteria.where(NoteConstants.userid).is(userId)), Document.class, NoteConstants.customConfig);
         if (doc == null) {
             throw new BusinessException(CommonErrorCode.E_200212);

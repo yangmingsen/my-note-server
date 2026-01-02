@@ -13,6 +13,7 @@ import top.yms.note.exception.NoteSystemException;
 import top.yms.note.mapper.NoteBookmarksMapper;
 import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.msgcd.NoteSystemErrorCode;
+import top.yms.note.service.NoteMetaService;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -43,6 +44,9 @@ public class NoteBookmarksSyncTask  extends AbstractAsyncExecuteTask implements 
     private NoteMetaMapper noteMetaMapper;
 
     private ThreadPoolCheckTask threadPoolCheckTask = new ThreadPoolCheckTask();
+
+    @Resource
+    private NoteMetaService noteMetaService;
 
     public int getSortValue() {
         return 2;
@@ -114,7 +118,7 @@ public class NoteBookmarksSyncTask  extends AbstractAsyncExecuteTask implements 
             newNoteMeta.setCreateTime(new Date());
             newNoteMeta.setUpdateTime(new Date());
             newNoteMeta.setStoreSite(NoteConstants.MYSQL);
-            NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
+            NoteMeta noteMeta = noteMetaService.findOne(id);
             if (noteMeta == null) {
                 noteMetaMapper.insertSelective(newNoteMeta);
             } else {

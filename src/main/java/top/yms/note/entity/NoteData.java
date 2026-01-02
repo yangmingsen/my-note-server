@@ -1,7 +1,10 @@
 package top.yms.note.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import top.yms.note.dto.INoteData;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -10,7 +13,11 @@ import java.util.List;
  * create by yangmingsen
  * t_note_data
  */
-public class NoteData implements INoteData {
+// 忽略未知字段
+@JsonIgnoreProperties(ignoreUnknown = true)
+// 忽略 null 字段
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class NoteData implements INoteData, Serializable {
     /**
      */
     private Long id;

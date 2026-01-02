@@ -2,8 +2,7 @@ package top.yms.note.conpont.queue;
 
 public interface MessageListener {
 
-    boolean support(String identify);
+    boolean support(IMessage message);
 
-    void onMessage(Object message);
-    
+    void onMessage(IMessage message);
 }

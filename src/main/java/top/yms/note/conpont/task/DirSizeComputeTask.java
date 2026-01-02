@@ -7,9 +7,11 @@ import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteCacheKey;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteCacheService;
+import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.entity.NoteMeta;
 import top.yms.note.enums.AsyncTaskEnum;
 import top.yms.note.mapper.NoteMetaMapper;
+import top.yms.note.service.NoteMetaService;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -25,6 +27,12 @@ public class DirSizeComputeTask extends AbstractAsyncExecuteTask{
     @Qualifier(NoteConstants.accessDelayExpireTimeCacheService)
     @Resource
     private NoteCacheService noteCacheService;
+
+    @Resource
+    private NoteMetaService noteMetaService;
+
+    @Resource
+    private NoteRedisCacheService cacheService;
 
     private final Object flagObj = new Object();
 
@@ -50,7 +58,7 @@ public class DirSizeComputeTask extends AbstractAsyncExecuteTask{
     }
 
     private long computeSize(Long id) {
-        List<NoteMeta> noteMetas = noteMetaMapper.selectByParentId(id);
+        List<NoteMeta> noteMetas = noteMetaService.selectByParentId(id);
         long size = 0;
         for (NoteMeta noteMeta : noteMetas) {
             if (NoteConstants.DIR_FLAG.equals(noteMeta.getIsFile())) {
@@ -64,6 +72,8 @@ public class DirSizeComputeTask extends AbstractAsyncExecuteTask{
         tmpNoteMeata.setId(id);
         tmpNoteMeata.setSize(size);
         noteMetaMapper.updateByPrimaryKeySelective(tmpNoteMeata);
+        //update cache
+        cacheService.hDel(NoteCacheKey.NOTE_META_LIST_KEY, id.toString());
         log.debug("update dir id={} size={}", id, size);
         //ret Size
         return size;

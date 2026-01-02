@@ -14,6 +14,8 @@ import top.yms.note.mapper.NoteDataVersionMapper;
 import top.yms.note.mapper.NoteFileMapper;
 import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.repo.ResourceReferenceCountRepository;
+import top.yms.note.service.NoteDataService;
+import top.yms.note.service.NoteMetaService;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -36,6 +38,9 @@ public class ResourceReferenceCountTask extends AbstractCheckTargetTask implemen
     private NoteMetaMapper noteMetaMapper;
 
     @Resource
+    private NoteMetaService noteMetaService;
+
+    @Resource
     private NoteFileMapper noteFileMapper;
 
     @Resource
@@ -43,6 +48,9 @@ public class ResourceReferenceCountTask extends AbstractCheckTargetTask implemen
 
     @Resource
     private NoteDataVersionMapper noteDataVersionMapper;
+
+    @Resource
+    private NoteDataService noteDataService;
 
     //存储noteId <=> List<NoteFile>
     private   Map<Long, List<NoteFile>> mapList ;
@@ -91,7 +99,7 @@ public class ResourceReferenceCountTask extends AbstractCheckTargetTask implemen
         for (Map.Entry<Long, List<NoteFile>> entry : mapList.entrySet()) {
             Long noteId = entry.getKey();
             List<NoteFile> value = entry.getValue();
-            NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(noteId);
+            NoteMeta noteMeta = noteMetaService.findOne(noteId);
             if (noteMeta == null) {//未找到情况
                 for (NoteFile noteFile : value) {
                     unRefFileIdSet.add(noteFile);
@@ -103,7 +111,7 @@ public class ResourceReferenceCountTask extends AbstractCheckTargetTask implemen
             String type = noteMeta.getType();
             if (StringUtils.equalsAny(type, NoteConstants.markdownSuffix, NoteConstants.defaultSuffix)) {
                 //内置笔记类型处理
-                NoteData noteData = noteDataMapper.selectByPrimaryKey(noteId);
+                NoteData noteData = noteDataService.findOneByPk(noteId);
                 if (noteData == null) {
                     log.error("未找到noteData, noteId={}", noteId);
                     updateProgress(value.size());

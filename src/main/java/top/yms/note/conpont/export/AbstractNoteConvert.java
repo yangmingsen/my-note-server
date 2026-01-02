@@ -21,6 +21,8 @@ import top.yms.note.exception.NoteSystemException;
 import top.yms.note.mapper.*;
 import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.msgcd.NoteSystemErrorCode;
+import top.yms.note.service.NoteDataService;
+import top.yms.note.service.NoteMetaService;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 
@@ -56,6 +58,12 @@ public abstract class AbstractNoteConvert implements NoteConvert{
     @Resource
     private ResourceFileMapper resourceFileMapper;
 
+    @Resource
+    private NoteMetaService noteMetaService;
+
+    @Resource
+    private NoteDataService noteDataService;
+
     @Value("${note.export.tmp-path}")
     private String tmpExportPath;
 
@@ -77,8 +85,8 @@ public abstract class AbstractNoteConvert implements NoteConvert{
     @Override
     public String convert(Long id) {
         //获取笔记基本数据
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
-        NoteData noteData = noteDataMapper.selectByPrimaryKey(id);
+        NoteMeta noteMeta = noteMetaService.findOne(id);
+        NoteData noteData = noteDataService.findOneByPk(id);
         NoteDataExtendDto nte = new NoteDataExtendDto();
         nte.setNoteData(noteData);
         nte.setNoteIndex(noteMeta);

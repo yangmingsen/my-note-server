@@ -25,6 +25,13 @@ public interface NoteMetaService {
 
     NoteMeta findBySiteId(String siteId);
 
+    /**
+     * 查询通过parentId
+     * @param parentId
+     * @return
+     */
+    List<NoteMeta> selectByParentId(Long parentId);
+
     List<NoteMeta> findNoteMetaList(Long parentId, Long uid);
 
     NoteMeta findRoot();
