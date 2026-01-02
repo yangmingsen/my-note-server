@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import top.yms.note.entity.NoteMeta;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -40,7 +41,7 @@ public class DeepSeekNoteSyncServiceImpl extends AbstractChatNoteSyncService {
     @Override
     protected List<ChatMarkdownResult> parse(File file) throws Exception {
         // 读取文件内容为字符串
-        String jsonData = new String(Files.readAllBytes(Paths.get(file.getAbsolutePath())));
+        String jsonData = new String(Files.readAllBytes(Paths.get(file.getAbsolutePath())), StandardCharsets.UTF_8);
         List<ChatMarkdownResult> cmrList = convertConversationsToMarkdown(jsonData);
         log.info("parse {} deepseek doc", cmrList.size());
         return cmrList;
