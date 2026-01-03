@@ -1,5 +1,6 @@
 package top.yms.note.conpont.search;
 
+import com.alibaba.fastjson2.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.document.*;
@@ -266,10 +267,16 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
                 indexWriter = new IndexWriter(directory, config);
                 List<NoteMeta> noteMetaList = noteMetaMapper.findAll();
                 for (NoteMeta noteMeta : noteMetaList) {
-                    NoteLuceneIndex noteLuceneIndex = getLuceneIndexFromNoteId(noteMeta.getId());
-                    Document document = packDocument(noteLuceneIndex);
-                    //添加文档
-                    indexWriter.addDocument(document);
+                    //bug202601031334 重建索引是发生文件流找不到问题
+                    try {
+                        NoteLuceneIndex noteLuceneIndex = getLuceneIndexFromNoteId(noteMeta.getId());
+                        Document document = packDocument(noteLuceneIndex);
+                        //添加文档
+                        indexWriter.addDocument(document);
+                    } catch (Throwable th) {
+                        logger.error("pack index error meta={}", JSONObject.toJSONString(noteMeta));
+                        logger.error("pack index error", th);
+                    }
                 }
                 indexWriter.commit();
                 logger.debug("rebuild index success");
