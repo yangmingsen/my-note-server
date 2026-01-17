@@ -41,6 +41,7 @@ import top.yms.note.vo.NoteSearchVo;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 /**
@@ -89,6 +90,10 @@ public class NoteMetaServiceImpl implements NoteMetaService {
 
     @Resource
     private NoteRedisCacheService cacheService;
+
+    private final ReentrantLock LOCK = new ReentrantLock();
+
+    private final Object OBJ = new Object();
 
     public List<NoteMeta> findByUserId(Long userid) {
         return Optional.of(findNoteList(userid, 1)).orElse(Collections.emptyList());
@@ -194,10 +199,16 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         if (cVal != null) {
             return (NoteMeta) cVal;
         }
-        NoteMeta noteMeta = noteMetaMapper.selectByPrimaryKey(id);
-        //to cache
-        cacheService.hSet(NoteCacheKey.NOTE_META_LIST_KEY, id.toString(), noteMeta);
-        return noteMeta;
+        synchronized (OBJ) {
+            cVal = cacheService.hGet(NoteCacheKey.NOTE_META_LIST_KEY, id.toString());
+            if (cVal != null) {
+                return (NoteMeta) cVal;
+            }
+            cVal = noteMetaMapper.selectByPrimaryKey(id);
+            //to cache
+            cacheService.hSet(NoteCacheKey.NOTE_META_LIST_KEY, id.toString(), cVal);
+        }
+        return (NoteMeta)cVal;
     }
 
     /**
