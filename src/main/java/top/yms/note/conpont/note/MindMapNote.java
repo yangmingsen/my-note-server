@@ -86,7 +86,7 @@ public class MindMapNote extends AbstractNote {
             upNoteMeta.setId(noteId);
             upNoteMeta.setUpdateTime(opTime);
             upNoteMeta.setSize(size);
-            noteMetaMapper.updateByPrimaryKeySelective(upNoteMeta);
+            noteMetaService.update(upNoteMeta);
         } catch (Exception e) {
             log.error("MindMapNoteType#save异常", e);
             //回滚mongo数据

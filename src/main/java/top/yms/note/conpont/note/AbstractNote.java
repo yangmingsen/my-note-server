@@ -65,9 +65,6 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     protected NoteDataVersionMapper noteDataVersionMapper;
 
     @Resource
-    protected NoteMetaMapper noteMetaMapper;
-
-    @Resource
     protected NoteFileMapper noteFileMapper;
 
     @Resource
@@ -177,7 +174,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         NoteMeta upNoteMeta = new NoteMeta();
         upNoteMeta.setId(iNoteData.getId());
         upNoteMeta.setViewTime(new Date());
-        noteMetaMapper.updateByPrimaryKeySelective(upNoteMeta);
+        noteMetaService.update(upNoteMeta);
         //解密处理
         if (supportEncrypt() && NoteConstants.ENCRYPTED_FLAG.equals(iNoteData.getNoteIndex().getEncrypted())) {
             String content = decryptContent(iNoteData.getContent());
@@ -246,7 +243,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
             noteDataMapper.insert(noteData);
         } else {
             noteData.setUpdateTime(opTime);
-            noteDataMapper.updateByPrimaryKeySelective(noteData);
+            noteDataService.update(noteData);
         }
     }
 
@@ -267,7 +264,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
             noteSize += noteFile.getSize();
         }
         noteMeta.setSize(noteSize);
-        noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
+        noteMetaService.update(noteMeta);
     }
 
     /**
@@ -347,8 +344,6 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     }
 
     protected void afterSave(INoteData iNoteData) {
-        //更新缓存
-        cacheService.hDel(NoteCacheKey.NOTE_DATA_LIST_KEY, iNoteData.getId().toString());
         //更新笔记元数据
         NoteMeta noteMeta = noteMetaService.findOne(iNoteData.getId());
         updateNoteMetaInfo(noteMeta, iNoteData);
@@ -545,7 +540,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         NoteMeta noteMeta = new NoteMeta();
         noteMeta.setId(noteId);
         noteMeta.setShare(NoteConstants.SHARE_UN_FLAG);
-        noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
+        noteMetaService.update(noteMeta);
         //删除分享信息
         NoteShareInfo oldShareInfo = noteShareInfoRepository.findByNoteId(noteId);
         if (oldShareInfo != null) {
@@ -581,7 +576,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         Instant instant = Instant.now().plusSeconds(tmpExpireSeconds);
         Date shareExpireTime = Date.from(instant);
         noteMeta.setShareExpireTime(shareExpireTime);
-        noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
+        noteMetaService.update(noteMeta);
         //新增noteShareInfo
         String shareUrl = getShareUrl(noteId);
         NoteShareInfo noteShareInfo = new NoteShareInfo();

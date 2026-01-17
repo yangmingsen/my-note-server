@@ -33,6 +33,6 @@ public class MyNoteApplication {
     public static void otherStaticRun() {
         CheckTargetTaskExecutorBootstrap.start();
         //cache init
-        CacheInit.start();
+        //CacheInit.start();
     }
 }

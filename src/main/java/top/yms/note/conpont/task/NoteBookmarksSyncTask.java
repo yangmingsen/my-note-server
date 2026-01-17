@@ -122,7 +122,7 @@ public class NoteBookmarksSyncTask  extends AbstractAsyncExecuteTask implements 
             if (noteMeta == null) {
                 noteMetaMapper.insertSelective(newNoteMeta);
             } else {
-                noteMetaMapper.updateByPrimaryKeySelective(newNoteMeta);
+                noteMetaService.update(newNoteMeta);
             }
             //只对url进行同步
             if (NoteConstants.BOOKMARKS_URL.equals(noteBookmarks.getType()) &&

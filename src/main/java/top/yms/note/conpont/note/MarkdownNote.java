@@ -52,7 +52,7 @@ public class MarkdownNote extends AbstractNote {
         NoteData noteData = noteDataService.findOneByPk(id);
         //解密
         noteData.setContent(decryptContent(noteData.getContent()));
-        noteDataMapper.updateByPrimaryKeySelective(noteData);
+        noteDataService.update(noteData);
         //解密data version
         List<NoteDataVersion> noteDataVersions = noteDataVersionMapper.selectByNoteId(id);
         for(NoteDataVersion dataVersion : noteDataVersions) {
@@ -69,7 +69,7 @@ public class MarkdownNote extends AbstractNote {
         NoteData noteData = noteDataService.findOneByPk(id);
         //加密
         noteData.setContent(encryptContent(noteData.getContent()));
-        noteDataMapper.updateByPrimaryKeySelective(noteData);
+        noteDataService.update(noteData);
         //加密data version
         List<NoteDataVersion> noteDataVersions = noteDataVersionMapper.selectByNoteId(id);
         for(NoteDataVersion dataVersion : noteDataVersions) {

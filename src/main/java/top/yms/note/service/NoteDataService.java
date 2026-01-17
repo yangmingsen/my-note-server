@@ -37,4 +37,10 @@ public interface NoteDataService {
      */
     NoteData findOneByPk(Long id);
 
+    /**
+     * 直接更新数据使用此方法， 仅供系统内部使用，业务更新应该使用save方法。
+     * @param noteData data
+     */
+    void update(NoteData noteData);
+
 }

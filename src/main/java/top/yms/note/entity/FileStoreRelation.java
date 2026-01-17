@@ -1,5 +1,7 @@
 package top.yms.note.entity;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Date;
 
 /**
@@ -57,5 +59,19 @@ public class FileStoreRelation {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+
+    public String getCacheKey() {
+        StringBuilder tmpStr = new StringBuilder();
+        if (id != null) {
+            tmpStr.append(id);
+        }
+        if (StringUtils.isNotBlank(mongoFileId)) {
+            tmpStr.append("#").append(mongoFileId);
+        }
+        if (StringUtils.isNotBlank(storageFileId)) {
+            tmpStr.append("#").append(storageFileId);
+        }
+        return tmpStr.toString();
     }
 }

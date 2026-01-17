@@ -14,6 +14,7 @@ import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.mapper.NoteUserMapper;
 import top.yms.note.other.ChatSync;
 import top.yms.note.repo.ChatNoteRepository;
+import top.yms.note.service.NoteDataService;
 import top.yms.note.service.NoteMetaService;
 import top.yms.note.utils.DateHelper;
 import top.yms.note.utils.FNVHash;
@@ -41,6 +42,9 @@ public abstract class AbstractChatNoteSyncService implements GptChatNoteSyncServ
 
     @Resource
     protected NoteDataVersionMapper noteDataVersionMapper;
+
+    @Resource
+    private NoteDataService noteDataService;
 
     @Resource
     protected IdWorker idWorker;
@@ -235,13 +239,13 @@ public abstract class AbstractChatNoteSyncService implements GptChatNoteSyncServ
                 noteMeta.setId(noteId);
                 noteMeta.setUpdateTime(new Date());
                 noteMeta.setSize((long)cmr.markdownContent.getBytes(StandardCharsets.UTF_8).length);
-                noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
+                noteMetaService.update(noteMeta);
                 //note data
                 NoteData noteData = new NoteData();
                 noteData.setId(noteId);
                 noteData.setContent(cmr.markdownContent);
                 noteData.setUpdateTime(new Date());
-                noteDataMapper.updateByPrimaryKeySelective(noteData);
+                noteDataService.update(noteData);
                 //version
                 noteDataVersion.setNoteId(noteId);
             }

@@ -59,7 +59,7 @@ public class WerNote extends AbstractNote {
         //加密 content
         noteData.setContent(encryptContent(noteData.getContent()));
         //更新
-        noteDataMapper.updateByPrimaryKeySelective(noteData);
+        noteDataService.update(noteData);
         //更新mongo
         org.bson.Document mongoDoc = mongoTemplate
                 .findOne(org.springframework.data.mongodb.core.query.Query.query(
@@ -104,7 +104,7 @@ public class WerNote extends AbstractNote {
         //解密
         noteData.setContent(decryptContent(noteData.getContent()));
         //更新
-        noteDataMapper.updateByPrimaryKeySelective(noteData);
+        noteDataService.update(noteData);
         //更新mongo
         org.bson.Document mongoDoc = mongoTemplate
                 .findOne(org.springframework.data.mongodb.core.query.Query.query(
@@ -178,7 +178,7 @@ public class WerNote extends AbstractNote {
                 NoteMeta noteMeta = new NoteMeta();
                 noteMeta.setSiteId(objId.toString());
                 noteMeta.setId(iNoteData.getId());
-                noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
+                noteMetaService.update(noteMeta);
             }
         } catch (Exception e) {
             log.error("save失败", e);

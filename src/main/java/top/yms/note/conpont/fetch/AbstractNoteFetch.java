@@ -15,6 +15,7 @@ import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.repo.FetchRequestMetaRepository;
 import top.yms.note.service.NoteDataService;
+import top.yms.note.service.NoteMetaService;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.LocalThreadUtils;
 
@@ -38,6 +39,9 @@ public abstract class AbstractNoteFetch implements NoteFetch {
 
     @Resource
     protected NoteDataService noteDataService;
+
+    @Resource
+    protected NoteMetaService noteMetaService;
 
     @Resource
     private FetchRequestMetaRepository fetchRequestMetaRepository;
@@ -178,7 +182,7 @@ public abstract class AbstractNoteFetch implements NoteFetch {
         //更新大小
         noteMeta.setSize((long)content.getBytes(StandardCharsets.UTF_8).length);
         //再更新一次
-        noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
+        noteMetaService.update(noteMeta);
         //insert record
         FetchRequestMeta fetchRequestMeta = new FetchRequestMeta();
         BeanUtils.copyProperties(fetchMeta, fetchRequestMeta);

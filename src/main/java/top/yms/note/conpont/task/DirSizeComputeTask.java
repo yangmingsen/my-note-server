@@ -21,9 +21,6 @@ public class DirSizeComputeTask extends AbstractAsyncExecuteTask{
 
     private static final Logger log = LoggerFactory.getLogger(DirSizeComputeTask.class);
 
-    @Resource
-    private NoteMetaMapper noteMetaMapper;
-
     @Qualifier(NoteConstants.accessDelayExpireTimeCacheService)
     @Resource
     private NoteCacheService noteCacheService;
@@ -71,7 +68,7 @@ public class DirSizeComputeTask extends AbstractAsyncExecuteTask{
         NoteMeta tmpNoteMeata = new NoteMeta();
         tmpNoteMeata.setId(id);
         tmpNoteMeata.setSize(size);
-        noteMetaMapper.updateByPrimaryKeySelective(tmpNoteMeata);
+        noteMetaService.update(tmpNoteMeata);
         //update cache
         cacheService.hDel(NoteCacheKey.NOTE_META_LIST_KEY, id.toString());
         log.debug("update dir id={} size={}", id, size);

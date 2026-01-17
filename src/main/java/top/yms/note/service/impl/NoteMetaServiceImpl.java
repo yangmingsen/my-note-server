@@ -137,7 +137,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         NoteMeta upNoteMeta = new NoteMeta();
         upNoteMeta.setId(parentId);
         upNoteMeta.setViewTime(new Date());
-        noteMetaMapper.updateByPrimaryKeySelective(upNoteMeta);
+        update(upNoteMeta);
         //add cache search
 //        String cKey = NoteCacheKey.NOTE_META_SUB_KEY+parentId+"_"+uid;
 //        Object cVal = cacheService.get(cKey);
@@ -519,8 +519,6 @@ public class NoteMetaServiceImpl implements NoteMetaService {
                 noteAsyncExecuteTaskService.addTask(indexUpdateDelayTask);
             }
         }
-        note.setUpdateTime(new Date());
-        noteMetaMapper.updateByPrimaryKeySelective(note);
         //update cache
         //1.del cache
         cacheService.hDel(NoteCacheKey.NOTE_META_LIST_KEY, noteMeta.getId().toString());
@@ -529,6 +527,9 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         //1.2 del ant tree
         String cKey =  NoteCacheKey.NOTE_META_TREE_KEY+noteMeta.getUserId();
         cacheService.del(cKey);
+        //update meta data
+        note.setUpdateTime(new Date());
+        noteMetaMapper.updateByPrimaryKeySelective(note);
         //udpate log insert
         NoteIndexUpdateLog logData = new NoteIndexUpdateLog();
         logData.setIndexId(note.getId());
@@ -658,7 +659,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         addLog.setIndexId(id);
         addLog.setType(NoteOpTypeEnum.DELETE);
         addLog.setCreateTime(new Date());
-        noteMetaMapper.updateByPrimaryKeySelective(up);
+        update(up);
         //update cache
         cacheService.hDel(NoteCacheKey.NOTE_META_PARENT_LIST_KEY, noteMeta.getParentId().toString());
         //insert log
@@ -843,7 +844,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         NoteMeta upDo = new NoteMeta();
         upDo.setId(noteMoveDto.getFromId());
         upDo.setParentId(noteMoveDto.getToId());
-        noteMetaMapper.updateByPrimaryKeySelective(upDo);
+        update(upDo);
         //update cache
         cacheService.hDel(NoteCacheKey.NOTE_META_PARENT_LIST_KEY, noteMeta.getParentId().toString(), noteMoveDto.getToId().toString());
     }
@@ -858,7 +859,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         NoteMeta upDao = new NoteMeta();
         upDao.setEncrypted("1");
         upDao.setId(id);
-        noteMetaMapper.updateByPrimaryKeySelective(upDao);
+        update(upDao);
         //加密内容
         noteService.encryptNote(id);
     }
@@ -872,7 +873,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         NoteMeta upDao = new NoteMeta();
         upDao.setEncrypted("0");
         upDao.setId(id);
-        noteMetaMapper.updateByPrimaryKeySelective(upDao);
+        update(upDao);
         //解密
         noteService.decryptNote(id);
     }
@@ -902,7 +903,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
             noteService.decryptNote(noteMeta.getId());
             //更新为未加密
             noteMeta.setEncrypted(NoteConstants.ENCRYPTED_UN_FLAG);
-            noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
+            update(noteMeta);
         }
     }
 

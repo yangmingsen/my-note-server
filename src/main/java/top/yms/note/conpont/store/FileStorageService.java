@@ -9,9 +9,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import top.yms.note.comm.NoteCacheKey;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStoreService;
+import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.entity.FileStoreRelation;
 import top.yms.note.entity.FileStoreRelationExample;
 import top.yms.note.mapper.FileStoreRelationMapper;
@@ -43,6 +45,9 @@ public class FileStorageService implements FileStoreService {
     @Resource
     private FileStoreRelationMapper fileStoreRelationMapper;
 
+    @Resource
+    private NoteRedisCacheService cacheService;
+
     private FileStoreRelationExample getQueryCondition(FileStoreRelation fileStoreRelation) {
         FileStoreRelationExample example = new FileStoreRelationExample();
         FileStoreRelationExample.Criteria criteria = example.createCriteria();
@@ -64,7 +69,15 @@ public class FileStorageService implements FileStoreService {
         FileStoreRelation qry = new FileStoreRelation();
         qry.setMongoFileId(id);
         FileStoreRelationExample queryCondition = getQueryCondition(qry);
-        List<FileStoreRelation> qryResp = fileStoreRelationMapper.selectByExample(queryCondition);
+        String cKey = NoteCacheKey.NOTE_META_FILE_RELATION_KEY+qry.getCacheKey();
+        Object cVal = cacheService.get(cKey);
+        List<FileStoreRelation> qryResp;
+        if (cVal != null) {
+            qryResp = (List<FileStoreRelation>) cVal;
+        } else {
+            qryResp = fileStoreRelationMapper.selectByExample(queryCondition);
+            cacheService.set(cKey, qry);
+        }
         if (qryResp.isEmpty()) {
             AnyFile anyFile = mongoFileStoreService.loadFile(id);
             UploadResp uploadRsp = storageClient.upload(anyFile.getInputStream(), anyFile.getFilename());
@@ -119,7 +132,15 @@ public class FileStorageService implements FileStoreService {
         FileStoreRelation qry = new FileStoreRelation();
         qry.setMongoFileId(id);
         FileStoreRelationExample queryCondition = getQueryCondition(qry);
-        List<FileStoreRelation> qryResp = fileStoreRelationMapper.selectByExample(queryCondition);
+        String cKey = NoteCacheKey.NOTE_META_FILE_RELATION_KEY+qry.getCacheKey();
+        Object cVal = cacheService.get(cKey);
+        List<FileStoreRelation> qryResp;
+        if (cVal != null) {
+            qryResp = (List<FileStoreRelation>) cVal;
+            cacheService.del(cKey);
+        } else {
+            qryResp = fileStoreRelationMapper.selectByExample(queryCondition);
+        }
         if (!qryResp.isEmpty()) {
             storageClient.destroy(qryResp.get(0).getStorageFileId());
             mongoFileStoreService.delFile(id);

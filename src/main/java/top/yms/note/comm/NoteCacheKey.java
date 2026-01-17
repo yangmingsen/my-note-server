@@ -63,6 +63,8 @@ public abstract class NoteCacheKey {
      */
     public static final String NOTE_DATA_LIST_KEY = NOTE_DATA_PREFIX+"list";
 
+    public static final String NOTE_META_FILE_RELATION_KEY = NOTE_META_PREFIX+"file::relation::";
+
 
 
 

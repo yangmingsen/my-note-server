@@ -118,7 +118,7 @@ public class NoteDataServiceImpl implements NoteDataService {
             upNoteMeta.setId(noteId);
             upNoteMeta.setUpdateTime(opTime);
             upNoteMeta.setSize(size);
-            noteMetaMapper.updateByPrimaryKeySelective(upNoteMeta);
+            noteMetaService.update(upNoteMeta);
         } catch (Exception e) {
             if (oldDoc != null) {
                 mongoTemplate.save(oldDoc, noteMindMap);
@@ -174,7 +174,7 @@ public class NoteDataServiceImpl implements NoteDataService {
                 noteDataMapper.insert(noteData);
             } else {
                 noteData.setUpdateTime(opTime);
-                noteDataMapper.updateByPrimaryKeySelective(noteData);
+                update(noteData);
             }
             NoteMeta noteMeta1 = noteMetaService.findOne(id);
             //更新index信息
@@ -202,7 +202,7 @@ public class NoteDataServiceImpl implements NoteDataService {
                 }
 
             }
-            noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
+            noteMetaService.update(noteMeta);
             //通知更新lucene索引
             NoteLuceneIndex noteLuceneIndex = new NoteLuceneIndex();
             noteLuceneIndex.setId(id);
@@ -385,7 +385,7 @@ public class NoteDataServiceImpl implements NoteDataService {
                         NoteMeta upIndex = new NoteMeta();
                         upIndex.setId(id);
                         upIndex.setSize((long)noteData.getContent().getBytes(StandardCharsets.UTF_8).length);
-                        noteMetaMapper.updateByPrimaryKeySelective(upIndex);
+                        noteMetaService.update(upIndex);
                     }
 
                 });
@@ -399,7 +399,7 @@ public class NoteDataServiceImpl implements NoteDataService {
                         NoteMeta upIndex = new NoteMeta();
                         upIndex.setId(id);
                         upIndex.setSize(noteFile.getSize());
-                        noteMetaMapper.updateByPrimaryKeySelective(upIndex);
+                        noteMetaService.update(upIndex);
                     }
                 });
     }
@@ -415,4 +415,11 @@ public class NoteDataServiceImpl implements NoteDataService {
         noteDataVersionMapper.deleteByPrimaryKey(id);
     }
 
+    @Override
+    public void update(NoteData noteData) {
+        //更新缓存
+        cacheService.hDel(NoteCacheKey.NOTE_DATA_LIST_KEY, noteData.getId().toString());
+        //更新db
+        noteDataMapper.updateByPrimaryKeySelective(noteData);
+    }
 }

@@ -18,6 +18,7 @@ import top.yms.note.mapper.NoteDataVersionMapper;
 import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.mapper.NoteUserMapper;
 import top.yms.note.repo.ChatNoteRepository;
+import top.yms.note.service.NoteDataService;
 import top.yms.note.service.NoteMetaService;
 import top.yms.note.utils.DateHelper;
 import top.yms.note.utils.FNVHash;
@@ -56,6 +57,9 @@ public class ChatSync  {
 
     @Resource
     private ChatNoteRepository chatNoteRepository;
+
+    @Resource
+    private NoteDataService noteDataService;
 
     @Value("${chat.data-path}")
     private String chatNoteDataPath;
@@ -151,13 +155,13 @@ public class ChatSync  {
                 noteMeta.setId(noteId);
                 noteMeta.setUpdateTime(new Date());
                 noteMeta.setSize((long)cmr.markdownContent.getBytes(StandardCharsets.UTF_8).length);
-                noteMetaMapper.updateByPrimaryKeySelective(noteMeta);
+                noteMetaService.update(noteMeta);
                 //note data
                 NoteData noteData = new NoteData();
                 noteData.setId(noteId);
                 noteData.setContent(cmr.markdownContent);
                 noteData.setUpdateTime(new Date());
-                noteDataMapper.updateByPrimaryKeySelective(noteData);
+                noteDataService.update(noteData);
                 //version
                 //version
                 noteDataVersion.setNoteId(noteId);
