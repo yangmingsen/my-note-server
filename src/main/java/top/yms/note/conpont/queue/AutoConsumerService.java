@@ -89,9 +89,9 @@ public class AutoConsumerService implements ConsumerService, ApplicationListener
                 try {
                     messageListener.onMessage(iMessage);
                 } catch (Throwable th1) {
-                    //AutoConsumerService.log.info("onMessage error", th1);
+                    AutoConsumerService.log.error("onMessage error: ", th1);
                     //reSend
-                    AutoConsumerService.log.info("ReSend msg: {}", JSONObject.toJSONString(iMessage));
+                    AutoConsumerService.log.info("ReSend msg: {}", iMessage);
                     queueClient.send(iMessage);
                 }
             }

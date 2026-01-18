@@ -20,7 +20,11 @@ public class LocalThreadUtils {
     }
 
     public static Long getUserId() {
-        return (Long)threadLocalValue.get().get(NoteConstants.USER_ID);
+        Map<String, Object> dMap = threadLocalValue.get();
+        if(dMap != null) {
+            return (Long)dMap.get(NoteConstants.USER_ID);
+        }
+        return null;
     }
 
     private static final ThreadLocal<Map<String, Object>> threadLocalValue = new TransmittableThreadLocal<>();

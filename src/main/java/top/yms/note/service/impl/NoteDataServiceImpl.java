@@ -422,4 +422,13 @@ public class NoteDataServiceImpl implements NoteDataService {
         //更新db
         noteDataMapper.updateByPrimaryKeySelective(noteData);
     }
+
+    @Override
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 20)
+    public void addOrUpdateNote(NoteMeta noteMeta, NoteData noteData) {
+        noteMetaMapper.insertSelective(noteMeta);
+        noteDataMapper.insertSelective(noteData);
+        //update cache
+        cacheService.hDel(NoteCacheKey.NOTE_META_PARENT_LIST_KEY, noteMeta.getParentId().toString());
+    }
 }

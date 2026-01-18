@@ -16,5 +16,5 @@ public interface SysConfigService {
 
     default int getIntValue(String key) { throw new RuntimeException("Not implement");}
 
-    default long getLongValue(String key){ throw new RuntimeException("Not implement");}
+    default Long getLongValue(String key){ throw new RuntimeException("Not implement");}
 }

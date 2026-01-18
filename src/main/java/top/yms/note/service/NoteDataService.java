@@ -3,6 +3,7 @@ package top.yms.note.service;
 import top.yms.note.dto.INoteData;
 import top.yms.note.entity.NoteData;
 import top.yms.note.entity.NoteDataVersion;
+import top.yms.note.entity.NoteMeta;
 
 import java.util.List;
 
@@ -46,5 +47,12 @@ public interface NoteDataService {
      * @param noteData data
      */
     void update(NoteData noteData);
+
+    /**
+     * 更新或者新增笔记元数据和笔记内容
+     * @param noteMeta
+     * @param noteData
+     */
+    void addOrUpdateNote(NoteMeta noteMeta, NoteData noteData);
 
 }

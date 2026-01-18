@@ -33,6 +33,7 @@ import top.yms.note.mapper.*;
 import top.yms.note.msgcd.BusinessErrorCode;
 import top.yms.note.msgcd.NoteIndexErrorCode;
 import top.yms.note.service.NoteMetaService;
+import top.yms.note.service.NoteUserService;
 import top.yms.note.utils.IdWorker;
 import top.yms.note.utils.IdWorkerUtils;
 import top.yms.note.utils.LocalThreadUtils;
@@ -90,6 +91,9 @@ public class NoteMetaServiceImpl implements NoteMetaService {
 
     @Resource
     private NoteRedisCacheService cacheService;
+
+    @Resource
+    private NoteUserService noteUserService;
 
     private final ReentrantLock LOCK = new ReentrantLock();
 
@@ -926,7 +930,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         noteMeta.setId(id);
         noteMeta.setParentId(parentId);
         noteMeta.setName(dirName);
-        noteMeta.setUserId(LocalThreadUtils.getUserId());
+        noteMeta.setUserId(noteUserService.getUserId());
         noteMeta.setIsFile(NoteConstants.DIR_FLAG);
         Date date = new Date();
         noteMeta.setCreateTime(date);

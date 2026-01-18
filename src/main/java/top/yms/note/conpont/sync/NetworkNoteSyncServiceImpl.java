@@ -18,6 +18,7 @@ import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
+@Deprecated
 @Component
 public class NetworkNoteSyncServiceImpl implements NoteSyncService{
 

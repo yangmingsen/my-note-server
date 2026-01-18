@@ -1,5 +1,7 @@
 package top.yms.note.conpont.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteCacheKey;
@@ -17,6 +19,8 @@ import javax.annotation.Resource;
  */
 @Component
 public class NoteConfigServiceImpl implements SysConfigService {
+
+    private static final Logger log = LoggerFactory.getLogger(NoteConfigServiceImpl.class);
 
     @Resource
     private NoteRedisCacheService cacheService;
@@ -47,5 +51,14 @@ public class NoteConfigServiceImpl implements SysConfigService {
     @Override
     public String getStringValue(String key) {
         return (String)getV(key);
+    }
+
+    public Long getLongValue(String key) {
+        try {
+            return Long.parseLong(getStringValue(key));
+        } catch (Exception ex) {
+            log.error("getLongValue error: {}", ex.getMessage());
+            return null;
+        }
     }
 }
