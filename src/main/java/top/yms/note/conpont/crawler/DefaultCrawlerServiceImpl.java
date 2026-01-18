@@ -69,7 +69,7 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
     public void doCrawler() {
         log.info("=================Start Crawler==============");
         //del record
-        cacheService.del(NoteCacheKey.CRAWLER_DUP_SET);
+        //cacheService.del(NoteCacheKey.CRAWLER_DUP_SET);
         //urlScheduler clear
         urlScheduler.clear();
         //find target

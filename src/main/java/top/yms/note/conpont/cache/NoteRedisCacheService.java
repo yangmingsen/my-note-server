@@ -109,4 +109,14 @@ public interface NoteRedisCacheService extends NoteCacheService {
      */
     Set<Object> sMembers(String key);
 
+    /**
+     * Remove given {@code values} from set at {@code key} and return the number of removed elements.
+     *
+     * @param key must not be {@literal null}.
+     * @param values
+     * @return {@literal null} when used in pipeline / transaction.
+     * @see <a href="https://redis.io/commands/srem">Redis Documentation: SREM</a>
+     */
+    Long sRem(String key, Object... values);
+
 }

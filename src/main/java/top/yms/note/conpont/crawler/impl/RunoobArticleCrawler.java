@@ -54,7 +54,7 @@ public class RunoobArticleCrawler implements NetworkNoteCrawler{
     }
 
     public NetworkNote crawl(String url) throws Exception {
-
+        //检查当前urL是否爬取过
         String md5Id = DigestUtil.md5(url);
         if (networkNoteStorageService.exists(md5Id)) {
             return null;

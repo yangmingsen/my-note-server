@@ -125,7 +125,7 @@ public abstract class AbstractChatNoteSyncService implements NoteSyncService {
 
     @Override
     public boolean support() {
-        return false;
+        return true;
     }
 
     protected abstract String getDefaultDirName();

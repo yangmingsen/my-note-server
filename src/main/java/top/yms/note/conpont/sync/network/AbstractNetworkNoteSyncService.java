@@ -96,7 +96,7 @@ public abstract class AbstractNetworkNoteSyncService implements NoteSyncService 
     }
 
     public boolean support() {
-        return true;
+        return false;
     }
 
     public void doSync() {

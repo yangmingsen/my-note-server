@@ -180,4 +180,14 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
             return null;
         }
     }
+
+    @Override
+    public Long sRem(String key, Object... values) {
+        try {
+            return redisTemplate.opsForSet().remove(key, values);
+        } catch (Throwable th) {
+            log.error("sRem error: {}", th.getMessage());
+            return -1L;
+        }
+    }
 }

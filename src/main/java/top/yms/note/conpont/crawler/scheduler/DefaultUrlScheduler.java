@@ -30,6 +30,8 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
      */
     private  BlockingQueue<String> queue ;
 
+    private static final int queueSize = 10000;
+
     @Value("${crawler.status}")
     private boolean crawlerStatus;
 
@@ -77,12 +79,9 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
         //只有初始化过，才能执行clear
         if (getInitFlg()) {
             crawlWorkerQueueList.clear();
-            queue.clear();
+            if (queue != null) queue.clear();
             //handle cache
-            Set<Object> successSet = cacheService.sMembers(NoteCacheKey.CRAWLER_SUCCESS_SET);
-            for (Object url : successSet) {
-                cacheService.sAdd(NoteCacheKey.CRAWLER_DUP_SET, url);
-            }
+            reDoLast();
         }
     }
 
@@ -125,17 +124,42 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
 
     private void doTaskPrepare() {
         if (crawlerStatus) {
-            Set<Object> successSet = cacheService.sMembers(NoteCacheKey.CRAWLER_SUCCESS_SET);
-            for (Object url : successSet) {
-                cacheService.sAdd(NoteCacheKey.CRAWLER_DUP_SET, url);
-            }
-            //new queue
-            queue = new ArrayBlockingQueue<>(9000);
+            //实现一个功能： 继续上次未完成的续爬
+            //先获取到上次已完成的，然后将其从待爬的set中移除
+            reDoLast();
             //开启一个分发线程
             log.info("==========启动deliveryTask===========");
             deliveryTask = new Thread(this);
             deliveryTask.start();
             log.info("==========启动deliveryTask Ok========");
+        }
+    }
+
+    /**
+     * 继续上次未完成的爬取
+     */
+    private void reDoLast() {
+        //获取上次已成功爬取的
+        Set<Object> successSet = cacheService.sMembers(NoteCacheKey.CRAWLER_SUCCESS_SET);
+        //从上次待爬取集合中移除掉已完成的爬取任务
+        for (Object ss : successSet) {
+            cacheService.sRem(NoteCacheKey.CRAWLER_DUP_SET, ss);
+        }
+        //获取上次本次待爬取任务，加入到队列中
+        Set<Object> waitFetchSet = cacheService.sMembers(NoteCacheKey.CRAWLER_DUP_SET);
+        if (waitFetchSet.size() > queueSize) {
+            queue = null;
+            int curWaitSize = waitFetchSet.size();
+            int allocNewSize = (int)(curWaitSize*1.2);
+            log.info("当前默认队列太小，重新申请。 待处理量={}, 申请={}", curWaitSize, allocNewSize);
+            queue = new ArrayBlockingQueue<>(allocNewSize);
+        } else {
+            //new queue
+            queue = new ArrayBlockingQueue<>(queueSize);
+        }
+        //填充到待处理queue中
+        for (Object wfs : waitFetchSet) {
+            queue.offer(wfs.toString());
         }
     }
 
