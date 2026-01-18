@@ -14,11 +14,11 @@ public class ChatNoteSyncServiceImpl implements ChatNoteSyncService  {
     private static  final Logger log = LoggerFactory.getLogger(ChatNoteSyncServiceImpl.class);
 
     @Resource
-    private  List<GptChatNoteSyncService> componentList;
+    private  List<NoteSyncService> componentList;
 
     @Override
     public void sync() {
-        for (GptChatNoteSyncService syncService : componentList) {
+        for (NoteSyncService syncService : componentList) {
             if (syncService.support()) {
                 try {
                     log.info("========Sync start [{}]============", syncService);

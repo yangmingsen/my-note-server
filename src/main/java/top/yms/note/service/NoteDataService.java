@@ -21,6 +21,10 @@ public interface NoteDataService {
      */
     void deleteDataVersion(Long id);
 
+    /**
+     * 增加笔记内容数据
+     * @param iNoteData
+     */
     void save(INoteData iNoteData);
 
     /**

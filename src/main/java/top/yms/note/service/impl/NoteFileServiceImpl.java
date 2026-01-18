@@ -699,4 +699,10 @@ public class NoteFileServiceImpl implements NoteFileService {
     public Long fetch(String url, String toType, Long parentId) {
         return noteFetchService.fetch(url, toType, parentId);
     }
+
+    @Override
+    public NoteFile add(NoteFile noteFile) {
+        noteFileMapper.insertSelective(noteFile);
+        return noteFile;
+    }
 }

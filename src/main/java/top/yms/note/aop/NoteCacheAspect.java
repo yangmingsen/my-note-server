@@ -17,7 +17,7 @@ import java.util.Arrays;
 
 
 @Aspect
-@Component
+//@Component
 public class NoteCacheAspect {
     private static final Logger log = LoggerFactory.getLogger(NoteCacheAspect.class);
 

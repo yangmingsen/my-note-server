@@ -261,7 +261,10 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         long noteSize = iNoteData.getContent().getBytes(StandardCharsets.UTF_8).length;
         List<NoteFile> noteFiles = noteFileMapper.selectByNoteRef(iNoteData.getId());
         for (NoteFile noteFile : noteFiles) {
-            noteSize += noteFile.getSize();
+            Long size = noteFile.getSize();
+            if (size != null) {
+                noteSize += size;
+            }
         }
         noteMeta.setSize(noteSize);
         noteMetaService.update(noteMeta);

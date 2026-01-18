@@ -16,7 +16,9 @@ import top.yms.note.conpont.FileStoreService;
 import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.entity.FileStoreRelation;
 import top.yms.note.entity.FileStoreRelationExample;
+import top.yms.note.exception.CommonException;
 import top.yms.note.mapper.FileStoreRelationMapper;
+import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.storage.client.StorageClient;
 import top.yms.storage.entity.UploadResp;
 
@@ -151,7 +153,11 @@ public class FileStorageService implements FileStoreService {
     public String saveFile(InputStream inputStream, Map<String, Object> option) {
         String fileName = (String)option.get(NoteConstants.OPTION_FILE_NAME);
         String fileType = (String)option.get(NoteConstants.OPTION_FILE_TYPE);
-        UploadResp uploadResp = storageClient.upload(inputStream, fileName + fileType);
+        if (StringUtils.isBlank(fileName)) {
+            log.error("Empty Error: fileName={}, fileType={}", fileName, fileType);
+            throw new CommonException(CommonErrorCode.E_200202);
+        }
+        UploadResp uploadResp = storageClient.upload(inputStream, fileName +"."+ fileType);
         String storageFileId = uploadResp.getFileId();
         //为什么这么做？ 重新获取文件流再给mongo存储服务，因为inputStream在storageClient.upload后就被close了，所以只能再从storage中获取
         InputStream fileStream = storageClient.getFileStream(storageFileId);

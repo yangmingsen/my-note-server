@@ -19,7 +19,7 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
     private final static Logger log = LoggerFactory.getLogger(NoteRedisCacheServiceImpl.class);
 
     @Resource
-    private RedisTemplate redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Resource
     private ProducerService producerService;
@@ -143,6 +143,41 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
             DelMulKeysMessage delMsg = new DelMulKeysMessage();
             delMsg.setBody(keyList);
             producerService.send(delMsg);
+        }
+    }
+
+    @Override
+    public Long sAdd(String key, Object... values) {
+        try {
+            return redisTemplate.opsForSet().add(key, values);
+        } catch (Throwable th) {
+            //忽略
+            return 0L;
+        }
+    }
+
+    @Override
+    public Boolean sIsMember(String key, Object o) {
+        try {
+            return redisTemplate.opsForSet().isMember(key, o);
+        } catch (Throwable th) {
+            //忽略
+            return false;
+        }
+    }
+
+    @Override
+    public void del(String key) {
+        delete(key);
+    }
+
+    @Override
+    public Set<Object> sMembers(String key) {
+        try {
+            return redisTemplate.opsForSet().members(key);
+        } catch (Throwable th) {
+            log.error("sMembers error: {}", th.getMessage());
+            return null;
         }
     }
 }

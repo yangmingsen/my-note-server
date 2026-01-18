@@ -2,6 +2,7 @@ package top.yms.note.conpont.store;
 
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.model.GridFSFile;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,7 +99,14 @@ public class MongoFileStoreService implements FileStoreService {
     public String saveFile(InputStream inputStream, Map<String, Object> option) {
         String fileName = (String)option.get(NoteConstants.OPTION_FILE_NAME);
         String fileType = (String)option.get(NoteConstants.OPTION_FILE_TYPE);
-        long fileSize = Long.parseLong(option.get(NoteConstants.OPTION_FILE_SIZE)+"");
+        String fileSizeStr = (String)option.get(NoteConstants.OPTION_FILE_SIZE);
+        long fileSize;
+        if (StringUtils.isBlank(fileSizeStr)) {
+            //若是上层未传size，默认存小文件
+            fileSize = 1;
+        } else {
+            fileSize = Long.parseLong(fileSizeStr);
+        }
         if (fileSize < THRESHOLD_SIZE) {
             String name = fileName+"."+fileType;
             SmallFileDocument doc = new SmallFileDocument();

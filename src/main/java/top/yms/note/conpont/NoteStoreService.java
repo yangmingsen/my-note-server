@@ -19,6 +19,8 @@ public interface NoteStoreService {
 
     /**
      * 新建+更新
+     * <p>注意：在你需要事务控制时，请不要使用此方法，因为该方法无事务，
+     *      请使用top.yms.note.service.NoteDataService#save(top.yms.note.dto.INoteData)</p>
      * @param
      */
     void save(INoteData iNoteData);

@@ -12,7 +12,6 @@ import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteDataVersionMapper;
 import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.mapper.NoteUserMapper;
-import top.yms.note.other.ChatSync;
 import top.yms.note.repo.ChatNoteRepository;
 import top.yms.note.service.NoteDataService;
 import top.yms.note.service.NoteMetaService;
@@ -30,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class AbstractChatNoteSyncService implements GptChatNoteSyncService {
+public abstract class AbstractChatNoteSyncService implements NoteSyncService {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractChatNoteSyncService.class);
 
@@ -126,7 +125,7 @@ public abstract class AbstractChatNoteSyncService implements GptChatNoteSyncServ
 
     @Override
     public boolean support() {
-        return true;
+        return false;
     }
 
     protected abstract String getDefaultDirName();

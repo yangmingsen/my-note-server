@@ -35,4 +35,6 @@ public interface NoteFileService {
     Long fetch(String url, String toType, Long parentId);
 
     void uploadMultiNote(Long parentId, List<MultipartFile> file) throws Exception;
+
+    NoteFile add(NoteFile noteFile);
 }

@@ -6,6 +6,7 @@ import top.yms.note.service.NoteSyncService;
 
 import javax.annotation.Resource;
 
+@Deprecated
 @Component
 public class NoteSyncServiceImpl implements NoteSyncService {
 

@@ -17,7 +17,7 @@ public class DefaultProducer implements ProducerService{
 
     @Override
     public boolean send(IMessage message) {
-        log.info("producer msg: {}", JSONObject.toJSONString(message));
+        log.info("producer msg: {}", message);
         return queueClient.send(message);
     }
 }

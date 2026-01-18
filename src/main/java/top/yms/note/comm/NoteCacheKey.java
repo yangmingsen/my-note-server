@@ -65,6 +65,22 @@ public abstract class NoteCacheKey {
 
     public static final String NOTE_META_FILE_RELATION_KEY = NOTE_META_PREFIX+"file::relation::";
 
+    /**
+     * system config cackeKey
+     */
+    public static final String SYSCFG_KEY = NOTE_PREFIX+"sys::cfg::";
+
+    /**
+     * 保存已爬取或待爬取的集合
+     */
+    public static final String CRAWLER_DUP_SET = NOTE_PREFIX+"url::set::";
+
+    /**
+     * 已经抓取到的网络文章集合
+     */
+    public static final String CRAWLER_SUCCESS_SET = NOTE_PREFIX+"url::success::set::";
+
+
 
 
 
