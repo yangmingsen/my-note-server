@@ -8,6 +8,12 @@ public interface UrlScheduler {
 
     void add(String url);
 
+    /**
+     * 记录失败请求
+     * @param url
+     */
+    void addFail(String url);
+
     void addForRoot(String url);
 
     /**

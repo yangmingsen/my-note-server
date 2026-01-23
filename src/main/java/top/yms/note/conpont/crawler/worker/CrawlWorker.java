@@ -57,6 +57,7 @@ public class CrawlWorker implements NoteTask {
         this.networkNoteCrawler = networkNoteCrawler;
     }
 
+    @Deprecated
     public void setUrlDiscoverer(UrlDiscoverer urlDiscoverer) {
         this.urlDiscoverer = urlDiscoverer;
     }
@@ -90,10 +91,10 @@ public class CrawlWorker implements NoteTask {
             log.error("networkNoteCrawler must not null");
             return;
         }
-        if (urlDiscoverer == null ) {
-            log.error("urlDiscoverer must not null");
-            return;
-        }
+//        if (urlDiscoverer == null ) {
+//            log.error("urlDiscoverer must not null");
+//            return;
+//        }
         if (rateLimiter == null ) {
             log.error("rateLimiter must not null");
             return;
@@ -119,10 +120,10 @@ public class CrawlWorker implements NoteTask {
                 // 全局限速
                 rateLimiter.acquire();
                 // 1. 发现新 URL
-                Set<String> newUrls = urlDiscoverer.discover(url);
-                for (String u : newUrls) {
-                    scheduler.add(u);
-                }
+//                Set<String> newUrls = urlDiscoverer.discover(url);
+//                for (String u : newUrls) {
+//                    scheduler.add(u);
+//                }
                 // 2. 爬文章
                 NetworkNote networkNote = networkNoteCrawler.crawl(url);
                 if (networkNote != null) {

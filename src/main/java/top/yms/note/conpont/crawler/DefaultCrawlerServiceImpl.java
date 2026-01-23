@@ -68,8 +68,6 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
     @Override
     public void doCrawler() {
         log.info("=================Start Crawler==============");
-        //del record
-        //cacheService.del(NoteCacheKey.CRAWLER_DUP_SET);
         //urlScheduler clear
         urlScheduler.clear();
         //find target
@@ -96,12 +94,12 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
             //crawlWorkerQueue
             crawlWorker.setCrawlWorkerQueue(crawlWorkerQueue);
             //urlDiscoverer
-            for (UrlDiscoverer urlDiscoverer : urlDiscovererList) {
-                if (urlDiscoverer.support(targetUrl)) {
-                    crawlWorker.setUrlDiscoverer(urlDiscoverer);
-                    break;
-                }
-            }
+//            for (UrlDiscoverer urlDiscoverer : urlDiscovererList) {
+//                if (urlDiscoverer.support(targetUrl)) {
+//                    crawlWorker.setUrlDiscoverer(urlDiscoverer);
+//                    break;
+//                }
+//            }
             //rateLimiter
             crawlWorker.setRateLimiter(new SimpleRateLimiter(1000));
             //networkNoteCrawler

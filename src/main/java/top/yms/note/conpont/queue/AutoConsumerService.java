@@ -26,49 +26,6 @@ public class AutoConsumerService implements ConsumerService, ApplicationListener
 
     private List<MessageListener> messageListeners = new LinkedList<>();
 
-//    private Thread thread = null ;
-//
-//    private BlockingQueue<Runnable> taskQueue = null;
-//
-//    private ThreadPoolExecutor executor = null;
-//
-//    public void afterPropertiesSet() {
-//        log.info("=======start AutoConsumerService==========");
-//        taskQueue = new ArrayBlockingQueue<>(300);
-//        executor = new ThreadPoolExecutor(2, 10, 60, TimeUnit.SECONDS, taskQueue, new ThreadPoolExecutor.CallerRunsPolicy());
-//        thread = new Thread(this);
-//        thread.start();
-//        log.info("=======start AutoConsumerService ok==========");
-//    }
-
-
-
-//    @Override
-//    public void run() {
-//        while (true) {
-//            try {
-//                final IMessage iMessage = queueClient.receive();
-//                AutoConsumerService.log.info("consumer msg: {}", JSONObject.toJSONString(iMessage));
-//                for (MessageListener messageListener : messageListeners) {
-//                    if (messageListener.support(iMessage)) {
-//                        executor.execute(() -> {
-//                            try {
-//                                messageListener.onMessage(iMessage);
-//                            } catch (Throwable th1) {
-//                                //AutoConsumerService.log.info("onMessage error", th1);
-//                                //reSend
-//                                AutoConsumerService.log.info("ReSend msg: {}", JSONObject.toJSONString(iMessage));
-//                                queueClient.send(iMessage);
-//                            }
-//                        });
-//                    }
-//                }
-//            } catch (Throwable th) {
-//                AutoConsumerService.log.info("running error", th);
-//            }
-//        }
-//    }
-
     @Override
     public void onApplicationEvent(ApplicationStartedEvent event) {
         ApplicationContext context = event.getApplicationContext();
@@ -76,9 +33,6 @@ public class AutoConsumerService implements ConsumerService, ApplicationListener
                 BeanFactoryUtils.beansOfTypeIncludingAncestors(
                         context, MessageListener.class, true, false).values());
         log.info("messageListeners={}", messageListeners);
-//        if (messageListeners.size() > 0 ) {
-//            afterPropertiesSet();
-//        }
     }
 
     @Override

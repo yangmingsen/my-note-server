@@ -190,4 +190,14 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
             return -1L;
         }
     }
+
+    @Override
+    public Object sRandMember(String key) {
+        try {
+            return redisTemplate.opsForSet().randomMember(key);
+        } catch (Throwable th) {
+            log.error("sRandMember error: {}", th.getMessage());
+            return null;
+        }
+    }
 }

@@ -119,4 +119,13 @@ public interface NoteRedisCacheService extends NoteCacheService {
      */
     Long sRem(String key, Object... values);
 
+    /**
+     * Get random element from set at {@code key}.
+     *
+     * @param key must not be {@literal null}.
+     * @return {@literal null} when used in pipeline / transaction.
+     * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
+     */
+    Object sRandMember(String key);
+
 }

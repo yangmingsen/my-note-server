@@ -98,6 +98,11 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
         }
     }
 
+    @Override
+    public void addFail(String url) {
+        cacheService.sAdd(NoteCacheKey.CRAWLER_FAIL_SET, url);
+    }
+
     /**
      * 一般首次，使用该方法，可以作为init的入口点
      * @param url
@@ -161,6 +166,7 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
         for (Object wfs : waitFetchSet) {
             queue.offer(wfs.toString());
         }
+        log.info("current queue size={}", queue.size());
     }
 
     @Override

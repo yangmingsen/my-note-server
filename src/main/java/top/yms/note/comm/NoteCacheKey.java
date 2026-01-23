@@ -80,6 +80,11 @@ public abstract class NoteCacheKey {
      */
     public static final String CRAWLER_SUCCESS_SET = NOTE_PREFIX+"url::success::set::";
 
+    /**
+     * 抓取失败的url集合
+     */
+    public static final String CRAWLER_FAIL_SET = NOTE_PREFIX+"url::fail::set::";
+
 
 
 
