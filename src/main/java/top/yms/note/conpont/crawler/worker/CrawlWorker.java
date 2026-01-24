@@ -119,16 +119,13 @@ public class CrawlWorker implements NoteTask {
                 emptyCnt=0;
                 // 全局限速
                 rateLimiter.acquire();
-                // 1. 发现新 URL
-//                Set<String> newUrls = urlDiscoverer.discover(url);
-//                for (String u : newUrls) {
-//                    scheduler.add(u);
-//                }
                 // 2. 爬文章
+                long startTime = System.currentTimeMillis();
                 NetworkNote networkNote = networkNoteCrawler.crawl(url);
                 if (networkNote != null) {
                     // 这里你可以直接入库
-                    log.info("爬取成功：{}" , networkNote.getTitle());
+                    long endTime = System.currentTimeMillis();
+                    log.info("Tid={}, 爬取成功：{} , 耗时：{} s" , Thread.currentThread().getName(), networkNote.getTitle(), (endTime-startTime)/1000);
                     NetworkNoteMessage message = new NetworkNoteMessage();
                     message.setBody(networkNote);
                     getProducerService().send(message);

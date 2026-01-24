@@ -159,7 +159,11 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
     @Override
     public Boolean sIsMember(String key, Object o) {
         try {
-            return redisTemplate.opsForSet().isMember(key, o);
+            Boolean isMember = redisTemplate.opsForSet().isMember(key, o);
+            if (isMember == null) {
+                return false;
+            }
+            return isMember;
         } catch (Throwable th) {
             //忽略
             return false;
@@ -198,6 +202,34 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
         } catch (Throwable th) {
             log.error("sRandMember error: {}", th.getMessage());
             return null;
+        }
+    }
+
+    @Override
+    public Long sCard(String key) {
+        try {
+            Long size =  redisTemplate.opsForSet().size(key);
+            if (size == null) {
+                return 0L;
+            }
+            return size;
+        } catch (Throwable th) {
+            log.error("sCard error: {}", th.getMessage());
+            return 0L;
+        }
+    }
+
+    @Override
+    public List<Object> sPop(String key, long count) {
+        try {
+            List<Object> objectList = redisTemplate.opsForSet().pop(key, count);
+            if (objectList == null) {
+                return Collections.emptyList();
+            }
+            return objectList;
+        } catch (Throwable th) {
+            log.error("sPop error: {}", th.getMessage());
+            return Collections.emptyList();
         }
     }
 }

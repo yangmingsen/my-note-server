@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 @Component
 public class DefaultCrawlerServiceImpl implements CrawlerService{
@@ -72,14 +73,14 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
         urlScheduler.clear();
         //find target
         List<CrawlerTarget> crawlerTargetList = findAllCrawlerTargetList();
+        if (crawlerTargetList.isEmpty()) {
+            log.info("empty crawlerTargetList....");
+            return;
+        }
         //保存任务worker
         List<CrawlWorker> crawlWorkerList = new LinkedList<>();
         //foreach pack task
         for (CrawlerTarget crawlerTarget : crawlerTargetList) {
-            //first check can apply
-            if (crawlerTarget.getOpen().equals("0")) {
-                continue;
-            }
             //pack task
             CrawlWorker crawlWorker = new CrawlWorker();
             CrawlWorkerQueue crawlWorkerQueue = new DefaultCrawlWorkerQueue(crawlerTarget.getCondition());
@@ -128,6 +129,18 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
         ct1.setOpen("1");
         crawlerTargetList.add(ct1);
 
-        return crawlerTargetList;
+        CrawlerTarget ct2 = new CrawlerTarget();
+        ct2.setUrl("https://arthas.aliyun.com/doc/");
+        ct2.setCondition("arthas.aliyun");
+        ct2.setOpen("1");
+        crawlerTargetList.add(ct2);
+
+        CrawlerTarget ct3 = new CrawlerTarget();
+        ct3.setUrl("https://oi-wiki.org/search/");
+        ct3.setCondition("oi-wiki");
+        ct3.setOpen("1");
+        crawlerTargetList.add(ct3);
+
+        return crawlerTargetList.stream().filter(ct -> ct.getOpen().equals("1")).collect(Collectors.toList());
     }
 }

@@ -1,5 +1,6 @@
 package top.yms.note.conpont.cache;
 
+import org.springframework.lang.Nullable;
 import top.yms.note.conpont.NoteCacheService;
 
 import java.util.List;
@@ -127,5 +128,26 @@ public interface NoteRedisCacheService extends NoteCacheService {
      * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
      */
     Object sRandMember(String key);
+
+    /**
+     * Get size of set at {@code key}.
+     *
+     * @param key must not be {@literal null}.
+     * @return {@literal null} when used in pipeline / transaction.
+     * @see <a href="https://redis.io/commands/scard">Redis Documentation: SCARD</a>
+     */
+    Long sCard(String key);
+
+    /**
+     * Remove and return {@code count} random members from set at {@code key}.
+     *
+     * @param key must not be {@literal null}.
+     * @param count number of random members to pop from the set.
+     * @return {@literal null} when used in pipeline / transaction.
+     * @see <a href="https://redis.io/commands/spop">Redis Documentation: SPOP</a>
+     * @since 2.0
+     */
+    @Nullable
+    List<Object> sPop(String key, long count);
 
 }

@@ -7,12 +7,11 @@ import top.yms.note.conpont.queue.MessageListener;
 import top.yms.note.entity.NetworkNote;
 
 @Component
-public class RunoobNetworkNoteSyncServiceImpl extends AbstractNetworkNoteSyncService implements MessageListener {
+public class ArthasNetworkNoteSyncServiceImpl extends AbstractNetworkNoteSyncService implements MessageListener {
 
-    private static final String secondLevelName = "菜鸟教程";
+    private static final String secondLevelName = "Arthas资料";
 
     private Long secondLevelId;
-
 
     @Override
     Long getSecondLevelId(Long parentId) {
@@ -25,9 +24,8 @@ public class RunoobNetworkNoteSyncServiceImpl extends AbstractNetworkNoteSyncSer
 
     @Override
     Long getThirdLevelId(Long parentId, String param) {
-        String thirdLevelName = extractFirstLevelDirectory(param);
-        Long thirdLevelId = findOrCreate(thirdLevelName, parentId);
-        return thirdLevelId;
+        //目前好像没有找到三级分类的方法，就先放到二级目录吧
+        return secondLevelId;
     }
 
     @Override
@@ -35,7 +33,7 @@ public class RunoobNetworkNoteSyncServiceImpl extends AbstractNetworkNoteSyncSer
         if (message instanceof NetworkNoteMessage) {
             NetworkNote networkNote = (NetworkNote)message.getBody();
             String url = networkNote.getUrl();
-            if (url.contains("runoob")) {
+            if (url.contains("arthas.aliyun")) {
                 return true;
             }
         }

@@ -28,15 +28,28 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
     /**
      * 存放待处理列表
      */
-    private  BlockingQueue<String> queue ;
+    private  ArrayBlockingQueue<String> queue ;
 
-    private static final int queueSize = 10000;
+    /**
+     * 当前申请的内容队列大小
+     */
+    private  int maxQueueSize = 12000;
+
+    /**
+     * 可入队因子
+     */
+    private int factor = 95;
 
     @Value("${crawler.status}")
     private boolean crawlerStatus;
 
     @Resource
     private NoteRedisCacheService cacheService;
+
+    /**
+     * 待入队队列是否含有数据（true-有)
+     */
+    private boolean waitEnQueueFlg = false;
 
     /**
      * 分发线程
@@ -86,13 +99,37 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
     }
 
     @Override
+    public int queueSize() {
+        return queue.size();
+    }
+
+    @Override
+    public boolean canEnqueue() {
+        int qs = queueSize();
+        int percent = (qs/ maxQueueSize) * 100;
+        if (percent > factor) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void addWaitQueue(String url) {
+        cacheService.sAdd(NoteCacheKey.CRAWLER_WAIT_ENQUEUE_SET, url);
+    }
+
+
+    @Override
     public boolean support(String url) {
         return false;
     }
 
     public void add(String url) {
         Boolean isExist = cacheService.sIsMember(NoteCacheKey.CRAWLER_DUP_SET, url);
-        if (!isExist) {
+        Boolean isExist2 = cacheService.sIsMember(NoteCacheKey.CRAWLER_FAIL_SET, url);
+        Boolean isExist3 = cacheService.sIsMember(NoteCacheKey.CRAWLER_SUCCESS_SET, url);
+        Boolean isExist4 = cacheService.sIsMember(NoteCacheKey.CRAWLER_BLACKLIST_SET, url);
+        if (!isExist && !isExist2 && !isExist3 && !isExist4) {
             queue.offer(url);
             cacheService.sAdd(NoteCacheKey.CRAWLER_DUP_SET, url);
         }
@@ -150,17 +187,34 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
         for (Object ss : successSet) {
             cacheService.sRem(NoteCacheKey.CRAWLER_DUP_SET, ss);
         }
+        successSet.clear();
+        //排除中黑名单 url
+        Set<Object> blackListSet = cacheService.sMembers(NoteCacheKey.CRAWLER_BLACKLIST_SET);
+        for (Object ss : blackListSet) {
+            cacheService.sRem(NoteCacheKey.CRAWLER_DUP_SET, ss);
+        }
+        blackListSet.clear();
+        //将上次爬取失败的，重新进入爬取队列
+        Set<Object> failsListSet = cacheService.sMembers(NoteCacheKey.CRAWLER_FAIL_SET);
+        for (Object ss : failsListSet) {
+            cacheService.sAdd(NoteCacheKey.CRAWLER_DUP_SET, ss);
+        }
+        failsListSet.clear();
+        //清空上次失败集合
+        cacheService.del(NoteCacheKey.CRAWLER_FAIL_SET);
         //获取上次本次待爬取任务，加入到队列中
         Set<Object> waitFetchSet = cacheService.sMembers(NoteCacheKey.CRAWLER_DUP_SET);
-        if (waitFetchSet.size() > queueSize) {
+        if (waitFetchSet.size() > maxQueueSize) {
             queue = null;
             int curWaitSize = waitFetchSet.size();
             int allocNewSize = (int)(curWaitSize*1.2);
             log.info("当前默认队列太小，重新申请。 待处理量={}, 申请={}", curWaitSize, allocNewSize);
             queue = new ArrayBlockingQueue<>(allocNewSize);
+            //重新赋值
+            maxQueueSize = allocNewSize;
         } else {
             //new queue
-            queue = new ArrayBlockingQueue<>(queueSize);
+            queue = new ArrayBlockingQueue<>(maxQueueSize);
         }
         //填充到待处理queue中
         for (Object wfs : waitFetchSet) {
@@ -194,7 +248,34 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
             } catch (Throwable th) {
                 log.error("分发任务异常： {}", th.getMessage());
             }
+            doWaitQueueEnqueue();
         }
+    }
+
+    private void doWaitQueueEnqueue() {
+        long waitSize = cacheService.sCard(NoteCacheKey.CRAWLER_WAIT_ENQUEUE_SET);
+        if (waitSize > 0L) {
+            waitEnQueueFlg = true;
+        } else {
+            waitEnQueueFlg = false;
+        }
+        if (!waitEnQueueFlg) {
+            return;
+        }
+        if (canEnqueue()) {
+            //计算当前还有多少可用空间
+            int availableSpaceSize = maxQueueSize - queueSize();
+            float fac = 0.75f; //给与75%空间用于添加新url任务
+            int allocSize = (int)(availableSpaceSize*fac);
+            if (allocSize > waitSize) {
+                allocSize = (int)waitSize;
+            }
+            List<Object> waitEnqueueUrls = cacheService.sPop(NoteCacheKey.CRAWLER_WAIT_ENQUEUE_SET, allocSize);
+            for (Object waitEnqueueUrl : waitEnqueueUrls) {
+                add(waitEnqueueUrl.toString());
+            }
+        }
+        //todo 处理入队
     }
 }
 

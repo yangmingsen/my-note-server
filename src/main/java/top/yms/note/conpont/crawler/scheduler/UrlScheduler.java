@@ -32,4 +32,19 @@ public interface UrlScheduler {
     void regCrawlWorkerQueue(CrawlWorkerQueue crawlWorkerQueue);
 
     void clear();
+
+    int queueSize();
+
+    /**
+     * 判断是否可入队
+     * @return
+     */
+    boolean canEnqueue();
+
+    /**
+     * 将当前url加入到待入队队列中
+     * <p>这种因为活动队列空间不足时，加入到待入队队列中</p>
+     * @param url
+     */
+    void addWaitQueue(String url);
 }

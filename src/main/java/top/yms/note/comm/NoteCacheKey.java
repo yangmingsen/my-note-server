@@ -85,6 +85,16 @@ public abstract class NoteCacheKey {
      */
     public static final String CRAWLER_FAIL_SET = NOTE_PREFIX+"url::fail::set::";
 
+    /**
+     * 黑名单url
+     */
+    public static final String CRAWLER_BLACKLIST_SET = NOTE_PREFIX+"url::blacklist::set::";
+
+    /**
+     * 待入队队列集合
+     */
+    public static final String CRAWLER_WAIT_ENQUEUE_SET = NOTE_PREFIX+"url::wait-enqueue::set::";
+
 
 
 
