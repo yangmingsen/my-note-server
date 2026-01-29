@@ -34,7 +34,7 @@ public class OiWikiNetworkNoteCrawler extends AbstractNetworkNoteCrawler{
     }
 
     @Override
-    boolean blackListMatch(String url) {
+    public boolean blackListMatch(String url) {
         if (cacheService.sIsMember(NoteCacheKey.CRAWLER_BLACKLIST_SET, url)) {
             return true;
         }

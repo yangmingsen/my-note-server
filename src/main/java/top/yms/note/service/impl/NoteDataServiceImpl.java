@@ -428,6 +428,10 @@ public class NoteDataServiceImpl implements NoteDataService {
     public void addOrUpdateNote(NoteMeta noteMeta, NoteData noteData) {
         noteMetaMapper.insertSelective(noteMeta);
         noteDataMapper.insertSelective(noteData);
+        NoteDataVersion noteDataVersion = new NoteDataVersion();
+        noteDataVersion.setNoteId(noteData.getId());
+        BeanUtils.copyProperties(noteData, noteDataVersion);
+        noteDataVersionMapper.insertSelective(noteDataVersion);
         //update cache
         cacheService.hDel(NoteCacheKey.NOTE_META_PARENT_LIST_KEY, noteMeta.getParentId().toString());
     }

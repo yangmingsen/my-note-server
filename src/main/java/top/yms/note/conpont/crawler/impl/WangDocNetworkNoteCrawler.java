@@ -4,13 +4,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
-import top.yms.note.comm.NoteCacheKey;
 
 import java.util.LinkedList;
 import java.util.List;
 
 @Component
-public class ArthasNetworkNoteCrawler extends AbstractNetworkNoteCrawler{
+public class WangDocNetworkNoteCrawler extends AbstractNetworkNoteCrawler{
     @Override
     List<String> urlDiscoverer(Document doc) {
         List<String> discoverList = new LinkedList<>();
@@ -19,8 +18,12 @@ public class ArthasNetworkNoteCrawler extends AbstractNetworkNoteCrawler{
             if (StringUtils.isBlank(href)) {
                 continue;
             }
-            // 只爬 runoob
-            if (!href.startsWith("https://arthas.aliyun")) {
+            // 只爬 wangdoc
+            if (!href.startsWith("https://wangdoc.com")) {
+                continue;
+            }
+            //javaScript 不用爬
+            if (href.contains("/javascript/")) {
                 continue;
             }
             // 只要文章页
@@ -38,32 +41,32 @@ public class ArthasNetworkNoteCrawler extends AbstractNetworkNoteCrawler{
 
     @Override
     public boolean blackListMatch(String url) {
-        if (cacheService.sIsMember(NoteCacheKey.CRAWLER_BLACKLIST_SET, url)) {
-            return true;
-        }
-        return false;
+        return super.blackListMatch(url);
     }
 
     @Override
     Element matchTitle(Document doc) {
-        Element titleEl = doc.selectFirst("div.theme-default-content h1");;
+        Element titleEl = doc.selectFirst("body > section > div > div:nth-child(1) > div.column.is-8.is-6-widescreen.is-offset-1-widescreen > article > h1");
         return titleEl;
     }
 
     @Override
     Element matchContent(Document doc) {
-        Element contentEl = doc.selectFirst("#app > div > main > div > div:nth-child(2)");
+        Element contentEl = doc.selectFirst("body > section > div > div:nth-child(1) > div.column.is-8.is-6-widescreen.is-offset-1-widescreen > article");
         return contentEl;
-    }
-
-    protected void processBeforeDocument(Document doc) {
-        doc.select("h1, h2, h3, h4, h5, h6")
-                .removeAttr("id");
-        doc.select("a.header-anchor").remove();
     }
 
     @Override
     public boolean support(String url) {
-        return url.contains("arthas.aliyun");
+        return url.contains("wangdoc");
+    }
+
+    protected void processBeforeDocument(Document doc) {
+        doc.select("div.page-meta").remove();
+        doc.select("div.article-toc").remove();
+        // 标题锚点清理（关键）
+        doc.select("h1, h2, h3, h4, h5, h6").removeAttr("id");
+        //删除标题里面的描点
+        doc.select("h1 a, h2 a, h3 a, h4 a, h5 a, h6 a").remove();
     }
 }

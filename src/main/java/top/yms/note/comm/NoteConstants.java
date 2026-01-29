@@ -83,6 +83,9 @@ public abstract class NoteConstants {
     public final static String FILE_FLAG = "1";
     public final static String DIR_FLAG = "0";
 
+    public final static String DELETE_FLAG = "1";
+    public final static String UN_DELETE_FLAG = "0";
+
 
 
     /**

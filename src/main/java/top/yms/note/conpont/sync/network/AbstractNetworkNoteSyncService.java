@@ -85,12 +85,21 @@ public abstract class AbstractNetworkNoteSyncService implements NoteSyncService 
         NoteMetaExample example = new NoteMetaExample();
         NoteMetaExample.Criteria criteria = example.createCriteria();
         criteria.andNameEqualTo(dirName);
+        criteria.andDelEqualTo(NoteConstants.UN_DELETE_FLAG);
         List<NoteMeta> noteMetas = noteMetaMapper.selectByExample(example);
         Long baseDirId;
         if (noteMetas.isEmpty()) {
             baseDirId = noteMetaService.createDir(dirName, parentId).getId();
         } else {
-            baseDirId = noteMetas.get(0).getId();
+            //bug20260124 若是存在多个同名情况，可能会拿错数据
+            //baseDirId = noteMetas.get(0).getId();
+            for (NoteMeta noteMeta : noteMetas) {
+                if (noteMeta.getParentId().equals(parentId)) {
+                    return noteMeta.getId();
+                }
+            }
+            //若存在同名的情况下，还是没有找到在指定parent目录下，则创建
+            baseDirId = noteMetaService.createDir(dirName, parentId).getId();
         }
         return baseDirId;
     }

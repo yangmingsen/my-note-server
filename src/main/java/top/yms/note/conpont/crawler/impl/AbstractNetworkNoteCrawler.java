@@ -67,7 +67,12 @@ public abstract class AbstractNetworkNoteCrawler implements NetworkNoteCrawler{
      * @param url
      * @return true-中黑名单； false-未中
      */
-    abstract boolean blackListMatch(String url);
+    protected boolean blackListMatch(String url) {
+        if (cacheService.sIsMember(NoteCacheKey.CRAWLER_BLACKLIST_SET, url)) {
+            return true;
+        }
+        return false;
+    }
 
     /**
      * 获取标题元素

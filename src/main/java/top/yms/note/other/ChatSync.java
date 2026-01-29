@@ -87,6 +87,7 @@ public class ChatSync  {
         NoteMetaExample.Criteria criteria = example.createCriteria();
         criteria.andNameEqualTo(defaultName);
         criteria.andUserIdEqualTo(userId);
+        criteria.andDelEqualTo(NoteConstants.UN_DELETE_FLAG);
         List<NoteMeta> noteMetas = noteMetaMapper.selectByExample(example);
         Long defaultParentId;
         if (noteMetas.isEmpty()) {

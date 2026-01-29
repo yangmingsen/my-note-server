@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 
 @Component(NoteConstants.mongoFileStoreService)
@@ -99,7 +100,7 @@ public class MongoFileStoreService implements FileStoreService {
     public String saveFile(InputStream inputStream, Map<String, Object> option) {
         String fileName = (String)option.get(NoteConstants.OPTION_FILE_NAME);
         String fileType = (String)option.get(NoteConstants.OPTION_FILE_TYPE);
-        String fileSizeStr = (String)option.get(NoteConstants.OPTION_FILE_SIZE);
+        String fileSizeStr = option.get(NoteConstants.OPTION_FILE_SIZE) != null ? option.get(NoteConstants.OPTION_FILE_SIZE).toString():null;
         long fileSize;
         if (StringUtils.isBlank(fileSizeStr)) {
             //若是上层未传size，默认存小文件

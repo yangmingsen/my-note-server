@@ -102,7 +102,7 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
 //                }
 //            }
             //rateLimiter
-            crawlWorker.setRateLimiter(new SimpleRateLimiter(1000));
+            crawlWorker.setRateLimiter(new SimpleRateLimiter(3000));
             //networkNoteCrawler
             for (NetworkNoteCrawler networkNoteCrawler : networkNoteCrawlerList) {
                 if (networkNoteCrawler.support(targetUrl)) {
@@ -140,6 +140,12 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
         ct3.setCondition("oi-wiki");
         ct3.setOpen("1");
         crawlerTargetList.add(ct3);
+
+        CrawlerTarget ct4 = new CrawlerTarget();
+        ct4.setUrl("https://wangdoc.com/");
+        ct4.setCondition("wangdoc");
+        ct4.setOpen("1");
+        crawlerTargetList.add(ct4);
 
         return crawlerTargetList.stream().filter(ct -> ct.getOpen().equals("1")).collect(Collectors.toList());
     }

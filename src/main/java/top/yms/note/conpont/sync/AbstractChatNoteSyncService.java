@@ -143,12 +143,20 @@ public abstract class AbstractChatNoteSyncService implements NoteSyncService {
         criteria.andParentIdEqualTo(parentId);
         criteria.andUserIdEqualTo(userId);
         criteria.andNameEqualTo(getDefaultDirName());
+        criteria.andDelEqualTo(NoteConstants.UN_DELETE_FLAG);
         List<NoteMeta> noteMetas = noteMetaMapper.selectByExample(example);
         Long baseDirId;
         if (noteMetas.isEmpty()) {
             baseDirId = noteMetaService.createDir(getDefaultDirName(), parentId).getId();
         } else {
-            baseDirId =  noteMetas.get(0).getId();
+//            baseDirId =  noteMetas.get(0).getId();
+            for (NoteMeta noteMeta : noteMetas) {
+                if (noteMeta.getParentId().equals(parentId)) {
+                    return noteMeta.getId();
+                }
+            }
+            //若存在同名的情况下，还是没有找到在指定parent目录下，则创建
+            baseDirId = noteMetaService.createDir(getDefaultDirName(), parentId).getId();
         }
         return baseDirId;
     }
@@ -169,6 +177,7 @@ public abstract class AbstractChatNoteSyncService implements NoteSyncService {
         NoteMetaExample example = new NoteMetaExample();
         NoteMetaExample.Criteria criteria = example.createCriteria();
         criteria.andNameEqualTo(baseDirName);
+        criteria.andDelEqualTo(NoteConstants.UN_DELETE_FLAG);
         List<NoteMeta> noteMetas = noteMetaMapper.selectByExample(example);
         Long baseDirId; //当前Chat 目录id
         Long userId = LocalThreadUtils.getUserId();
