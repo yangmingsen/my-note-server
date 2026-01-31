@@ -240,7 +240,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
         Date opTime = new Date();
         if (dbNote == null) {
             noteData.setCreateTime(opTime);
-            noteDataMapper.insert(noteData);
+            noteDataMapper.insertSelective(noteData);
         } else {
             noteData.setUpdateTime(opTime);
             noteDataService.update(noteData);

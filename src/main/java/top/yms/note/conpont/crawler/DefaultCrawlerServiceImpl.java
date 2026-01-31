@@ -155,6 +155,12 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
         ct5.setOpen("1");
         crawlerTargetList.add(ct5);
 
+        CrawlerTarget ct6 = new CrawlerTarget();
+        ct6.setUrl("https://linux.vbird.org/linux_basic/centos7/0110whatislinux.php");
+        ct6.setCondition("linux.vbird.org");
+        ct6.setOpen("1");
+        crawlerTargetList.add(ct6);
+
         return crawlerTargetList.stream().filter(ct -> ct.getOpen().equals("1")).collect(Collectors.toList());
     }
 }

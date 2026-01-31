@@ -452,7 +452,12 @@ public class NoteMetaServiceImpl implements NoteMetaService {
             }
             Long parentId = note.getParentId();
             if (parentId == null) {
-                note.setParentId(0L);
+                Long userId = LocalThreadUtils.getUserId();
+                NoteUser user = noteUserService.findOne(userId);
+                if (user == null) {
+                    throw new BusinessException(BusinessErrorCode.E_204015);
+                }
+                note.setParentId(user.getNoteRootTreeId());
             }
             note.setCreateTime(opTime);
             noteMetaMapper.insertSelective(note);

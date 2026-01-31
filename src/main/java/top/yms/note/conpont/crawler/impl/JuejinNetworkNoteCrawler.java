@@ -10,7 +10,7 @@ import top.yms.note.comm.NoteCacheKey;
 import java.util.LinkedList;
 import java.util.List;
 
-
+@Deprecated
 public class JuejinNetworkNoteCrawler extends AbstractNetworkNoteCrawler{
 
 

@@ -1,6 +1,7 @@
 package top.yms.note.service.impl;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.JSONWriter;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import top.yms.note.comm.NoteCacheKey;
 import top.yms.note.comm.NoteConstants;
+import top.yms.note.config.SpringContext;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.FileStoreService;
 import top.yms.note.conpont.NoteDataIndexService;
@@ -41,8 +43,7 @@ import javax.annotation.Resource;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -147,7 +148,9 @@ public class NoteDataServiceImpl implements NoteDataService {
         //find it
         NoteData noteData =noteDataMapper.selectByPrimaryKey(id);
         //to data
-        cacheService.hSet(NoteCacheKey.NOTE_DATA_LIST_KEY, id.toString(), noteData);
+        Optional.ofNullable(noteData).ifPresent(x -> {
+            cacheService.hSet(NoteCacheKey.NOTE_DATA_LIST_KEY, id.toString(), x);
+        });
         return noteData;
     }
 
@@ -424,8 +427,17 @@ public class NoteDataServiceImpl implements NoteDataService {
     }
 
     @Override
-    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 20)
+    @Transactional(propagation= Propagation.REQUIRED , rollbackFor = Throwable.class, timeout = 30)
     public void addOrUpdateNote(NoteMeta noteMeta, NoteData noteData) {
+        Long id = noteMeta.getId();
+        NoteMeta oldMeta = noteMetaService.findOne(id);
+        if (oldMeta == null) {
+            noteMetaService.add(noteMeta);
+        } else {
+            noteMetaService.update(noteMeta);
+        }
+        SpringContext.getBean(NoteDataService.class).save(noteData);
+        /*
         noteMetaMapper.insertSelective(noteMeta);
         noteDataMapper.insertSelective(noteData);
         NoteDataVersion noteDataVersion = new NoteDataVersion();
@@ -433,6 +445,6 @@ public class NoteDataServiceImpl implements NoteDataService {
         BeanUtils.copyProperties(noteData, noteDataVersion);
         noteDataVersionMapper.insertSelective(noteDataVersion);
         //update cache
-        cacheService.hDel(NoteCacheKey.NOTE_META_PARENT_LIST_KEY, noteMeta.getParentId().toString());
+        cacheService.hDel(NoteCacheKey.NOTE_META_PARENT_LIST_KEY, noteMeta.getParentId().toString());*/
     }
 }

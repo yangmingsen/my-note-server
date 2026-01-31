@@ -3,6 +3,8 @@ package top.yms.note.utils;
 
 import com.alibaba.ttl.TransmittableThreadLocal;
 import top.yms.note.comm.NoteConstants;
+import top.yms.note.config.SpringContext;
+import top.yms.note.conpont.SysConfigService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +26,9 @@ public class LocalThreadUtils {
         if(dMap != null) {
             return (Long)dMap.get(NoteConstants.USER_ID);
         }
-        return null;
+        //改为获取默认用户id
+        return SpringContext.getBean(SysConfigService.class).getLongValue("sys.default-user-id");
+//        return null;
     }
 
     private static final ThreadLocal<Map<String, Object>> threadLocalValue = new TransmittableThreadLocal<>();

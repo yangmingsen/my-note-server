@@ -25,11 +25,11 @@ public class PdaiNetworkNoteSyncServiceImpl extends AbstractNetworkNoteSyncServi
     @Override
     Long getThirdLevelId(Long parentId, String param) {
         //提取三级目录对应url的二级目录
-        String thirdLevelName = extractFirstLevelDirectory(param,2);
+        String thirdLevelName = extractLevelDirectory(param,2);
         //获取到三级目录id
         Long thirdLevelId = findOrCreate(thirdLevelName, parentId);
         //尝试四级目录 = url三级目录
-        String fourLevelName = extractFirstLevelDirectory(param, 3);
+        String fourLevelName = extractLevelDirectory(param, 3);
         if (!fourLevelName.endsWith("空目录")) {//若是url存在3级目录则采用 4级目录
             Long fourLevelId = findOrCreate(fourLevelName, thirdLevelId);
             return fourLevelId;

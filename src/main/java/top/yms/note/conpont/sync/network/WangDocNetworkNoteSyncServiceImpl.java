@@ -38,7 +38,7 @@ public class WangDocNetworkNoteSyncServiceImpl extends AbstractNetworkNoteSyncSe
 
     @Override
     Long getThirdLevelId(Long parentId, String param) {
-        String thirdLevelName = extractFirstLevelDirectory(param);
+        String thirdLevelName = extractLevelDirectory(param);
         thirdLevelName = transferSecondCategroyName(thirdLevelName);
         Long thirdLevelId = findOrCreate(thirdLevelName, parentId);
         return thirdLevelId;

@@ -1,14 +1,12 @@
 package top.yms.note.conpont.sync.network;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.SysConfigService;
 import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.conpont.sync.NoteSyncService;
 import top.yms.note.entity.*;
 import top.yms.note.enums.FileTypeEnum;
-import top.yms.note.mapper.NoteDataMapper;
 import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.repo.NetworkNoteRepository;
 import top.yms.note.service.NoteDataService;
@@ -17,8 +15,6 @@ import top.yms.note.service.NoteUserService;
 import top.yms.note.utils.LocalThreadUtils;
 
 import javax.annotation.Resource;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
@@ -150,7 +146,7 @@ public abstract class AbstractNetworkNoteSyncService implements NoteSyncService 
         noteDataService.addOrUpdateNote(noteMeta, noteData);
     }
 
-    protected  String extractFirstLevelDirectory(String url, int level) {
+    protected  String extractLevelDirectory(String url, int level) {
         String pathName = UrlPathExtractor.extractDirectoryOnlyByLevel(url, level);
         if (StringUtils.isBlank(pathName)) {
             return "["+level+"]级空目录";
@@ -163,8 +159,8 @@ public abstract class AbstractNetworkNoteSyncService implements NoteSyncService 
      * @param url 输入的URL字符串
      * @return 一级目录名称，如果没有目录则返回空字符串
      */
-    protected  String extractFirstLevelDirectory(String url) {
-        return extractFirstLevelDirectory(url, 1);
+    protected  String extractLevelDirectory(String url) {
+        return extractLevelDirectory(url, 1);
         /*try {
             // 解析URL
             URI uri = new URI(url);
@@ -192,5 +188,17 @@ public abstract class AbstractNetworkNoteSyncService implements NoteSyncService 
             // URL格式错误，返回空字符串
             return "其他分类";
         }*/
+    }
+
+    protected String transferName(String enName) {
+        String toName = getTransferName(enName);
+        if (toName != null) {
+            return toName;
+        }
+        return enName;
+    }
+
+    protected String getTransferName(String enName) {
+        return null;
     }
 }

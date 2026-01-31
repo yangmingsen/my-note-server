@@ -25,7 +25,7 @@ public class RunoobNetworkNoteSyncServiceImpl extends AbstractNetworkNoteSyncSer
 
     @Override
     Long getThirdLevelId(Long parentId, String param) {
-        String thirdLevelName = extractFirstLevelDirectory(param);
+        String thirdLevelName = extractLevelDirectory(param);
         Long thirdLevelId = findOrCreate(thirdLevelName, parentId);
         return thirdLevelId;
     }
