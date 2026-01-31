@@ -64,11 +64,17 @@ public class MongoFileStoreService implements FileStoreService {
             //新版本小文件
             String newId = getNewId(id);
             SmallFileDocument doc = mongoTemplate.findById(newId, SmallFileDocument.class);
+            if (doc == null) {
+                return null;
+            }
             return new NewMongoStoreFile(doc);
         } else if (id.startsWith(NoteConstants.NEW_BIG_FILE_PREFIX)) {
             //新版本大文件
             String newId = getNewId(id);
             GridFSFile gFS = bigFileGridFsTemplate.findOne(new Query(Criteria.where(NoteConstants._id).is(newId)));
+            if (gFS == null) {
+                return null;
+            }
             return new MongFile449(gFS, newGridFSBucket);
         } else {
             //旧 fs 库文件

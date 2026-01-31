@@ -14,5 +14,13 @@ public interface ImageUploader {
      * @return 新图片 URL
      */
     String upload(InputStream inputStream, String suffix, Consumer<NoteFile> consumer);
+
+    /**
+     * 异步上传
+     * @param suffix
+     * @param consumer
+     * @return
+     */
+    String asyncUpload(String imgUrl, String suffix, Consumer<NoteFile> consumer);
 }
 

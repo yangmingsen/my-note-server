@@ -83,6 +83,7 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
         for (CrawlerTarget crawlerTarget : crawlerTargetList) {
             //pack task
             CrawlWorker crawlWorker = new CrawlWorker();
+            crawlWorker.setName(crawlerTarget.getCondition());
             CrawlWorkerQueue crawlWorkerQueue = new DefaultCrawlWorkerQueue(crawlerTarget.getCondition());
             //注册任务queue
             urlScheduler.regCrawlWorkerQueue(crawlWorkerQueue);
@@ -102,7 +103,7 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
 //                }
 //            }
             //rateLimiter
-            crawlWorker.setRateLimiter(new SimpleRateLimiter(3000));
+            crawlWorker.setRateLimiter(new SimpleRateLimiter(4000));
             //networkNoteCrawler
             for (NetworkNoteCrawler networkNoteCrawler : networkNoteCrawlerList) {
                 if (networkNoteCrawler.support(targetUrl)) {
@@ -115,6 +116,7 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
         }
         for (CrawlWorker crawlWorker : crawlWorkerList) {
             for (int i=0; i<perCrawlerWorkerNum; i++) {
+                log.info("CrawlWorker[{}] started....", crawlWorker.getName());
                 getExecutorService().submit(crawlWorker);
             }
         }
@@ -126,26 +128,32 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
         CrawlerTarget ct1 = new CrawlerTarget();
         ct1.setUrl("https://www.runoob.com/");
         ct1.setCondition("runoob");
-        ct1.setOpen("1");
+        ct1.setOpen("0");
         crawlerTargetList.add(ct1);
 
         CrawlerTarget ct2 = new CrawlerTarget();
         ct2.setUrl("https://arthas.aliyun.com/doc/");
         ct2.setCondition("arthas.aliyun");
-        ct2.setOpen("1");
+        ct2.setOpen("0");
         crawlerTargetList.add(ct2);
 
         CrawlerTarget ct3 = new CrawlerTarget();
         ct3.setUrl("https://oi-wiki.org/search/");
         ct3.setCondition("oi-wiki");
-        ct3.setOpen("1");
+        ct3.setOpen("0");
         crawlerTargetList.add(ct3);
 
         CrawlerTarget ct4 = new CrawlerTarget();
         ct4.setUrl("https://wangdoc.com/");
         ct4.setCondition("wangdoc");
-        ct4.setOpen("1");
+        ct4.setOpen("0");
         crawlerTargetList.add(ct4);
+
+        CrawlerTarget ct5 = new CrawlerTarget();
+        ct5.setUrl("https://pdai.tech/md/java/basic/java-basic-x-generic.html");
+        ct5.setCondition("pdai.tech");
+        ct5.setOpen("1");
+        crawlerTargetList.add(ct5);
 
         return crawlerTargetList.stream().filter(ct -> ct.getOpen().equals("1")).collect(Collectors.toList());
     }

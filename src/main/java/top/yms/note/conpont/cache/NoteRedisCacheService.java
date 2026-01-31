@@ -5,6 +5,7 @@ import top.yms.note.conpont.NoteCacheService;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public interface NoteRedisCacheService extends NoteCacheService {
 
@@ -149,5 +150,74 @@ public interface NoteRedisCacheService extends NoteCacheService {
      */
     @Nullable
     List<Object> sPop(String key, long count);
+
+    /**
+     * Append {@code values} to {@code key}.
+     *
+     * @param key must not be {@literal null}.
+     * @param values
+     * @return {@literal null} when used in pipeline / transaction.
+     * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
+     */
+    @Nullable
+    Long rPush(String key, Object ... values);
+
+    /**
+     * Removes and returns first element in list stored at {@code key}.
+     *
+     * @param key must not be {@literal null}.
+     * @return can be {@literal null}.
+     * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
+     */
+    @Nullable
+    Object lPop(String key);
+
+    /**
+     * Removes and returns first element from lists stored at {@code key} . <br>
+     * <b>Blocks connection</b> until element available or {@code timeout} reached.
+     *
+     * @param key must not be {@literal null}.
+     * @param timeout
+     * @param unit must not be {@literal null}.
+     * @return can be {@literal null}.
+     * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
+     */
+    @Nullable
+    Object blPop(String key, long timeout, TimeUnit unit);
+
+    /**
+     * Get the size of list stored at {@code key}.
+     *
+     * @param key must not be {@literal null}.
+     * @return {@literal null} when used in pipeline / transaction.
+     * @see <a href="https://redis.io/commands/llen">Redis Documentation: LLEN</a>
+     */
+    @Nullable
+    Long lLen(String key);
+
+    /**
+     * Get element at {@code index} form list at {@code key}.
+     *
+     * @param key must not be {@literal null}.
+     * @param index
+     * @return {@literal null} when used in pipeline / transaction.
+     * @see <a href="https://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
+     */
+    @Nullable
+    Object lIndex (String key, long index);
+
+    /**
+     * Get elements between {@code begin} and {@code end} from list at {@code key}.
+     *
+     * @param key must not be {@literal null}.
+     * @param start
+     * @param end
+     * @return {@literal null} when used in pipeline / transaction.
+     * @see <a href="https://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
+     */
+    @Nullable
+    List<Object> lRange(String key, long start, long end);
+
+
 
 }

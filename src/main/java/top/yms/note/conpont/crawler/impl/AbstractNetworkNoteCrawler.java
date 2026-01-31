@@ -9,10 +9,13 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import top.yms.note.comm.NoteCacheKey;
 import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.conpont.crawler.ImageUploader;
 import top.yms.note.conpont.crawler.NetworkNoteStorageService;
+import top.yms.note.conpont.crawler.limiter.CrawlerRateLimiter;
+import top.yms.note.conpont.crawler.limiter.SimpleRateLimiter;
 import top.yms.note.conpont.crawler.scheduler.UrlScheduler;
 import top.yms.note.conpont.crawler.util.DigestUtil;
 import top.yms.note.entity.NetworkNote;
@@ -20,10 +23,15 @@ import top.yms.note.service.NoteFileService;
 import top.yms.note.utils.IdWorker;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.Proxy;
 import java.net.URL;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractNetworkNoteCrawler implements NetworkNoteCrawler{
 
@@ -46,6 +54,16 @@ public abstract class AbstractNetworkNoteCrawler implements NetworkNoteCrawler{
 
     @Resource
     protected NoteRedisCacheService cacheService;
+
+    @Value("${crawler.file-upload-async}")
+    private boolean fileUploadAsync;
+
+    private final static ThreadLocal<Map<String, Object>> crawlerTaskInfo = new ThreadLocal<>();
+
+    private final static String RefererFlg = "RefererFlg";
+
+    private CrawlerRateLimiter crawlerRateLimiter = new SimpleRateLimiter(1000);
+
 
     protected IdWorker getIdWorker() {
         return idWorker;
@@ -97,6 +115,28 @@ public abstract class AbstractNetworkNoteCrawler implements NetworkNoteCrawler{
                 (src.startsWith("http://") || src.startsWith("https://"));
     }
 
+    private InputStream openImageStream(String imgUrl) throws IOException {
+        URL url = new URL(imgUrl);
+        HttpURLConnection conn =
+                (HttpURLConnection) url.openConnection(ProxyFactory.http());
+        conn.setConnectTimeout(10_000);
+        conn.setReadTimeout(15_000);
+        conn.setRequestProperty("User-Agent", UserAgentProvider.getUserAgent());
+        conn.setRequestProperty("Accept",
+                "image/avif,image/webp,image/apng,image/*,*/*;q=0.8");
+        Map<String, Object> thMap = crawlerTaskInfo.get();
+        if (thMap != null) {
+            Object refUrl = thMap.get(RefererFlg);
+            if (refUrl != null) {
+                conn.setRequestProperty("Referer", refUrl.toString());
+            }
+        }
+        conn.setInstanceFollowRedirects(true);
+
+        return conn.getInputStream();
+    }
+
+
 
     protected void matchImage(final long noteId, Element contentEl) {
         // 处理图片
@@ -116,17 +156,34 @@ public abstract class AbstractNetworkNoteCrawler implements NetworkNoteCrawler{
             if (idx > 0 && idx < imgUrl.length() - 1) {
                 suffix = imgUrl.substring(idx + 1);
             }
-            //获取文件流，并上传
-            try (InputStream in = new URL(imgUrl).openStream()) {
-                String newUrl = imageUploader.upload(in, suffix, (noteFile) -> {
-                    noteFile.setNoteRef(noteId);
-                    getNoteFileService().add(noteFile);
-                });
-                img.attr("src", newUrl);
-            } catch (Exception e) {
-                // 失败直接跳过，不中断主流程
-                log.error("transfer img error: {}", e.getMessage());
+            if (fileUploadAsync) {
+                try {
+                    String newUrl = imageUploader.asyncUpload(imgUrl, suffix, (noteFile) -> {
+                        noteFile.setNoteRef(noteId);
+                        getNoteFileService().add(noteFile);
+                    });
+                    img.attr("src", newUrl);
+                } catch (Exception e) {
+                    // 失败直接跳过，不中断主流程
+                    log.error("fetch image error: {}", e.getMessage());
+                }
+            } else {
+                //开启限速
+                crawlerRateLimiter.acquire();
+                //获取文件流，并上传
+                try (InputStream in = openImageStream(imgUrl)) {
+                    String newUrl = imageUploader.upload(in, suffix, (noteFile) -> {
+                        noteFile.setNoteRef(noteId);
+                        getNoteFileService().add(noteFile);
+                    });
+                    img.attr("src", newUrl);
+                    log.info("fetch image success, url={}", newUrl);
+                } catch (Exception e) {
+                    // 失败直接跳过，不中断主流程
+                    log.error("fetch image error: {}", e.getMessage());
+                }
             }
+
         }
     }
 
@@ -159,6 +216,8 @@ public abstract class AbstractNetworkNoteCrawler implements NetworkNoteCrawler{
 
     public NetworkNote crawl(String url) throws Exception {
         if (blackListMatch(url)) {
+            //若中黑名单，从待爬取队列中删除
+            cacheService.sRem(NoteCacheKey.CRAWLER_DUP_SET, url);
             return null;
         }
         String md5Id = DigestUtil.md5(url);
@@ -171,17 +230,24 @@ public abstract class AbstractNetworkNoteCrawler implements NetworkNoteCrawler{
             Connection connect = Jsoup.connect(url).proxy("127.0.0.1",10809);
             connect.header("User-Agent", UserAgentProvider.getUserAgent());
             Object oV = cacheService.sRandMember(NoteCacheKey.CRAWLER_DUP_SET);
+            //将加入到
+            Map<String, Object> thMap = crawlerTaskInfo.get();
+            if (thMap == null) {
+                thMap = new HashMap<>();
+                crawlerTaskInfo.set(thMap);
+            }
+            thMap.put(RefererFlg, oV);
             if (oV != null) {
                 connect.header("Referer",oV.toString());
             }
-            response = connect.timeout(5 * 1000).method(Connection.Method.GET).execute();
+            response = connect.timeout(30 * 1000).method(Connection.Method.GET).execute();
             doc = response.parse();
         } catch (org.jsoup.HttpStatusException hse) {
             log.error("http status error: {}", hse.getMessage());
             cacheService.sAdd(NoteCacheKey.CRAWLER_BLACKLIST_SET, url);
             return null;
         } catch (Throwable th) {
-            log.error("connect {} error: {}", url, th.getMessage());
+            log.error("fetch url={} error: {}", url, th.getMessage());
             urlScheduler.addFail(url);
             return null;
         }
@@ -196,6 +262,9 @@ public abstract class AbstractNetworkNoteCrawler implements NetworkNoteCrawler{
         //check it
         if (contentEl == null) {
             log.info("{} is empty data", url);
+            //将抓到的空数据记录下来
+            cacheService.sAdd(NoteCacheKey.CRAWLER_EMPTY_DATA_SET, url);
+            cacheService.sRem(NoteCacheKey.CRAWLER_DUP_SET, url);
             return null;
         }
 

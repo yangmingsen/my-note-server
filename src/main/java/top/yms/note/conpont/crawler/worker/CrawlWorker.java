@@ -25,6 +25,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class CrawlWorker implements NoteTask {
 
+    private String name;
+
     private static  final Logger log = LoggerFactory.getLogger(CrawlWorker.class);
 
     private  UrlScheduler scheduler;
@@ -55,6 +57,14 @@ public class CrawlWorker implements NoteTask {
 
     public void setNetworkNoteCrawler(NetworkNoteCrawler networkNoteCrawler) {
         this.networkNoteCrawler = networkNoteCrawler;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Deprecated

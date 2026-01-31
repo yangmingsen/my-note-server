@@ -288,8 +288,11 @@ public class NoteFileController {
         noteFileMapper.updateByPrimaryKeySelective(upCnt);
 
         AnyFile file = fileStoreService.loadFile(id);
-        resp.setContentType(file.getContentType());
-        file.writeTo(resp.getOutputStream());
+        if (file != null) {
+            resp.setContentType(file.getContentType());
+            file.writeTo(resp.getOutputStream());
+        }
+
     }
 
     @GetMapping("/download")

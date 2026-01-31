@@ -311,6 +311,76 @@ public class FileStoreRelationExample {
             return (Criteria) this;
         }
 
+        public Criteria andNoteFileIdIsNull() {
+            addCriterion("f_note_file_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andNoteFileIdIsNotNull() {
+            addCriterion("f_note_file_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andNoteFileIdEqualTo(String value) {
+            addCriterion("f_note_file_id =", value, "noteFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNoteFileIdNotEqualTo(String value) {
+            addCriterion("f_note_file_id <>", value, "noteFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNoteFileIdGreaterThan(String value) {
+            addCriterion("f_note_file_id >", value, "noteFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNoteFileIdGreaterThanOrEqualTo(String value) {
+            addCriterion("f_note_file_id >=", value, "noteFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNoteFileIdLessThan(String value) {
+            addCriterion("f_note_file_id <", value, "noteFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNoteFileIdLessThanOrEqualTo(String value) {
+            addCriterion("f_note_file_id <=", value, "noteFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNoteFileIdLike(String value) {
+            addCriterion("f_note_file_id like", value, "noteFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNoteFileIdNotLike(String value) {
+            addCriterion("f_note_file_id not like", value, "noteFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNoteFileIdIn(List<String> values) {
+            addCriterion("f_note_file_id in", values, "noteFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNoteFileIdNotIn(List<String> values) {
+            addCriterion("f_note_file_id not in", values, "noteFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNoteFileIdBetween(String value1, String value2) {
+            addCriterion("f_note_file_id between", value1, value2, "noteFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNoteFileIdNotBetween(String value1, String value2) {
+            addCriterion("f_note_file_id not between", value1, value2, "noteFileId");
+            return (Criteria) this;
+        }
+
         public Criteria andCreateTimeIsNull() {
             addCriterion("f_create_time is null");
             return (Criteria) this;

@@ -9,7 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Component
-public class WangDocNetworkNoteCrawler extends AbstractNetworkNoteCrawler{
+public class PdaiNetworkNoteCrawler extends AbstractNetworkNoteCrawler{
     @Override
     List<String> urlDiscoverer(Document doc) {
         List<String> discoverList = new LinkedList<>();
@@ -18,18 +18,18 @@ public class WangDocNetworkNoteCrawler extends AbstractNetworkNoteCrawler{
             if (StringUtils.isBlank(href)) {
                 continue;
             }
-            // 只爬 wangdoc
-            if (!href.startsWith("https://wangdoc.com")) {
-                continue;
-            }
-            //javaScript 不用爬
-            if (href.contains("/javascript/")) {
+            // 只爬 runoob
+            if (!href.startsWith("https://pdai.tech")) {
                 continue;
             }
             // 只要文章页
-//            if (!href.endsWith(".html")) {
-//                continue;
-//            }
+            if (!href.endsWith(".html")) {
+                continue;
+            }
+            //暂时注释
+            if (href.contains("x-interview.h") || href.contains("x-interview-2.h")) {
+                continue;
+            }
             // 过滤明显非文章
             if (href.contains("/try/") || href.contains("#")) {
                 continue;
@@ -40,33 +40,42 @@ public class WangDocNetworkNoteCrawler extends AbstractNetworkNoteCrawler{
     }
 
     @Override
-    public boolean blackListMatch(String url) {
-        return super.blackListMatch(url);
-    }
-
-    @Override
     Element matchTitle(Document doc) {
-        Element titleEl = doc.selectFirst("body > section > div > div:nth-child(1) > div.column.is-8.is-6-widescreen.is-offset-1-widescreen > article > h1");
+        Element titleEl = doc.selectFirst("#app > div > main > div.theme-default-content > div > h1");
         return titleEl;
     }
 
     @Override
     Element matchContent(Document doc) {
-        Element contentEl = doc.selectFirst("body > section > div > div:nth-child(1) > div.column.is-8.is-6-widescreen.is-offset-1-widescreen > article");
+        Element contentEl = doc.selectFirst("div.theme-default-content");
         return contentEl;
     }
 
     @Override
+    protected boolean blackListMatch(String url) {
+        boolean p = super.blackListMatch(url);
+        if (p) {
+            return p;
+        }
+        if (url.endsWith("resource/tools.html")) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public boolean support(String url) {
-        return url.contains("wangdoc");
+        return url.contains("pdai.tech");
     }
 
     protected void processBeforeDocument(Document doc) {
-        doc.select("div.page-meta").remove();
-        doc.select("div.article-toc").remove();
         // 标题锚点清理（关键）
         doc.select("h1, h2, h3, h4, h5, h6").removeAttr("id");
         //删除标题里面的描点
         doc.select("h1 a, h2 a, h3 a, h4 a, h5 a, h6 a").remove();
+        //
+        doc.select("#app > div > main > div.theme-default-content > div > ul:nth-child(3)").remove();
+        //删除代码行号
+        doc.select("div.line-numbers").remove();
     }
 }

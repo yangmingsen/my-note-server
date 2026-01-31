@@ -5,6 +5,7 @@
     <id column="f_id" jdbcType="BIGINT" property="id" />
     <result column="f_mongo_file_id" jdbcType="VARCHAR" property="mongoFileId" />
     <result column="f_storage_file_id" jdbcType="VARCHAR" property="storageFileId" />
+    <result column="f_note_file_id" jdbcType="VARCHAR" property="noteFileId" />
     <result column="f_create_time" jdbcType="TIMESTAMP" property="createTime" />
   </resultMap>
   <sql id="Example_Where_Clause">
@@ -66,7 +67,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    f_id, f_mongo_file_id, f_storage_file_id, f_create_time
+    f_id, f_mongo_file_id, f_storage_file_id, f_note_file_id, f_create_time
   </sql>
   <select id="selectByExample" parameterType="top.yms.note.entity.FileStoreRelationExample" resultMap="BaseResultMap">
     select
@@ -100,9 +101,9 @@
   </delete>
   <insert id="insert" parameterType="top.yms.note.entity.FileStoreRelation">
     insert into t_file_store_relation (f_id, f_mongo_file_id, f_storage_file_id, 
-      f_create_time)
+      f_note_file_id, f_create_time)
     values (#{id,jdbcType=BIGINT}, #{mongoFileId,jdbcType=VARCHAR}, #{storageFileId,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP})
+      #{noteFileId,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="top.yms.note.entity.FileStoreRelation">
     insert into t_file_store_relation
@@ -115,6 +116,9 @@
       </if>
       <if test="storageFileId != null">
         f_storage_file_id,
+      </if>
+      <if test="noteFileId != null">
+        f_note_file_id,
       </if>
       <if test="createTime != null">
         f_create_time,
@@ -129,6 +133,9 @@
       </if>
       <if test="storageFileId != null">
         #{storageFileId,jdbcType=VARCHAR},
+      </if>
+      <if test="noteFileId != null">
+        #{noteFileId,jdbcType=VARCHAR},
       </if>
       <if test="createTime != null">
         #{createTime,jdbcType=TIMESTAMP},
@@ -153,6 +160,9 @@
       <if test="record.storageFileId != null">
         f_storage_file_id = #{record.storageFileId,jdbcType=VARCHAR},
       </if>
+      <if test="record.noteFileId != null">
+        f_note_file_id = #{record.noteFileId,jdbcType=VARCHAR},
+      </if>
       <if test="record.createTime != null">
         f_create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
@@ -166,6 +176,7 @@
     set f_id = #{record.id,jdbcType=BIGINT},
       f_mongo_file_id = #{record.mongoFileId,jdbcType=VARCHAR},
       f_storage_file_id = #{record.storageFileId,jdbcType=VARCHAR},
+      f_note_file_id = #{record.noteFileId,jdbcType=VARCHAR},
       f_create_time = #{record.createTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -180,6 +191,9 @@
       <if test="storageFileId != null">
         f_storage_file_id = #{storageFileId,jdbcType=VARCHAR},
       </if>
+      <if test="noteFileId != null">
+        f_note_file_id = #{noteFileId,jdbcType=VARCHAR},
+      </if>
       <if test="createTime != null">
         f_create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
@@ -190,6 +204,7 @@
     update t_file_store_relation
     set f_mongo_file_id = #{mongoFileId,jdbcType=VARCHAR},
       f_storage_file_id = #{storageFileId,jdbcType=VARCHAR},
+      f_note_file_id = #{noteFileId,jdbcType=VARCHAR},
       f_create_time = #{createTime,jdbcType=TIMESTAMP}
     where f_id = #{id,jdbcType=BIGINT}
   </update>

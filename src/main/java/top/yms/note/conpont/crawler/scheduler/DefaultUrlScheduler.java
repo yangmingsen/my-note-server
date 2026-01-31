@@ -129,7 +129,8 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
         Boolean isExist2 = cacheService.sIsMember(NoteCacheKey.CRAWLER_FAIL_SET, url);
         Boolean isExist3 = cacheService.sIsMember(NoteCacheKey.CRAWLER_SUCCESS_SET, url);
         Boolean isExist4 = cacheService.sIsMember(NoteCacheKey.CRAWLER_BLACKLIST_SET, url);
-        if (!isExist && !isExist2 && !isExist3 && !isExist4) {
+        Boolean isExist5 = cacheService.sIsMember(NoteCacheKey.CRAWLER_EMPTY_DATA_SET, url);
+        if (!isExist && !isExist2 && !isExist3 && !isExist4 && !isExist5) {
             queue.offer(url);
             cacheService.sAdd(NoteCacheKey.CRAWLER_DUP_SET, url);
         }
@@ -138,6 +139,8 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
     @Override
     public void addFail(String url) {
         cacheService.sAdd(NoteCacheKey.CRAWLER_FAIL_SET, url);
+        //从待爬取队列中删除
+        cacheService.sRem(NoteCacheKey.CRAWLER_DUP_SET, url);
     }
 
     /**
@@ -182,26 +185,27 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
      */
     private void reDoLast() {
         //获取上次已成功爬取的
-        Set<Object> successSet = cacheService.sMembers(NoteCacheKey.CRAWLER_SUCCESS_SET);
+        //#bug20260129 发现随着数据量越来越大，读取和处理越来越慢，就放弃读取改success集合
+        //Set<Object> successSet = cacheService.sMembers(NoteCacheKey.CRAWLER_SUCCESS_SET);
         //从上次待爬取集合中移除掉已完成的爬取任务
-        for (Object ss : successSet) {
+        /*for (Object ss : successSet) {
             cacheService.sRem(NoteCacheKey.CRAWLER_DUP_SET, ss);
         }
-        successSet.clear();
+        successSet.clear();*/
         //排除中黑名单 url
-        Set<Object> blackListSet = cacheService.sMembers(NoteCacheKey.CRAWLER_BLACKLIST_SET);
+       /* Set<Object> blackListSet = cacheService.sMembers(NoteCacheKey.CRAWLER_BLACKLIST_SET);
         for (Object ss : blackListSet) {
             cacheService.sRem(NoteCacheKey.CRAWLER_DUP_SET, ss);
         }
-        blackListSet.clear();
+        blackListSet.clear();*/
         //将上次爬取失败的，重新进入爬取队列
-        Set<Object> failsListSet = cacheService.sMembers(NoteCacheKey.CRAWLER_FAIL_SET);
+        /*Set<Object> failsListSet = cacheService.sMembers(NoteCacheKey.CRAWLER_FAIL_SET);
         for (Object ss : failsListSet) {
             cacheService.sAdd(NoteCacheKey.CRAWLER_DUP_SET, ss);
         }
         failsListSet.clear();
         //清空上次失败集合
-        cacheService.del(NoteCacheKey.CRAWLER_FAIL_SET);
+        cacheService.del(NoteCacheKey.CRAWLER_FAIL_SET);*/
         //获取上次本次待爬取任务，加入到队列中
         Set<Object> waitFetchSet = cacheService.sMembers(NoteCacheKey.CRAWLER_DUP_SET);
         if (waitFetchSet.size() > maxQueueSize) {

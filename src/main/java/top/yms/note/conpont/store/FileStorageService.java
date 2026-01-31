@@ -19,6 +19,7 @@ import top.yms.note.entity.FileStoreRelationExample;
 import top.yms.note.exception.CommonException;
 import top.yms.note.mapper.FileStoreRelationMapper;
 import top.yms.note.msgcd.CommonErrorCode;
+import top.yms.note.utils.IdWorker;
 import top.yms.storage.client.StorageClient;
 import top.yms.storage.entity.UploadResp;
 
@@ -48,6 +49,9 @@ public class FileStorageService implements FileStoreService {
     private FileStoreRelationMapper fileStoreRelationMapper;
 
     @Resource
+    private IdWorker idWorker;
+
+    @Resource
     private NoteRedisCacheService cacheService;
 
     private FileStoreRelationExample getQueryCondition(FileStoreRelation fileStoreRelation) {
@@ -65,9 +69,29 @@ public class FileStorageService implements FileStoreService {
         return example;
     }
 
+    private FileStoreRelation findFileStoreRelation(String id) {
+        FileStoreRelation fileStoreRelation = fileStoreRelationMapper.selectByMongoFileId(id);
+        if (fileStoreRelation == null) {
+            fileStoreRelation = fileStoreRelationMapper.selectByNoteFileId(id);
+        }
+        return fileStoreRelation;
+    }
+
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 20)
     @Override
     public AnyFile loadFile(String id) {
+        //默认先试用mongoFileId查询
+        Object cVal = cacheService.hGet(NoteCacheKey.NOTE_META_FILE_RELATION_KEY, id);
+        FileStoreRelation fileStoreRelation = null;
+        if (cVal == null) {
+            fileStoreRelation = findFileStoreRelation(id);
+            if (fileStoreRelation != null) {
+                cacheService.hSet(NoteCacheKey.NOTE_META_FILE_RELATION_KEY, id, fileStoreRelation);
+            }
+        } else {
+            fileStoreRelation = (FileStoreRelation) cVal;
+        }
+        /*
         FileStoreRelation qry = new FileStoreRelation();
         qry.setMongoFileId(id);
         FileStoreRelationExample queryCondition = getQueryCondition(qry);
@@ -79,14 +103,18 @@ public class FileStorageService implements FileStoreService {
         } else {
             qryResp = fileStoreRelationMapper.selectByExample(queryCondition);
             cacheService.set(cKey, qry);
-        }
-        if (qryResp.isEmpty()) {
+        }*/
+
+        if (fileStoreRelation == null) {//这里是担心之前存在mongo中的还没有同步到file-storage中所以做了这个
             AnyFile anyFile = mongoFileStoreService.loadFile(id);
+            if (anyFile == null) { //若是mongo中也没有，则返回
+                return null;
+            }
             UploadResp uploadRsp = storageClient.upload(anyFile.getInputStream(), anyFile.getFilename());
-            insertRelation(uploadRsp.getFileId(), id);
+            insertRelation(uploadRsp.getFileId(), id, null);
             return new StorageFile(uploadRsp.getFileId(), storageClient);
         }
-        return new StorageFile(qryResp.get(0).getStorageFileId(), storageClient);
+        return new StorageFile(fileStoreRelation.getStorageFileId(), storageClient);
     }
 
 
@@ -103,24 +131,31 @@ public class FileStorageService implements FileStoreService {
 //        UploadResp uploadResp = storageClient.upload(file.getInputStream(), file.getOriginalFilename());
         UploadResp uploadResp = storageClient.upload(file.getInputStream(), originalFilename);
         String id = mongoFileStoreService.saveFile(file);
-        insertRelation(uploadResp.getFileId(), id);
-        return id;
+        FileStoreRelation fileStoreRelation = insertRelation(uploadResp.getFileId(), id, null);
+        return fileStoreRelation.getNoteFileId();
     }
 
     @Override
     public String saveFile(File file) throws Exception {
         UploadResp uploadResp = storageClient.upload(file);
         String id = mongoFileStoreService.saveFile(file);
-        insertRelation(uploadResp.getFileId(), id);
-        return id;
+        FileStoreRelation fileStoreRelation = insertRelation(uploadResp.getFileId(), id, null);
+        return fileStoreRelation.getNoteFileId();
     }
 
-    private void insertRelation(String storageFileId, String mongoFileId) {
+    private FileStoreRelation insertRelation(String storageFileId, String mongoFileId, String noteFileId) {
         FileStoreRelation fsr = new FileStoreRelation();
         fsr.setMongoFileId(mongoFileId);
         fsr.setStorageFileId(storageFileId);
+        //若是未指定则生成一个自己系统的noteFileId
+        if (StringUtils.isBlank(noteFileId)) {
+            fsr.setNoteFileId(idWorker.nextId()+"");
+        } else {
+            fsr.setNoteFileId(noteFileId);
+        }
         fsr.setCreateTime(new Date());
         fileStoreRelationMapper.insertSelective(fsr);
+        return fsr;
     }
 
     @Override
@@ -131,6 +166,14 @@ public class FileStorageService implements FileStoreService {
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 20)
     @Override
     public boolean delFile(String id) {
+        FileStoreRelation fileStoreRelation = findFileStoreRelation(id);
+        if (fileStoreRelation != null) {
+            storageClient.destroy(fileStoreRelation.getStorageFileId());
+            mongoFileStoreService.delFile(id);
+            //del cache
+            cacheService.hDel(NoteCacheKey.NOTE_META_FILE_RELATION_KEY, id);
+        }
+        /*
         FileStoreRelation qry = new FileStoreRelation();
         qry.setMongoFileId(id);
         FileStoreRelationExample queryCondition = getQueryCondition(qry);
@@ -146,7 +189,7 @@ public class FileStorageService implements FileStoreService {
         if (!qryResp.isEmpty()) {
             storageClient.destroy(qryResp.get(0).getStorageFileId());
             mongoFileStoreService.delFile(id);
-        }
+        }*/
         return true;
     }
 
@@ -162,8 +205,14 @@ public class FileStorageService implements FileStoreService {
         //为什么这么做？ 重新获取文件流再给mongo存储服务，因为inputStream在storageClient.upload后就被close了，所以只能再从storage中获取
         InputStream fileStream = storageClient.getFileStream(storageFileId);
         String mongoFileId = mongoFileStoreService.saveFile(fileStream, option);
-        insertRelation(storageFileId, mongoFileId);
-        return mongoFileId;
+        Object fileId = option.get(NoteConstants.OPTION_FILE_ID);
+        FileStoreRelation fileStoreRelation;
+        if (fileId != null) {
+            fileStoreRelation = insertRelation(storageFileId, mongoFileId, fileId.toString());
+        } else {
+            fileStoreRelation = insertRelation(storageFileId, mongoFileId, null);
+        }
+        return fileStoreRelation.getNoteFileId();
     }
 
     public String getStringContent(String id) {

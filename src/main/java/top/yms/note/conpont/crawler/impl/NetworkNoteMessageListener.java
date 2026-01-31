@@ -33,6 +33,8 @@ public class NetworkNoteMessageListener implements MessageListener {
             //add ok to cache
             String url = networkNote.getUrl();
             cacheService.sAdd(NoteCacheKey.CRAWLER_SUCCESS_SET, url);
+            //从待爬取set中删除
+            cacheService.sRem(NoteCacheKey.CRAWLER_DUP_SET, url);
         }
     }
 }

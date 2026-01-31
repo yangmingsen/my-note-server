@@ -232,4 +232,46 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
             return Collections.emptyList();
         }
     }
+
+    @Override
+    public Long rPush(String key, Object... values) {
+        Long res = redisTemplate.opsForList().rightPushAll(key, values);
+        if (res == null) return 0L;
+        return res;
+    }
+
+    @Override
+    public Object lPop(String key) {
+        Object res = redisTemplate.opsForList().leftPop(key);
+        return res;
+    }
+
+    @Override
+    public Object blPop(String key, long timeout, TimeUnit unit) {
+        try {
+            return redisTemplate.opsForList().leftPop(key, timeout, unit);
+        } catch (org.springframework.dao.QueryTimeoutException qte) {
+            //log.info("blPop warning: {}", qte.getMessage());
+        } catch (Exception e) {
+            log.error("blPop error",e);
+        }
+        return null;
+    }
+
+    @Override
+    public Long lLen(String key) {
+        Long res = redisTemplate.opsForList().size(key);
+        if (res == null) return 0L;
+        return res;
+    }
+
+    @Override
+    public Object lIndex(String key, long index) {
+        return redisTemplate.opsForList().index(key, index);
+    }
+
+    @Override
+    public List<Object> lRange(String key, long start, long end) {
+        return Optional.ofNullable(redisTemplate.opsForList().range(key, start, end)).orElse(Collections.emptyList());
+    }
 }

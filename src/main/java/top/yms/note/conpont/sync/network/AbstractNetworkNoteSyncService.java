@@ -1,5 +1,6 @@
 package top.yms.note.conpont.sync.network;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.SysConfigService;
@@ -149,13 +150,22 @@ public abstract class AbstractNetworkNoteSyncService implements NoteSyncService 
         noteDataService.addOrUpdateNote(noteMeta, noteData);
     }
 
+    protected  String extractFirstLevelDirectory(String url, int level) {
+        String pathName = UrlPathExtractor.extractDirectoryOnlyByLevel(url, level);
+        if (StringUtils.isBlank(pathName)) {
+            return "["+level+"]级空目录";
+        }
+        return pathName;
+    }
+
     /**
      * 提取URL中的一级目录
      * @param url 输入的URL字符串
      * @return 一级目录名称，如果没有目录则返回空字符串
      */
     protected  String extractFirstLevelDirectory(String url) {
-        try {
+        return extractFirstLevelDirectory(url, 1);
+        /*try {
             // 解析URL
             URI uri = new URI(url);
 
@@ -181,6 +191,6 @@ public abstract class AbstractNetworkNoteSyncService implements NoteSyncService 
         } catch (URISyntaxException e) {
             // URL格式错误，返回空字符串
             return "其他分类";
-        }
+        }*/
     }
 }

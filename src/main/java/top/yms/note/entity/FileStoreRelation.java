@@ -26,6 +26,11 @@ public class FileStoreRelation {
     private String storageFileId;
 
     /**
+     * note系统文件id(本次自定义的id)
+     */
+    private String noteFileId;
+
+    /**
      */
     private Date createTime;
 
@@ -61,6 +66,14 @@ public class FileStoreRelation {
         this.createTime = createTime;
     }
 
+    public String getNoteFileId() {
+        return noteFileId;
+    }
+
+    public void setNoteFileId(String noteFileId) {
+        this.noteFileId = noteFileId;
+    }
+
     public String getCacheKey() {
         StringBuilder tmpStr = new StringBuilder();
         if (id != null) {
@@ -71,6 +84,9 @@ public class FileStoreRelation {
         }
         if (StringUtils.isNotBlank(storageFileId)) {
             tmpStr.append("#").append(storageFileId);
+        }
+        if (StringUtils.isNotBlank(noteFileId)) {
+            tmpStr.append("#").append(noteFileId);
         }
         return tmpStr.toString();
     }

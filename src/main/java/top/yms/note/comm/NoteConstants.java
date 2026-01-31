@@ -127,6 +127,7 @@ public abstract class NoteConstants {
     public final static String OPTION_FILE_NAME = "fileName";
     public final static String OPTION_FILE_TYPE = "fileType";
     public final static String OPTION_FILE_SIZE = "fileSize";
+    public final static String OPTION_FILE_ID = "fileId";
 
 
     //cache PREFIX

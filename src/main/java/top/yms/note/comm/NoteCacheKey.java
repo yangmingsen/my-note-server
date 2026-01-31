@@ -95,6 +95,23 @@ public abstract class NoteCacheKey {
      */
     public static final String CRAWLER_WAIT_ENQUEUE_SET = NOTE_PREFIX+"url::wait-enqueue::set::";
 
+    /**
+     * 空数据集合
+     * 抓取后，发现是空数据
+     */
+    public static final String CRAWLER_EMPTY_DATA_SET = NOTE_PREFIX+"url::empty-data::set::";
+
+
+    /**
+     * 异步上传文件list
+     */
+    public static final String ASYNC_UPLOAD_FILE_LIST = NOTE_PREFIX+"async::list::upload-file::";
+
+    /**
+     * 异步获取文件失败的列表
+     */
+    public static final String ASYNC_UPLOAD_FILE_FAIL_LIST = NOTE_PREFIX+"async::list::upload-file-fail::";
+
 
 
 

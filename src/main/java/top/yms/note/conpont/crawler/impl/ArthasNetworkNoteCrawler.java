@@ -38,6 +38,9 @@ public class ArthasNetworkNoteCrawler extends AbstractNetworkNoteCrawler{
 
     @Override
     public boolean blackListMatch(String url) {
+        if (url.contains("/3.x/en/")) {
+            return true;
+        }
         if (cacheService.sIsMember(NoteCacheKey.CRAWLER_BLACKLIST_SET, url)) {
             return true;
         }

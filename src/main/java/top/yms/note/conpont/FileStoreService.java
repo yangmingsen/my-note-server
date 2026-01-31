@@ -1,6 +1,9 @@
 package top.yms.note.conpont;
 
 import org.springframework.web.multipart.MultipartFile;
+import top.yms.note.exception.NoteSystemException;
+import top.yms.note.msgcd.CommonErrorCode;
+import top.yms.note.msgcd.NoteSystemErrorCode;
 
 import java.io.File;
 import java.io.InputStream;
@@ -35,6 +38,15 @@ public interface FileStoreService {
      * @return 文件id
      */
     String saveFile(InputStream inputStream, Map<String, Object> option);
+
+    /**
+     * <p>异步上传文件</p>
+     * <p>该功能需要异步上传功能配合，这里仅仅返回当前平台的文件id,并不实际进行文件上传</p>
+     * @return fileId
+     */
+//    default String asyncSaveFile() {
+//        throw new NoteSystemException(CommonErrorCode.E_200214);
+//    }
 
     /**
      * 文件上传

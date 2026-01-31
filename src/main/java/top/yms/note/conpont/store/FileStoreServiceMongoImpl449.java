@@ -58,6 +58,9 @@ public class FileStoreServiceMongoImpl449 implements FileStoreService {
         try {
             log.debug("loadFile id={}", id);
             GridFSFile gFS = gridFsTemplate.findOne(new Query(Criteria.where(NoteConstants._id).is(id)));
+            if (gFS == null) {
+                return null;
+            }
             return new MongFile449(gFS, gridFSBucket);
         } catch (Exception e) {
             throw new BusinessException(CommonErrorCode.E_203003);
