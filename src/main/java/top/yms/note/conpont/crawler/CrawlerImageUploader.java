@@ -55,6 +55,11 @@ public class CrawlerImageUploader implements ImageUploader {
 
     @Override
     public String asyncUpload(String imgUrl, String suffix, Consumer<NoteFile> consumer) {
+        //若发现重复，直接用旧的
+        Object cV = cacheService.hGet(NoteCacheKey.ASYNC_UPLOAD_FILE_DUP_CHECK_HASH, imgUrl);
+        if (cV != null) {
+            return cV.toString();
+        }
         String tmpFileName = "临时图片"+idWorker.nextId();
         String fileId = idWorker.nextId()+"";
         //进入队列
@@ -75,6 +80,7 @@ public class CrawlerImageUploader implements ImageUploader {
         consumer.accept(noteFile);
         //get url
         String url = NoteConstants.getBaseUrl()+NoteConstants.getFileViewUrlSuffix(fileId);
+        cacheService.hSet(NoteCacheKey.ASYNC_UPLOAD_FILE_DUP_CHECK_HASH, imgUrl, url);
         //ret access url
         return url;
     }
