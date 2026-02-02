@@ -51,6 +51,9 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
     @Value("${crawler.status}")
     private Boolean crawlerStatus;
 
+    @Value("${crawler.crawler-rate-ctl}")
+    private Integer crawlerRateCtl;
+
     private static ExecutorService executorService = null;
 
     private ExecutorService getExecutorService() {
@@ -100,7 +103,7 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
             //crawlWorkerQueue
             crawlWorker.setCrawlWorkerQueue(crawlWorkerQueue);
             //rateLimiter
-            crawlWorker.setRateLimiter(new SimpleRateLimiter(4000));
+            crawlWorker.setRateLimiter(new SimpleRateLimiter(crawlerRateCtl));
             //networkNoteCrawler
             for (NetworkNoteCrawler networkNoteCrawler : networkNoteCrawlerList) {
                 if (networkNoteCrawler.support(targetUrl)) {
