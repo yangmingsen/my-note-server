@@ -166,6 +166,12 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
                 throw new BusinessException(BusinessErrorCode.E_204004);
             }
         }
+        //当前内容可否查看，（可能已经被标记为删除了，需要校验）
+        boolean isDel = noteDataService.isDelete(iNoteData.getId());
+        if (isDel) {
+            throw new BusinessException(CommonErrorCode.E_200201);
+        }
+        //ret data
         return true;
     }
 

@@ -37,7 +37,7 @@ public class AutoConsumerService implements ConsumerService, ApplicationListener
 
     @Override
     public void consumer(IMessage iMessage) {
-        AutoConsumerService.log.info("consumer msg: {}", iMessage);
+        AutoConsumerService.log.debug("consumer msg: {}", iMessage);
         for (MessageListener messageListener : messageListeners) {
             if (messageListener.support(iMessage)) {
                 try {

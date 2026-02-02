@@ -447,4 +447,23 @@ public class NoteDataServiceImpl implements NoteDataService {
         //update cache
         cacheService.hDel(NoteCacheKey.NOTE_META_PARENT_LIST_KEY, noteMeta.getParentId().toString());*/
     }
+
+    @Override
+    public boolean isDelete(Long id) {
+        //1.先看自己
+        NoteMeta self = noteMetaService.findOne(id);
+        if (self == null) {
+            throw new BusinessException(CommonErrorCode.E_200201);
+        }
+        if (NoteConstants.DELETE_FLAG.equals(self.getDel())) { //处理当前层
+            return true;
+        }
+        while (self.getParentId() != 0L) {
+            self = noteMetaService.findOne(self.getParentId());
+            if (NoteConstants.DELETE_FLAG.equals(self.getDel())) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

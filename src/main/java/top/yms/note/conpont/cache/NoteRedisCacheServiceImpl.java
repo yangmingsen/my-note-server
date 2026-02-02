@@ -251,7 +251,7 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
         try {
             return redisTemplate.opsForList().leftPop(key, timeout, unit);
         } catch (org.springframework.dao.QueryTimeoutException qte) {
-            //log.info("blPop warning: {}", qte.getMessage());
+            log.info("blPop warning: {}", qte.getMessage());
         } catch (Exception e) {
             log.error("blPop error",e);
         }

@@ -60,6 +60,20 @@ public abstract class AbstractNetworkNoteSyncService implements NoteSyncService 
 
     abstract Long getThirdLevelId(Long parentId, String param);
 
+    private final Object obj1 = new Object();
+    private final Object obj2 = new Object();
+
+    protected Long getSecondLevelIdWithSync(Long parentId) {
+        synchronized (obj1) {
+            return getSecondLevelId(parentId);
+        }
+    }
+
+    protected Long getThirdLevelIdWithSync(Long parentId, String param) {
+        synchronized (obj2) {
+            return getThirdLevelId(parentId, param);
+        }
+    }
 
 
     /**
@@ -128,7 +142,7 @@ public abstract class AbstractNetworkNoteSyncService implements NoteSyncService 
         noteMeta.setId(networkNote.getNoteId());
         noteMeta.setName(networkNote.getTitle());
         noteMeta.setType(FileTypeEnum.MARKDOWN.getValue());
-        noteMeta.setParentId(getThirdLevelId(getSecondLevelId(getRootLevelId()), networkNote.getUrl()));
+        noteMeta.setParentId(getThirdLevelIdWithSync(getSecondLevelIdWithSync(getRootLevelId()), networkNote.getUrl()));
         noteMeta.setStoreSite(NoteConstants.MYSQL);
         noteMeta.setUserId(userId);
         noteMeta.setIsFile(NoteConstants.FILE_FLAG);

@@ -16,6 +16,7 @@ import top.yms.note.conpont.crawler.worker.CrawlWorker;
 import top.yms.note.conpont.crawler.worker.CrawlWorkerQueue;
 import top.yms.note.conpont.crawler.worker.DefaultCrawlWorkerQueue;
 import top.yms.note.entity.CrawlerTarget;
+import top.yms.note.mapper.CrawlerTargetMapper;
 
 import javax.annotation.Resource;
 import java.util.LinkedList;
@@ -40,6 +41,9 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
 
     @Resource
     private List<NetworkNoteCrawler> networkNoteCrawlerList;
+
+    @Resource
+    private CrawlerTargetMapper crawlerTargetMapper;
 
     @Value("${crawler.per-crawler-worker-num}")
     private Integer perCrawlerWorkerNum;
@@ -95,13 +99,6 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
             crawlWorker.setScheduler(urlScheduler);
             //crawlWorkerQueue
             crawlWorker.setCrawlWorkerQueue(crawlWorkerQueue);
-            //urlDiscoverer
-//            for (UrlDiscoverer urlDiscoverer : urlDiscovererList) {
-//                if (urlDiscoverer.support(targetUrl)) {
-//                    crawlWorker.setUrlDiscoverer(urlDiscoverer);
-//                    break;
-//                }
-//            }
             //rateLimiter
             crawlWorker.setRateLimiter(new SimpleRateLimiter(4000));
             //networkNoteCrawler
@@ -124,43 +121,7 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
     }
 
     private List<CrawlerTarget> findAllCrawlerTargetList() {
-        List<CrawlerTarget> crawlerTargetList = new LinkedList<>();
-        CrawlerTarget ct1 = new CrawlerTarget();
-        ct1.setUrl("https://www.runoob.com/");
-        ct1.setCondition("runoob");
-        ct1.setOpen("0");
-        crawlerTargetList.add(ct1);
-
-        CrawlerTarget ct2 = new CrawlerTarget();
-        ct2.setUrl("https://arthas.aliyun.com/doc/");
-        ct2.setCondition("arthas.aliyun");
-        ct2.setOpen("0");
-        crawlerTargetList.add(ct2);
-
-        CrawlerTarget ct3 = new CrawlerTarget();
-        ct3.setUrl("https://oi-wiki.org/search/");
-        ct3.setCondition("oi-wiki");
-        ct3.setOpen("0");
-        crawlerTargetList.add(ct3);
-
-        CrawlerTarget ct4 = new CrawlerTarget();
-        ct4.setUrl("https://wangdoc.com/");
-        ct4.setCondition("wangdoc");
-        ct4.setOpen("0");
-        crawlerTargetList.add(ct4);
-
-        CrawlerTarget ct5 = new CrawlerTarget();
-        ct5.setUrl("https://pdai.tech/md/java/basic/java-basic-x-generic.html");
-        ct5.setCondition("pdai.tech");
-        ct5.setOpen("1");
-        crawlerTargetList.add(ct5);
-
-        CrawlerTarget ct6 = new CrawlerTarget();
-        ct6.setUrl("https://linux.vbird.org/linux_basic/centos7/0110whatislinux.php");
-        ct6.setCondition("linux.vbird.org");
-        ct6.setOpen("1");
-        crawlerTargetList.add(ct6);
-
-        return crawlerTargetList.stream().filter(ct -> ct.getOpen().equals("1")).collect(Collectors.toList());
+        List<CrawlerTarget> crawlerTargetList = crawlerTargetMapper.selectByOpenFlg("1");
+        return crawlerTargetList;
     }
 }
