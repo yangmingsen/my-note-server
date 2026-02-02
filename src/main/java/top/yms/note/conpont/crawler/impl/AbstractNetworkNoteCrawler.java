@@ -58,9 +58,9 @@ public abstract class AbstractNetworkNoteCrawler implements NetworkNoteCrawler{
     @Value("${crawler.file-upload-async}")
     private boolean fileUploadAsync;
 
-    private final static ThreadLocal<Map<String, Object>> crawlerTaskInfo = new ThreadLocal<>();
+    protected final static ThreadLocal<Map<String, Object>> crawlerTaskInfo = new ThreadLocal<>();
 
-    private final static String RefererFlg = "RefererFlg";
+    protected final static String RefererFlg = "RefererFlg";
 
     private CrawlerRateLimiter crawlerRateLimiter = new SimpleRateLimiter(1000);
 
@@ -137,6 +137,10 @@ public abstract class AbstractNetworkNoteCrawler implements NetworkNoteCrawler{
     }
 
 
+    protected String imageUrlFilter(String imgUrl) {
+        return imgUrl;
+    }
+
 
     protected void matchImage(final long noteId, Element contentEl) {
         // 处理图片
@@ -144,6 +148,7 @@ public abstract class AbstractNetworkNoteCrawler implements NetworkNoteCrawler{
         for (Element img : images) {
             //match img
             String imgUrl = img.absUrl("src");
+            imgUrl = imageUrlFilter(imgUrl);
             if (StringUtils.isBlank(imgUrl)) {
                 continue;
             }
@@ -214,6 +219,17 @@ public abstract class AbstractNetworkNoteCrawler implements NetworkNoteCrawler{
         return markdownStr;
     }
 
+    protected Object getReferer(String url) {
+        //将加入到
+        Map<String, Object> thMap = crawlerTaskInfo.get();
+        if (thMap == null) {
+            thMap = new HashMap<>();
+            crawlerTaskInfo.set(thMap);
+        }
+        thMap.put(RefererFlg, url);
+        return url;
+    }
+
     public NetworkNote crawl(String url) throws Exception {
         if (blackListMatch(url)) {
             //若中黑名单，从待爬取队列中删除
@@ -229,14 +245,7 @@ public abstract class AbstractNetworkNoteCrawler implements NetworkNoteCrawler{
         try {
             Connection connect = Jsoup.connect(url).proxy("127.0.0.1",10809);
             connect.header("User-Agent", UserAgentProvider.getUserAgent());
-            Object oV = cacheService.sRandMember(NoteCacheKey.CRAWLER_DUP_SET);
-            //将加入到
-            Map<String, Object> thMap = crawlerTaskInfo.get();
-            if (thMap == null) {
-                thMap = new HashMap<>();
-                crawlerTaskInfo.set(thMap);
-            }
-            thMap.put(RefererFlg, oV);
+            Object oV = getReferer(url);
             if (oV != null) {
                 connect.header("Referer",oV.toString());
             }

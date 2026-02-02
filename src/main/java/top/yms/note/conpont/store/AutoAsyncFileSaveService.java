@@ -66,5 +66,6 @@ public class AutoAsyncFileSaveService implements NoteTask, InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         thread.start();
+        log.info("AutoAsyncFileSaveService started .....");
     }
 }

@@ -55,4 +55,6 @@ public interface NoteDataService {
      */
     void addOrUpdateNote(NoteMeta noteMeta, NoteData noteData);
 
+    boolean isDelete(Long id);
+
 }
