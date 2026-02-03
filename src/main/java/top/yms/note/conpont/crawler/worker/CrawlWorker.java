@@ -5,12 +5,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.yms.note.config.SpringContext;
 import top.yms.note.conpont.crawler.discoverer.UrlDiscoverer;
+import top.yms.note.conpont.crawler.impl.CrawlerTargetMessage;
 import top.yms.note.conpont.crawler.impl.NetworkNoteCrawler;
 import top.yms.note.conpont.crawler.impl.NetworkNoteMessage;
 import top.yms.note.conpont.crawler.limiter.CrawlerRateLimiter;
 import top.yms.note.conpont.crawler.scheduler.UrlScheduler;
 import top.yms.note.conpont.queue.ProducerService;
 import top.yms.note.conpont.task.NoteTask;
+import top.yms.note.entity.CrawlerTarget;
 import top.yms.note.entity.NetworkNote;
 
 import java.util.Set;
@@ -37,6 +39,8 @@ public class CrawlWorker implements NoteTask {
 
     private  CrawlerRateLimiter rateLimiter;
 
+    private CrawlerTarget crawlerTarget;
+
     /**
      * 待处理任务队列
      */
@@ -57,6 +61,14 @@ public class CrawlWorker implements NoteTask {
 
     public void setNetworkNoteCrawler(NetworkNoteCrawler networkNoteCrawler) {
         this.networkNoteCrawler = networkNoteCrawler;
+    }
+
+    public CrawlerTarget getCrawlerTarget() {
+        return crawlerTarget;
+    }
+
+    public void setCrawlerTarget(CrawlerTarget crawlerTarget) {
+        this.crawlerTarget = crawlerTarget;
     }
 
     public String getName() {
@@ -121,6 +133,10 @@ public class CrawlWorker implements NoteTask {
                     emptyCnt++;
                     if (emptyCnt > 5) { //如果15内没有新任务，认为是没有数据了，该退出
                         log.info("{}, 15s内无任务退出", this);
+                        //通知完成
+                        CrawlerTargetMessage crawlerTargetMessage = new CrawlerTargetMessage();
+                        crawlerTargetMessage.setBody(crawlerTarget);
+                        getProducerService().send(crawlerTargetMessage);
                         break;
                     }
                     continue;

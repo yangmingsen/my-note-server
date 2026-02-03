@@ -29,6 +29,8 @@ public class NetworkNoteMessageListener implements MessageListener {
         NetworkNote networkNote = (NetworkNote)message.getBody();
         NetworkNote oV = networkNoteRepository.findByMd5Id(networkNote.getMd5Id());
         if (oV == null) {
+            //不需要再存储内容了，因为mysql已经存储了
+            networkNote.setContent(null);
             networkNoteRepository.save(networkNote);
             //add ok to cache
             String url = networkNote.getUrl();
