@@ -62,6 +62,7 @@ public class CnBlogsNetworkNoteCralwer extends AbstractNetworkNoteCrawler{
     protected void processBeforeDocument(Document doc) {
         doc.select("#blog_post_info_block").remove();
         doc.select("#MySignature").remove();
+        doc.select("div.toc").remove();
         // 标题锚点清理（关键）
         doc.select("h1, h2, h3, h4, h5, h6").removeAttr("id");
         //删除标题里面的描点
