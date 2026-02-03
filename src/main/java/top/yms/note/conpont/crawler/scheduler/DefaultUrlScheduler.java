@@ -33,12 +33,12 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
     /**
      * 当前申请的内容队列大小
      */
-    private  int maxQueueSize = 12000;
+    private  int maxQueueSize = 8000;
 
     /**
      * 可入队因子
      */
-    private int factor = 95;
+    private float factor = 91.0f;
 
     @Value("${crawler.status}")
     private boolean crawlerStatus;
@@ -104,9 +104,9 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
     }
 
     @Override
-    public boolean canEnqueue() {
-        int qs = queueSize();
-        int percent = (qs/ maxQueueSize) * 100;
+    public  boolean canEnqueue() {
+        float qs = queueSize() * 1.0f;
+        float percent = (qs / maxQueueSize) * 100.0f;
         if (percent > factor) {
             return false;
         }
@@ -131,7 +131,10 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
         Boolean isExist4 = cacheService.sIsMember(NoteCacheKey.CRAWLER_BLACKLIST_SET, url);
         Boolean isExist5 = cacheService.sIsMember(NoteCacheKey.CRAWLER_EMPTY_DATA_SET, url);
         if (!isExist && !isExist2 && !isExist3 && !isExist4 && !isExist5) {
-            queue.offer(url);
+            boolean res = queue.offer(url);
+            if (!res) {
+                log.error("add fail.....");
+            }
             cacheService.sAdd(NoteCacheKey.CRAWLER_DUP_SET, url);
         }
     }
@@ -207,19 +210,23 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
         //清空上次失败集合
         cacheService.del(NoteCacheKey.CRAWLER_FAIL_SET);*/
         //获取上次本次待爬取任务，加入到队列中
-        Set<Object> waitFetchSet = cacheService.sMembers(NoteCacheKey.CRAWLER_DUP_SET);
-        if (waitFetchSet.size() > maxQueueSize) {
-            queue = null;
-            int curWaitSize = waitFetchSet.size();
-            int allocNewSize = (int)(curWaitSize*1.2);
-            log.info("当前默认队列太小，重新申请。 待处理量={}, 申请={}", curWaitSize, allocNewSize);
-            queue = new ArrayBlockingQueue<>(allocNewSize);
-            //重新赋值
-            maxQueueSize = allocNewSize;
-        } else {
-            //new queue
-            queue = new ArrayBlockingQueue<>(maxQueueSize);
+//        Set<Object> waitFetchSet = cacheService.sMembers(NoteCacheKey.CRAWLER_DUP_SET);
+        Long sSize = cacheService.sCard(NoteCacheKey.CRAWLER_DUP_SET);
+        //new queue
+        queue = new ArrayBlockingQueue<>(maxQueueSize);
+        //入队
+        if (sSize > maxQueueSize) {
+            int enQueueNum = (int)(maxQueueSize*0.75f);
+            long waitEnqueueNum = sSize-enQueueNum;
+            log.info("带fetch数量大于最大队列限制{}, 入队数量:{}, 待入队:{}", maxQueueSize, enQueueNum, waitEnqueueNum);
+            //进入wait-enqueue队列
+            List<Object> waitEnqueueUrl = cacheService.sPop(NoteCacheKey.CRAWLER_DUP_SET, waitEnqueueNum);
+            for (Object wfs : waitEnqueueUrl) {
+                cacheService.sAdd(NoteCacheKey.CRAWLER_WAIT_ENQUEUE_SET, wfs);
+            }
         }
+        //入队
+        Set<Object>  waitFetchSet = cacheService.sMembers(NoteCacheKey.CRAWLER_DUP_SET);
         //填充到待处理queue中
         for (Object wfs : waitFetchSet) {
             queue.offer(wfs.toString());
@@ -237,7 +244,7 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
                 }
                 boolean isSupport = false; //检查是否有支持该数据的队列，若无则继续放入队列中
                 for (CrawlWorkerQueue crawlWorkerQueue : crawlWorkerQueueList) {
-                    if (crawlWorkerQueue.support(url)) {
+                    if (crawlWorkerQueue.support(url) && crawlWorkerQueue.canOffer()) {
                         isSupport = true;
                         boolean ok = crawlWorkerQueue.offer(url);
                         if (!ok) {
@@ -248,6 +255,7 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
                 }
                 if (!isSupport) {
                     queue.offer(url);
+                    Thread.sleep(500);
                 }
             } catch (Throwable th) {
                 log.error("分发任务异常： {}", th.getMessage());

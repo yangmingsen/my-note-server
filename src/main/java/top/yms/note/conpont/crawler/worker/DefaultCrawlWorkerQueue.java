@@ -13,7 +13,9 @@ public class DefaultCrawlWorkerQueue implements CrawlWorkerQueue{
 
     private final String condition;
 
-    private final int queueSize = 3000;
+    private final int queueSize = 500;
+
+    private float factor = 0.75f;
 
     private final ArrayBlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(queueSize);
 
@@ -51,6 +53,16 @@ public class DefaultCrawlWorkerQueue implements CrawlWorkerQueue{
             return false;
         }
         return blockingQueue.offer(url);
+    }
+
+    @Override
+    public boolean canOffer() {
+        float curSize = blockingQueue.size()*1.0f;
+        float percent = (curSize / queueSize)*100.0f;
+        if (percent > factor) {
+            return false;
+        }
+        return true;
     }
 
     @Override
