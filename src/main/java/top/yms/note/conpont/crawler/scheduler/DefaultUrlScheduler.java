@@ -130,7 +130,8 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
         Boolean isExist3 = cacheService.sIsMember(NoteCacheKey.CRAWLER_SUCCESS_SET, url);
         Boolean isExist4 = cacheService.sIsMember(NoteCacheKey.CRAWLER_BLACKLIST_SET, url);
         Boolean isExist5 = cacheService.sIsMember(NoteCacheKey.CRAWLER_EMPTY_DATA_SET, url);
-        if (!isExist && !isExist2 && !isExist3 && !isExist4 && !isExist5) {
+        Boolean isExist6 = cacheService.sIsMember(NoteCacheKey.CRAWLER_WAIT_ENQUEUE_SET, url);
+        if (!isExist && !isExist2 && !isExist3 && !isExist4 && !isExist5&& !isExist6) {
             boolean res = queue.offer(url);
             if (!res) {
                 log.error("add fail.....");
