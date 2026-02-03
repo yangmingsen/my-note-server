@@ -133,7 +133,8 @@ public class NoteFileServiceImpl implements NoteFileService {
             noteFile.setUrl(tmpViewUrl);
             noteFile.setNoteRef(noteId);
             noteFile.setCreateTime(new Date());
-            noteFileMapper.insertSelective(noteFile);
+            add(noteFile);
+            //noteFileMapper.insertSelective(noteFile);
             JSONObject data = new JSONObject();
             data.put("url", url);
             data.put("alt", fileName);
@@ -298,7 +299,8 @@ public class NoteFileServiceImpl implements NoteFileService {
             noteFile.setViewCount(0L);
             noteFile.setCreateTime(new Date());
             noteFile.setNoteRef(note.getId());
-            noteFileMapper.insertSelective(noteFile);
+            add(noteFile);
+            //noteFileMapper.insertSelective(noteFile);
             // return
             return note;
         } catch (Exception e) {
@@ -430,7 +432,8 @@ public class NoteFileServiceImpl implements NoteFileService {
                 noteFile.setViewCount(0L);
                 noteFile.setCreateTime(new Date());
                 noteFile.setNoteRef(id);
-                noteFileMapper.insertSelective(noteFile);
+                add(noteFile);
+                //noteFileMapper.insertSelective(noteFile);
             }
         } else {
             File[] files = file.listFiles();
@@ -487,7 +490,8 @@ public class NoteFileServiceImpl implements NoteFileService {
                 noteFile.setViewCount(0L);
                 noteFile.setCreateTime(new Date());
                 noteFile.setNoteRef(noteId);
-                noteFileMapper.insertSelective(noteFile);
+                add(noteFile);
+                //noteFileMapper.insertSelective(noteFile);
                 matcher.appendReplacement(sb, "![" + altText + "](" + viewUrl + ")");
             } catch (Exception e) {
                 matcher.appendReplacement(sb, "![" + altText + "](" + oldUrl + ")");
@@ -515,7 +519,8 @@ public class NoteFileServiceImpl implements NoteFileService {
             noteFile.setUrl(fileViewUrlSuffix);
             noteFile.setNoteRef(noteId);
             noteFile.setCreateTime(new Date());
-            noteFileMapper.insertSelective(noteFile);
+            add(noteFile);
+            //noteFileMapper.insertSelective(noteFile);
             String url = NoteConstants.getBaseUrl()+fileViewUrlSuffix;
             JSONObject resJson = new JSONObject();
             resJson.put("url", url);
@@ -579,7 +584,8 @@ public class NoteFileServiceImpl implements NoteFileService {
             noteFile.setUrl(fileViewUrlSuffix);
             noteFile.setCreateTime(new Date());
             noteFile.setNoteRef(id);
-            noteFileMapper.insertSelective(noteFile);
+            add(noteFile);
+            //noteFileMapper.insertSelective(noteFile);
             String url = NoteConstants.getBaseUrl()+fileViewUrlSuffix;
             inputStream.close();
             resJson.put("url", url);
@@ -650,7 +656,8 @@ public class NoteFileServiceImpl implements NoteFileService {
             noteFile.setUrl(fileViewUrlSuffix);
             noteFile.setCreateTime(new Date());
             noteFile.setNoteRef(id);
-            noteFileMapper.insertSelective(noteFile);
+            add(noteFile);
+            //noteFileMapper.insertSelective(noteFile);
             inputStream.close();
         } catch (Exception e) {
             //删除fileId
@@ -702,6 +709,13 @@ public class NoteFileServiceImpl implements NoteFileService {
 
     @Override
     public NoteFile add(NoteFile noteFile) {
+        //bug20260203 若长度大于100（db定义) 报错
+        String name = noteFile.getName();
+        int nLen = name.length();
+        if (nLen > 100) {
+            name = name.substring(nLen-100, nLen);
+            noteFile.setName(name);
+        }
         noteFileMapper.insertSelective(noteFile);
         return noteFile;
     }
