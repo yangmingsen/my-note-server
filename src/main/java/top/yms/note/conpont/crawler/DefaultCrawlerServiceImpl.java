@@ -8,6 +8,7 @@ import top.yms.note.comm.NoteCacheKey;
 import top.yms.note.conpont.SysConfigService;
 import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.conpont.crawler.discoverer.UrlDiscoverer;
+import top.yms.note.conpont.crawler.impl.CrawlerTargetMessage;
 import top.yms.note.conpont.crawler.impl.NetworkNoteCrawler;
 import top.yms.note.conpont.crawler.limiter.CrawlerRateLimiter;
 import top.yms.note.conpont.crawler.limiter.SimpleRateLimiter;
@@ -15,6 +16,8 @@ import top.yms.note.conpont.crawler.scheduler.UrlScheduler;
 import top.yms.note.conpont.crawler.worker.CrawlWorker;
 import top.yms.note.conpont.crawler.worker.CrawlWorkerQueue;
 import top.yms.note.conpont.crawler.worker.DefaultCrawlWorkerQueue;
+import top.yms.note.conpont.queue.IMessage;
+import top.yms.note.conpont.queue.MessageListener;
 import top.yms.note.entity.CrawlerTarget;
 import top.yms.note.mapper.CrawlerTargetMapper;
 
@@ -26,7 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Component
-public class DefaultCrawlerServiceImpl implements CrawlerService{
+public class DefaultCrawlerServiceImpl implements CrawlerService, MessageListener {
 
     private final static Logger log = LoggerFactory.getLogger(DefaultCrawlerServiceImpl.class);
 
@@ -90,6 +93,7 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
         for (CrawlerTarget crawlerTarget : crawlerTargetList) {
             //pack task
             CrawlWorker crawlWorker = new CrawlWorker();
+            crawlWorker.setCrawlerTarget(crawlerTarget);
             crawlWorker.setName(crawlerTarget.getCondition());
             CrawlWorkerQueue crawlWorkerQueue = new DefaultCrawlWorkerQueue(crawlerTarget.getCondition());
             //注册任务queue
@@ -126,5 +130,38 @@ public class DefaultCrawlerServiceImpl implements CrawlerService{
     private List<CrawlerTarget> findAllCrawlerTargetList() {
         List<CrawlerTarget> crawlerTargetList = crawlerTargetMapper.selectByOpenFlg("1");
         return crawlerTargetList;
+    }
+
+    @Override
+    public boolean support(IMessage message) {
+        if (message instanceof CrawlerTargetMessage) {
+            return true;
+        }
+        return false;
+    }
+
+    final Object obj = new Object();
+
+    @Override
+    public void onMessage(IMessage message) {
+        synchronized (obj) {
+            CrawlerTargetMessage crawlerTargetMsg = (CrawlerTargetMessage)message;
+            CrawlerTarget crawlerTarget = (CrawlerTarget)crawlerTargetMsg.getBody();
+            String idKey = "ct"+crawlerTarget.getId();
+            Object o = cacheService.get(idKey);
+            if (o != null) {
+                int num = Integer.parseInt(o.toString());
+                num = num+1;
+                cacheService.set(idKey, num, 120);
+                if (num == perCrawlerWorkerNum) {
+                    //已经完成爬取
+                    crawlerTarget.setOpen("0");
+                    crawlerTargetMapper.updateByPrimaryKeySelective(crawlerTarget);
+                    cacheService.del(idKey);
+                }
+            } else {
+                cacheService.set(idKey, 1, 120);
+            }
+        }
     }
 }
