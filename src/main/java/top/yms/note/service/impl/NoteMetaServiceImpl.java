@@ -470,6 +470,10 @@ public class NoteMetaServiceImpl implements NoteMetaService {
             logData.setType(NoteOpTypeEnum.ADD);
             Gson gson = new Gson();
             String gsonStr = gson.toJson(note);
+            //bug20260203 若是gsonStr值大于500(数据库定义的长度)插表失败
+            if (gsonStr.length() > 480) {
+                gsonStr = gsonStr.substring(0, 499);
+            }
             logData.setContent(gsonStr);
             noteIndexLogMapper.insert(logData);
             //update index service

@@ -1,5 +1,6 @@
 package top.yms.note.conpont.queue.channel;
 
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import top.yms.note.conpont.queue.IMessage;
 
@@ -7,12 +8,13 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+
 @Component
 public class MemoryQueueChannel implements QueueChannel{
 
-    private final static BlockingQueue<IMessage> highQueue = new ArrayBlockingQueue<>(500);
-    private final static BlockingQueue<IMessage> mediumQueue = new ArrayBlockingQueue<>(500);
-    private final static BlockingQueue<IMessage> lowQueue = new ArrayBlockingQueue<>(500);
+    private final static BlockingQueue<IMessage> highQueue = new ArrayBlockingQueue<>(1000);
+    private final static BlockingQueue<IMessage> mediumQueue = new ArrayBlockingQueue<>(600);
+    private final static BlockingQueue<IMessage> lowQueue = new ArrayBlockingQueue<>(400);
 
     @Override
     public boolean offer(IMessage iMessage) {

@@ -148,7 +148,6 @@ public interface NoteRedisCacheService extends NoteCacheService {
      * @see <a href="https://redis.io/commands/spop">Redis Documentation: SPOP</a>
      * @since 2.0
      */
-    @Nullable
     List<Object> sPop(String key, long count);
 
     /**
@@ -159,7 +158,6 @@ public interface NoteRedisCacheService extends NoteCacheService {
      * @return {@literal null} when used in pipeline / transaction.
      * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
      */
-    @Nullable
     Long rPush(String key, Object ... values);
 
     /**
@@ -169,7 +167,6 @@ public interface NoteRedisCacheService extends NoteCacheService {
      * @return can be {@literal null}.
      * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
      */
-    @Nullable
     Object lPop(String key);
 
     /**

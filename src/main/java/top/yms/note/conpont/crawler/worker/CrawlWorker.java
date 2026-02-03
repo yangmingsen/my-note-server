@@ -113,10 +113,6 @@ public class CrawlWorker implements NoteTask {
             log.error("networkNoteCrawler must not null");
             return;
         }
-//        if (urlDiscoverer == null ) {
-//            log.error("urlDiscoverer must not null");
-//            return;
-//        }
         if (rateLimiter == null ) {
             log.error("rateLimiter must not null");
             return;
@@ -125,14 +121,19 @@ public class CrawlWorker implements NoteTask {
             log.error("crawlWorkerQueue must not null");
             return;
         }
+        if (crawlerTarget == null) {
+            log.error("crawlerTarget must not null");
+            return;
+        }
         byte emptyCnt = 0;
+        int te = 3;
         while (true) {
             try {
-                String url = crawlWorkerQueue.poll(3, TimeUnit.SECONDS);
+                String url = crawlWorkerQueue.poll(te, TimeUnit.SECONDS);
                 if (StringUtils.isBlank(url)) {
                     emptyCnt++;
-                    if (emptyCnt > 5) { //如果15内没有新任务，认为是没有数据了，该退出
-                        log.info("{}, 15s内无任务退出", this);
+                    if (emptyCnt > 40) { //如果120s内没有新任务，认为是没有数据了，该退出
+                        log.info("[{}]任务, {}s内无任务退出", crawlerTarget.getCondition(), te*40+te);
                         //通知完成
                         CrawlerTargetMessage crawlerTargetMessage = new CrawlerTargetMessage();
                         crawlerTargetMessage.setBody(crawlerTarget);

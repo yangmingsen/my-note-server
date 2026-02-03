@@ -3,6 +3,7 @@ package top.yms.note.conpont.queue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import top.yms.note.conpont.queue.channel.MemoryChannel;
 import top.yms.note.conpont.queue.channel.QueueChannel;
@@ -47,14 +48,17 @@ public class DefaultQueueClient implements InitializingBean, QueueClient{
             }
         });
         highLoopThread.start();
+        log.info("highLoopThread started .......");
         otherLoopThread = new Thread(() -> {
             long cnt = 0;
             while (true) {
                 try {
+                    //中等每秒一次
                     final IMessage iMessage = queueChannel.pollFromMedium(1, TimeUnit.SECONDS);
                     if (iMessage != null) {
                         executor.execute(() -> consumerService.consumer(iMessage));
                     }
+                    //3秒拉一次
                     if (cnt % 3 == 0) {
                         final IMessage iMessage2 = queueChannel.pollFromLow();
                         if (iMessage2 != null) {
@@ -68,6 +72,7 @@ public class DefaultQueueClient implements InitializingBean, QueueClient{
             }
         });
         otherLoopThread.start();
+        log.info("otherLoopThread started .......");
         log.info("=======start AutoConsumerService ok==========");
     }
 
