@@ -117,6 +117,20 @@ public abstract class NoteCacheKey {
      */
     public static final String ASYNC_UPLOAD_FILE_DUP_CHECK_HASH = NOTE_PREFIX+"async::hash::upload-file::dup-check";
 
+    /**
+     * 高优先级队列名称
+     */
+    public static final String QUEUE_HIGH_NAME_LIST = NOTE_PREFIX+"queue::name::high";
+    /**
+     * 中优先级
+     */
+    public static final String QUEUE_MEDIUM_NAME_LIST = NOTE_PREFIX+"queue::name::medium";
+    /**
+     * 低优先级
+     */
+    public static final String QUEUE_LOW_NAME_LIST = NOTE_PREFIX+"queue::name::low";
+
+
 
 
 
