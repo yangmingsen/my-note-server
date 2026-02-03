@@ -159,7 +159,7 @@ public class CrawlWorker implements NoteTask {
                 }
             } catch (Exception e) {
                 // 记录日志，继续跑
-                log.error("CrawlWorker Error: {}", e.getMessage());
+                log.error("CrawlWorker Error: ", e);
             }
         }
     }

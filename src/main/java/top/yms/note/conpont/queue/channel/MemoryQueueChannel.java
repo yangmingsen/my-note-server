@@ -48,7 +48,8 @@ public class MemoryQueueChannel implements QueueChannel{
         String msgId = iMessage.getMsgId();
         //加msgId
         if (StringUtils.isBlank(msgId)) {
-            iMessage.setMsgId("[queue]"+idWorker.nextId());
+            msgId = "[queue]"+idWorker.nextId();
+            iMessage.setMsgId(msgId);
         }
         Object o = noteExpireCacheService.find(msgId);
         if (o != null) {
