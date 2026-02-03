@@ -716,6 +716,12 @@ public class NoteFileServiceImpl implements NoteFileService {
             name = name.substring(nLen-100, nLen);
             noteFile.setName(name);
         }
+        String fileType = noteFile.getType();
+        nLen = fileType.length();
+        if (nLen > 30) {
+            fileType = fileType.substring(nLen-30, nLen);
+            noteFile.setType(fileType);
+        }
         noteFileMapper.insertSelective(noteFile);
         return noteFile;
     }
