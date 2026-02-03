@@ -5,9 +5,19 @@ import top.yms.note.conpont.queue.channel.MessagePriority;
 
 public class AbstractMessage implements IMessage {
 
+    private String msgId;
+
     private String target;
 
     private Object body;
+
+    public String getMsgId() {
+        return msgId;
+    }
+
+    public void setMsgId(String msgId) {
+        this.msgId = msgId;
+    }
 
     @Override
     public MessagePriority getPriority() {
