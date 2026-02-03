@@ -39,7 +39,7 @@ public interface UrlScheduler {
      * 判断是否可入队
      * @return
      */
-    boolean canEnqueue();
+     boolean  canEnqueue();
 
     /**
      * 将当前url加入到待入队队列中

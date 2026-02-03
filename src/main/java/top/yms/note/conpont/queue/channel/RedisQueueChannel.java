@@ -9,7 +9,6 @@ import top.yms.note.conpont.queue.IMessage;
 import javax.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
-
 public class RedisQueueChannel implements QueueChannel{
 
     private final static String HIGH_QUEUE_NAME = NoteCacheKey.QUEUE_HIGH_NAME_LIST;

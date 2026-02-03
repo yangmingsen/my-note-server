@@ -31,6 +31,8 @@ public interface CrawlWorkerQueue {
      */
     boolean offer(String url);
 
+    boolean canOffer();
+
     void clear();
 
 }
