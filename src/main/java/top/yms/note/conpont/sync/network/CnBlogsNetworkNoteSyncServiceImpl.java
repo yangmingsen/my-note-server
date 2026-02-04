@@ -8,9 +8,14 @@ import top.yms.note.entity.NetworkNote;
 
 @Component
 public class CnBlogsNetworkNoteSyncServiceImpl extends AbstractNetworkNoteSyncService implements MessageListener {
+
     private static final String secondLevelName = "博客园（CnBlogs)";
 
+    private static final String secondLevelName2 = "博客园（CnBlogs)2";
+
     private Long secondLevelId;
+
+    private Long secondLevelId2;
 
 
     @Override
