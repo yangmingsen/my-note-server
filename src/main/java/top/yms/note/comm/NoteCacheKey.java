@@ -130,7 +130,10 @@ public abstract class NoteCacheKey {
      */
     public static final String QUEUE_LOW_NAME_LIST = NOTE_PREFIX+"queue::name::low";
 
-
+    /**
+     * cnblogs目录hash信息
+     */
+    public static final String SYNC_NETNOTE_CNBLOGS_LEVEL_NAME_HASH = NOTE_PREFIX+"sync::hash::netnote::cnblogs";
 
 
 
