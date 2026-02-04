@@ -161,6 +161,12 @@ public abstract class AbstractNetworkNoteCrawler implements NetworkNoteCrawler{
             if (idx > 0 && idx < imgUrl.length() - 1) {
                 suffix = imgUrl.substring(idx + 1);
             }
+            if (StringUtils.isBlank(suffix)) {
+                continue;
+            }
+            if (suffix.length() > 8) {
+                continue;
+            }
             if (fileUploadAsync) {
                 try {
                     String newUrl = imageUploader.asyncUpload(imgUrl, suffix, (noteFile) -> {
