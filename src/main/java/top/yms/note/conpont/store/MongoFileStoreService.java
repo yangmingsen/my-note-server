@@ -7,6 +7,7 @@ import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -21,6 +22,7 @@ import top.yms.note.exception.BusinessException;
 import top.yms.note.exception.NoteSystemException;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.msgcd.NoteSystemErrorCode;
+import top.yms.note.utils.IdWorker;
 
 import javax.annotation.Resource;
 import java.io.*;
@@ -49,6 +51,12 @@ public class MongoFileStoreService implements FileStoreService {
 
     @Resource(name = NoteConstants.bigFileGridFsTemplate)
     private GridFsTemplate bigFileGridFsTemplate;
+
+    @Value("${mongo.file-storage-open}")
+    private boolean mongoFileStorageOpen;
+
+    @Resource
+    private IdWorker idWorker;
 
     //16M: 16M以内用document存储，超过用文件桶
     private static final long THRESHOLD_SIZE = 16 * 1024 * 1024;
@@ -85,6 +93,9 @@ public class MongoFileStoreService implements FileStoreService {
 
     @Override
     public String saveFile(MultipartFile file) throws Exception {
+        if (!mongoFileStorageOpen) {
+            return NoteConstants.NEW_SMALL_FILE_PREFIX+idWorker.nextId();
+        }
         long size = file.getSize();
         if (size < THRESHOLD_SIZE) {
             SmallFileDocument doc = new SmallFileDocument();
@@ -104,6 +115,9 @@ public class MongoFileStoreService implements FileStoreService {
 
     @Override
     public String saveFile(InputStream inputStream, Map<String, Object> option) {
+        if (!mongoFileStorageOpen) {
+            return NoteConstants.NEW_SMALL_FILE_PREFIX+idWorker.nextId();
+        }
         String fileName = (String)option.get(NoteConstants.OPTION_FILE_NAME);
         String fileType = (String)option.get(NoteConstants.OPTION_FILE_TYPE);
         String fileSizeStr = option.get(NoteConstants.OPTION_FILE_SIZE) != null ? option.get(NoteConstants.OPTION_FILE_SIZE).toString():null;
@@ -150,6 +164,9 @@ public class MongoFileStoreService implements FileStoreService {
 
     @Override
     public String saveFile(File file) throws Exception {
+        if (!mongoFileStorageOpen) {
+            return NoteConstants.NEW_SMALL_FILE_PREFIX+idWorker.nextId();
+        }
         FileInputStream fis = new FileInputStream(file);
         String fileName = file.getName();
         String fileType;
