@@ -9,6 +9,7 @@ import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -288,6 +289,34 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         return transferNoteTree(noteMetaList);
     }
 
+    @Value("${note.open-query-simple-tree:true}")
+    private boolean openQuerySimpleTree;
+
+    @Value("${note.simple-tree-level:3}")
+    private int simpleTreeLevel;
+
+    private List<NoteMeta> findSimpleTreeDataList(Long userId) {
+        NoteUser noteUser = noteUserService.findOne(userId);
+        Long rootLevelId = noteUser.getNoteRootTreeId();
+        NoteMeta rootNoteMeta = findOne(rootLevelId);
+        List<NoteMeta> resList =new LinkedList<>();
+        resList.add(rootNoteMeta);
+        doFindSimpleTreeDataList(rootLevelId, resList, 1);
+        return resList;
+    }
+
+    private void doFindSimpleTreeDataList(Long parentId, List<NoteMeta> resList, int level) {
+        if (level + 1 > simpleTreeLevel) {
+            return;
+        }
+        List<NoteMeta> noteMetas = noteMetaMapper.selectByParentId(parentId);
+        for (NoteMeta noteMeta1 : noteMetas) {
+            resList.add(noteMeta1);
+            doFindSimpleTreeDataList(noteMeta1.getId(), resList, level+1);
+        }
+    }
+
+
     /**
      * 为了支持阅读密码的目录树。
      * 当父目录是被要求密码访问的，那么其子目录不该出现的tree树节点中。
@@ -302,9 +331,14 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         if (metaTreeCache != null) {
             return (List<AntTreeNode>)metaTreeCache;
         }
-        List<NoteMeta> noteMetaList =  noteMetaMapper.selectByExample(
-                NoteIndexQuery.Builder.build().uid(userId).del(false).filter(2).get().example()
-        );
+        List<NoteMeta> noteMetaList ;
+        if (openQuerySimpleTree) {
+            noteMetaList = findSimpleTreeDataList(userId);
+        } else {
+            noteMetaList = noteMetaMapper.selectByExample(
+                    NoteIndexQuery.Builder.build().uid(userId).del(false).filter(2).get().example()
+            );
+        }
         //列表转换为结构树
         Map<Long, NoteTree> noteTreeMap = new HashMap<>();
         Map<Long, NoteMeta> noteIndexMap = new HashMap<>();
