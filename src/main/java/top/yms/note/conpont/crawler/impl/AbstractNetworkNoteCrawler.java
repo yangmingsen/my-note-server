@@ -62,6 +62,15 @@ public abstract class AbstractNetworkNoteCrawler implements NetworkNoteCrawler{
 
     protected final static String RefererFlg = "RefererFlg";
 
+    @Value("${proxy.open}")
+    private boolean proxyOpen;
+
+    @Value("${proxy.http-ip}")
+    private String httpProxyIp;
+
+    @Value("${proxy.http-port:false}")
+    private int httpProxyPort;
+
     private CrawlerRateLimiter crawlerRateLimiter = new SimpleRateLimiter(1000);
 
 
@@ -117,8 +126,12 @@ public abstract class AbstractNetworkNoteCrawler implements NetworkNoteCrawler{
 
     private InputStream openImageStream(String imgUrl) throws IOException {
         URL url = new URL(imgUrl);
-        HttpURLConnection conn =
-                (HttpURLConnection) url.openConnection(ProxyFactory.http());
+        HttpURLConnection conn = null;
+        if (proxyOpen) {
+            conn =                 (HttpURLConnection) url.openConnection(ProxyFactory.http());
+        } else {
+            conn = (HttpURLConnection) url.openConnection();
+        }
         conn.setConnectTimeout(10_000);
         conn.setReadTimeout(15_000);
         conn.setRequestProperty("User-Agent", UserAgentProvider.getUserAgent());
@@ -249,7 +262,12 @@ public abstract class AbstractNetworkNoteCrawler implements NetworkNoteCrawler{
         Document doc = null;
         Connection.Response response = null;
         try {
-            Connection connect = Jsoup.connect(url).proxy("127.0.0.1",10809);
+            Connection connect = null;
+            if (proxyOpen) {
+                connect = Jsoup.connect(url).proxy(httpProxyIp,httpProxyPort);
+            } else {
+                connect = Jsoup.connect(url);
+            }
             connect.header("User-Agent", UserAgentProvider.getUserAgent());
             Object oV = getReferer(url);
             if (oV != null) {

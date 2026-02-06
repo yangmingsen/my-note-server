@@ -1,5 +1,6 @@
 package top.yms.note.conpont.http;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import top.yms.note.conpont.crawler.impl.ProxyFactory;
 import top.yms.note.conpont.crawler.impl.UserAgentProvider;
@@ -12,11 +13,19 @@ import java.util.Map;
 
 @Component
 public class DefaultNoteHttpRequestServiceImpl implements NoteHttpRequestService{
+
+    @Value("${proxy.open}")
+    private boolean proxyOpen;
+
     @Override
     public InputStream openImageStream(String imgUrl) throws IOException {
         URL url = new URL(imgUrl);
-        HttpURLConnection conn =
-                (HttpURLConnection) url.openConnection(ProxyFactory.http());
+        HttpURLConnection conn = null;
+        if (proxyOpen) {
+            conn =  (HttpURLConnection) url.openConnection(ProxyFactory.http());
+        } else {
+            conn = (HttpURLConnection) url.openConnection();
+        }
         conn.setConnectTimeout(10_000);
         conn.setReadTimeout(15_000);
         conn.setRequestProperty("User-Agent", UserAgentProvider.getUserAgent());
