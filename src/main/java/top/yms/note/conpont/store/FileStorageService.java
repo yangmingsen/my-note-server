@@ -203,8 +203,10 @@ public class FileStorageService implements FileStoreService {
         UploadResp uploadResp = storageClient.upload(inputStream, fileName +"."+ fileType);
         String storageFileId = uploadResp.getFileId();
         //为什么这么做？ 重新获取文件流再给mongo存储服务，因为inputStream在storageClient.upload后就被close了，所以只能再从storage中获取
-        InputStream fileStream = storageClient.getFileStream(storageFileId);
-        String mongoFileId = mongoFileStoreService.saveFile(fileStream, option);
+        //202602061745 由于不再使用mongo进行文件存储,故不再重新查询文件服务获取流
+        // InputStream fileStream = storageClient.getFileStream(storageFileId);
+//        String mongoFileId = mongoFileStoreService.saveFile(fileStream, option);
+        String mongoFileId = mongoFileStoreService.saveFile(null, option);
         Object fileId = option.get(NoteConstants.OPTION_FILE_ID);
         FileStoreRelation fileStoreRelation;
         if (fileId != null) {
