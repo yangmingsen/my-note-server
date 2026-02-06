@@ -309,7 +309,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
         if (level + 1 > simpleTreeLevel) {
             return;
         }
-        List<NoteMeta> noteMetas = noteMetaMapper.selectByParentId(parentId);
+        List<NoteMeta> noteMetas = selectByParentId(parentId).stream().filter(x -> NoteConstants.DIR_FLAG.equals(x.getIsFile())).collect(Collectors.toList());
         for (NoteMeta noteMeta1 : noteMetas) {
             resList.add(noteMeta1);
             doFindSimpleTreeDataList(noteMeta1.getId(), resList, level+1);

@@ -1,5 +1,8 @@
 package top.yms.note.conpont.crawler.impl;
 
+import org.springframework.beans.factory.annotation.Value;
+import top.yms.note.config.SpringContext;
+
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 
@@ -31,7 +34,29 @@ public class ProxyFactory {
                     new InetSocketAddress("127.0.0.1", 10809)
             );
 
+
+    @Value("${proxy.http-ip}")
+    private String httpProxyIp;
+
+    @Value("${proxy.http-port}")
+    private int httpProxyPort;
+
+    private static volatile Proxy httpProxy = null;
+
+    private Proxy getHttpProxy() {
+        if (httpProxy == null) {
+            synchronized (this) {
+                if (httpProxy != null) return httpProxy;
+                httpProxy = new Proxy(
+                        Proxy.Type.HTTP,
+                        new InetSocketAddress(httpProxyIp, httpProxyPort)
+                );
+            }
+        }
+        return httpProxy;
+    }
+
     public static Proxy http() {
-        return HTTP_PROXY;
+        return SpringContext.getBean(ProxyFactory.class).getHttpProxy();
     }
 }
