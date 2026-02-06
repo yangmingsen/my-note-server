@@ -14,7 +14,7 @@ import java.util.Map;
 @Component
 public class DefaultNoteHttpRequestServiceImpl implements NoteHttpRequestService{
 
-    @Value("${proxy.open}")
+    @Value("${proxy.image-open:false}")
     private boolean proxyOpen;
 
     @Override
