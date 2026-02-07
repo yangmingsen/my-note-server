@@ -52,6 +52,20 @@ public class AutoAsyncFailFileSaveService implements NoteTask, InitializingBean 
                     log.info("redo fetch image success. url={}", fetchUrl);
                 } catch (Exception e) {
                     log.error("async redo fetch image error: {}", e.getMessage());
+                    String noteFileId = fileSaveDto.getNoteFileId();
+                    Object cntVal = cacheService.hGet(NoteCacheKey.ASYNC_UPLOAD_FILE_FAIL_COUNT_HASH, noteFileId);
+                    if (cntVal != null) {
+                        int failCount = (int)cntVal;
+                        failCount++;
+                        if (failCount >= 3) {
+                            //进入死亡失败队列
+                            cacheService.rPush(NoteCacheKey.ASYNC_UPLOAD_FILE_FAIL_DEAD_LIST, fileSaveDto);
+                            continue;
+                        }
+                        cacheService.hSet(NoteCacheKey.ASYNC_UPLOAD_FILE_FAIL_COUNT_HASH, noteFileId, failCount);
+                    } else {
+                        cacheService.hSet(NoteCacheKey.ASYNC_UPLOAD_FILE_FAIL_COUNT_HASH, noteFileId, 2);
+                    }
                     //进入失败队列
                     cacheService.rPush(NoteCacheKey.ASYNC_UPLOAD_FILE_FAIL_LIST, fileSaveDto);
                 }

@@ -113,6 +113,16 @@ public abstract class NoteCacheKey {
     public static final String ASYNC_UPLOAD_FILE_FAIL_LIST = NOTE_PREFIX+"async::list::upload-file-fail::";
 
     /**
+     * 统计重试获取图片再次失败统计
+     */
+    public static final String ASYNC_UPLOAD_FILE_FAIL_COUNT_HASH = NOTE_PREFIX+"async::hash::upload-file-fail-count::";
+
+    /**
+     * 重试超过限制队列，死亡队列
+     */
+    public static final String ASYNC_UPLOAD_FILE_FAIL_DEAD_LIST = NOTE_PREFIX+"async::list::upload-file-fail-dead::";
+
+    /**
      * 存放已经下载的过的图片
      */
     public static final String ASYNC_UPLOAD_FILE_DUP_CHECK_HASH = NOTE_PREFIX+"async::hash::upload-file::dup-check";
