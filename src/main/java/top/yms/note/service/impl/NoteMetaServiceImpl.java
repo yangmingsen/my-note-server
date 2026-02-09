@@ -157,6 +157,8 @@ public class NoteMetaServiceImpl implements NoteMetaService {
 //        List<NoteMeta> noteMetaList = noteMetaMapper.selectByExample(NoteIndexQuery.Builder.build().parentId(parentId).uid(uid).get().example());
         List<NoteMeta> noteMetaList = selectByParentId(parentId);
         //获取目录List
+        //question202602090933 因为数据量增大后，发现实时计算的话会让前端进入目录时非常卡顿，看后续优化成后台定时计算吧。
+        /*
         List<Long> dirIds = noteMetaList.stream().filter(note -> NoteConstants.DIR_FLAG.equals(note.getIsFile())).map(NoteMeta::getId).collect(Collectors.toList());
         AsyncTask asyncTask = AsyncTask.Builder.build()
                 .taskId(IdWorkerUtils.getId())
@@ -167,7 +169,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
                 .userId(LocalThreadUtils.getUserId())
                 .taskInfo(dirIds)
                 .get();
-        noteAsyncExecuteTaskService.addTask(asyncTask);
+        noteAsyncExecuteTaskService.addTask(asyncTask);*/
         //to cache.
 //        cacheService.set(cKey, noteMetaList, 3 * 60L);
         //ret
