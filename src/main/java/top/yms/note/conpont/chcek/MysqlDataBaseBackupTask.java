@@ -9,7 +9,7 @@ import top.yms.note.scheduled.MySQLBackupWithBatScript;
 
 import javax.annotation.Resource;
 
-@Component
+//@Component
 public class MysqlDataBaseBackupTask extends AbstractCheckTargetTask{
 
     private final static Logger log = LoggerFactory.getLogger(MysqlDataBaseBackupTask.class);

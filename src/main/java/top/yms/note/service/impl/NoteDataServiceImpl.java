@@ -140,6 +140,10 @@ public class NoteDataServiceImpl implements NoteDataService {
     }
 
     public NoteData findOneByPk(Long id) {
+        Object noUseCache = LocalThreadUtils.get().get(NoteConstants.NOTE_DATA_USE_CACHE);
+        if (noUseCache != null) {
+            return noteDataMapper.selectByPrimaryKey(id);
+        }
         //cache it
         Object cVal = cacheService.hGet(NoteCacheKey.NOTE_DATA_LIST_KEY, id.toString());
         if (cVal != null) {

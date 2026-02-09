@@ -24,20 +24,20 @@ import top.yms.note.conpont.NoteLuceneDataService;
 import top.yms.note.conpont.NoteSearchService;
 import top.yms.note.dto.NoteSearchDto;
 import top.yms.note.entity.NoteMeta;
+import top.yms.note.entity.RestOut;
 import top.yms.note.entity.SearchLog;
 import top.yms.note.mapper.NoteMetaMapper;
 import top.yms.note.service.NoteMetaService;
 import top.yms.note.service.impl.NoteSearchLogServiceImpl;
 import top.yms.note.utils.IdWorker;
+import top.yms.note.utils.LocalThreadUtils;
 import top.yms.note.vo.NoteSearchResult;
 import top.yms.note.vo.SearchResult;
 
 import javax.annotation.Resource;
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -253,9 +253,17 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
         dir.delete();
     }
 
+    private static volatile boolean indexRebuildRunning = false;
+
     @Override
-    public void rebuildIndex() {
-        synchronized (syncObj) {
+    public RestOut rebuildIndex() {
+        if (indexRebuildRunning) {
+            logger.info("index rebuild is running....");
+            return RestOut.failed("index rebuild is running");
+        }
+        indexRebuildRunning = true;
+        new Thread(() -> {
+            //do index rebuild
             Directory directory = null;
             IndexWriterConfig config;
             IndexWriter indexWriter = null;
@@ -265,29 +273,47 @@ public class NoteLuceneService implements NoteSearchService, InitializingBean, N
                 directory = FSDirectory.open(Paths.get(indexPath));
                 config = new IndexWriterConfig(new IKAnalyzer());
                 indexWriter = new IndexWriter(directory, config);
-                List<NoteMeta> noteMetaList = noteMetaMapper.findAll();
-                for (NoteMeta noteMeta : noteMetaList) {
-                    //bug202601031334 重建索引是发生文件流找不到问题
-                    try {
-                        NoteLuceneIndex noteLuceneIndex = getLuceneIndexFromNoteId(noteMeta.getId());
-                        Document document = packDocument(noteLuceneIndex);
-                        //添加文档
-                        indexWriter.addDocument(document);
-                    } catch (Throwable th) {
-                        logger.error("pack index error meta={}", JSONObject.toJSONString(noteMeta));
-                        logger.error("pack index error", th);
+                //索引重建禁用note_data缓存.
+                // question202602072338: 这3句代码必须放在这个位置，因为发现只有上一句代码indexWriter = new IndexWriter(directory, config)执行完成后才是当前这个新线程执行域，也就是上一句代码加之前的代码都是主线程执行的。
+                //按理说new Thread里面的代码都应该是新线程执行,但前面的却是主线程执行，这让我很费解，还没找到为什么。
+                ///可能是新线程 ThreadLocal copy了副本，然后让我看起来像是主线程执行的。
+                Map<String, Object> threadMap = LocalThreadUtils.get();
+                threadMap.put(NoteConstants.NOTE_DATA_USE_CACHE, false);
+                LocalThreadUtils.set(threadMap);
+                //======================================================
+                List<NoteMeta> noteMetaList = noteMetaMapper.selectByIter(null);//noteMetaMapper.findAll();
+                int indexCount = noteMetaList.size();
+                while (!noteMetaList.isEmpty()) {
+                    logger.info("add index size={}, totalCount={}", noteMetaList.size(), indexCount);
+                    for (NoteMeta noteMeta : noteMetaList) {
+                        //bug202601031334 重建索引是发生文件流找不到问题
+                        try {
+                            NoteLuceneIndex noteLuceneIndex = getLuceneIndexFromNoteId(noteMeta.getId());
+                            Document document = packDocument(noteLuceneIndex);
+                            //添加文档
+                            indexWriter.addDocument(document);
+                        } catch (Throwable th) {
+                            logger.error("pack index error meta={}", JSONObject.toJSONString(noteMeta));
+                            logger.error("pack index error", th);
+                        }
                     }
+                    indexWriter.commit();
+                    noteMetaList = noteMetaMapper.selectByIter(noteMetaList.get(noteMetaList.size()-1).getId());
+                    indexCount+=noteMetaList.size();
+                    Thread.sleep(2*1000);
                 }
-                indexWriter.commit();
-                logger.debug("rebuild index success");
+                logger.info("rebuild index success");
             } catch (Exception e) {
                 logger.error("重新建立index失败", e);
                 throw new RuntimeException(e);
             } finally {
                 tryClose(indexWriter, directory);
+                indexRebuildRunning = false;
+                //remove
+                LocalThreadUtils.remove();
             }
-        }
-
+        }).start();
+        return RestOut.succeed();
     }
 
     /**

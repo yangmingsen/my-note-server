@@ -97,8 +97,7 @@ public class NoteDataController {
 
     @GetMapping("/index-rebuild")
     public RestOut<String> indexRebuild() {
-        noteDataIndexService.rebuildIndex();
-        return RestOut.succeed();
+        return noteDataIndexService.rebuildIndex();
     }
 
 }

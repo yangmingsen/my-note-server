@@ -2,6 +2,7 @@ package top.yms.note.conpont;
 
 import top.yms.note.conpont.search.NoteDataIndex;
 import top.yms.note.conpont.search.NoteLuceneIndex;
+import top.yms.note.entity.RestOut;
 
 import java.util.List;
 
@@ -23,5 +24,5 @@ public interface NoteDataIndexService {
 
     void delete(List<Long> ids);
 
-    void rebuildIndex();
+    RestOut rebuildIndex();
 }

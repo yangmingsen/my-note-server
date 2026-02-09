@@ -148,6 +148,11 @@ public abstract class NoteConstants {
     //未分享
     public final static String SHARE_UN_FLAG = "0";
 
+    /**
+     * note_data 是否缓存flag
+     */
+    public final static String NOTE_DATA_USE_CACHE = "note-data-user-cache";
+
 
 
 
