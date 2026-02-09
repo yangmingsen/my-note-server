@@ -15,7 +15,7 @@ public class DefaultCrawlWorkerQueue implements CrawlWorkerQueue{
 
     private final int queueSize = 500;
 
-    private float factor = 0.75f;
+    private float factor = 75f;
 
     private final ArrayBlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(queueSize);
 

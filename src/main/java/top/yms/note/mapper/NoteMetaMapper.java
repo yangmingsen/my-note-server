@@ -57,9 +57,12 @@ public interface NoteMetaMapper {
     List<NoteMeta> searchName(@Param("name") String name, @Param("userId") Long userId);
 
     //应该要包含对目录的的查询
-    @Select("select * from t_note_index where  f_del='0'")
-    @ResultMap("BaseResultMap")
-    List<NoteMeta> findAll();
+//    @Select("select * from t_note_index where  f_del='0'")
+//    @ResultMap("BaseResultMap")
+//    @Deprecated //禁止使用，因为数据量太大
+//    List<NoteMeta> findAll();
+
+    List<NoteMeta> selectByIter(@Param("id") Long id);
 
     @Select("select * from t_note_index where f_user_id = #{userId, jdbcType=BIGINT}")
     @ResultMap("BaseResultMap")
