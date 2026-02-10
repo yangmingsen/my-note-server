@@ -19,7 +19,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-@Component
+//由于图片数据太大，考虑磁盘空间问题，还有并不是每张图片都会被访问，
+//综合考虑：采用访问时采取才下载这种方式.
+//@Component
 public class AutoAsyncFileSaveService implements NoteTask, InitializingBean {
 
     private static  final Logger log = LoggerFactory.getLogger(AutoAsyncFileSaveService.class);
