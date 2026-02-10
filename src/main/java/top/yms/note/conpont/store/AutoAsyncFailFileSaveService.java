@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-@Component
+//@Component
 public class AutoAsyncFailFileSaveService implements NoteTask, InitializingBean {
 
     private static  final Logger log = LoggerFactory.getLogger(AutoAsyncFailFileSaveService.class);
