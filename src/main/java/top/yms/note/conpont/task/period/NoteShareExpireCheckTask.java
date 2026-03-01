@@ -1,10 +1,12 @@
-package top.yms.note.conpont.task;
+package top.yms.note.conpont.task.period;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.NoteShareService;
+import top.yms.note.conpont.task.NoteScheduledExecutorService;
+import top.yms.note.conpont.task.ScheduledExecuteTask;
 import top.yms.note.dao.NoteIndexQuery;
 import top.yms.note.entity.NoteMeta;
 import top.yms.note.service.NoteMetaService;
@@ -16,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Component
-public class NoteShareExpireCheckTask implements ScheduledExecuteTask{
+public class NoteShareExpireCheckTask implements ScheduledExecuteTask {
 
     private static  final Logger log = LoggerFactory.getLogger( NoteShareExpireCheckTask.class);
 

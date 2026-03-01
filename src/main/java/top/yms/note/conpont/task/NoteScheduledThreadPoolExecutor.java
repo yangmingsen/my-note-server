@@ -43,6 +43,14 @@ public class NoteScheduledThreadPoolExecutor implements NoteScheduledExecutorSer
         return scheduledExecutorService.scheduleAtFixedRate(command, initialDelay, period, unit);
     }
 
+    /**
+     * 每次任务执行完后，不管什么情况，都会等待固定延迟后再执行下一次任务
+     * @param command
+     * @param initialDelay
+     * @param delay
+     * @param unit
+     * @return
+     */
     @Override
     public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
         return scheduledExecutorService.scheduleWithFixedDelay(command, initialDelay, delay, unit);

@@ -7,6 +7,9 @@ public enum ComponentErrorCode implements ErrorCode{
 
     E_204000(204000, "未找到note元数据信息"),
     E_204001(204001, "当前文件不支持文本内容获取"),
+    E_204100(204100, "NoteResourceInputStream读取数据异常"),
+    E_204101(204101, "NoteResource资源获取超限"),
+    E_204102(204102, "NoteResource资源获取异常"),
     ;
 
     private final int code;
