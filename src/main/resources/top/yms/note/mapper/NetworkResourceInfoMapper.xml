@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.yms.note.mapper.NetworkResourceInfoMapper">
+  <resultMap id="BaseResultMap" type="top.yms.note.entity.NetworkResourceInfo">
+    <id column="f_note_file_id" jdbcType="VARCHAR" property="noteFileId" />
+    <result column="f_suffix" jdbcType="VARCHAR" property="suffix" />
+    <result column="f_name" jdbcType="VARCHAR" property="name" />
+    <result column="f_url" jdbcType="VARCHAR" property="url" />
+    <result column="f_create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    f_note_file_id, f_suffix, f_name, f_url, f_create_time
+  </sql>
+  <select id="selectByExample" parameterType="top.yms.note.entity.NetworkResourceInfoExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from t_network_resource_info
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_network_resource_info
+    where f_note_file_id = #{noteFileId,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from t_network_resource_info
+    where f_note_file_id = #{noteFileId,jdbcType=VARCHAR}
+  </delete>
+  <delete id="deleteByExample" parameterType="top.yms.note.entity.NetworkResourceInfoExample">
+    delete from t_network_resource_info
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="top.yms.note.entity.NetworkResourceInfo">
+    insert into t_network_resource_info (f_note_file_id, f_suffix, f_name, f_url, f_create_time)
+    values (#{noteFileId,jdbcType=VARCHAR}, #{suffix,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, 
+      #{url,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+
+  <insert id="insertBatch" parameterType="java.util.List">
+    insert into t_network_resource_info (f_note_file_id, f_suffix, f_name, f_url, f_create_time) values
+    <foreach collection="list" item="iter" separator=",">
+      (
+      #{iter.noteFileId, jdbcType=VARCHAR},
+      #{iter.suffix, jdbcType=VARCHAR},
+      #{iter.name, jdbcType=VARCHAR},
+      #{iter.url, jdbcType=VARCHAR},
+      #{iter.createTime, jdbcType=TIMESTAMP}
+      )
+    </foreach>
+  </insert>
+  <insert id="insertSelective" parameterType="top.yms.note.entity.NetworkResourceInfo">
+    insert into t_network_resource_info
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="noteFileId != null">
+        f_note_file_id,
+      </if>
+      <if test="suffix != null">
+        f_suffix,
+      </if>
+      <if test="name != null">
+        f_name,
+      </if>
+      <if test="url != null">
+        f_url,
+      </if>
+      <if test="createTime != null">
+        f_create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="noteFileId != null">
+        #{noteFileId,jdbcType=VARCHAR},
+      </if>
+      <if test="suffix != null">
+        #{suffix,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="url != null">
+        #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="top.yms.note.entity.NetworkResourceInfoExample" resultType="java.lang.Long">
+    select count(*) from t_network_resource_info
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update t_network_resource_info
+    <set>
+      <if test="record.noteFileId != null">
+        f_note_file_id = #{record.noteFileId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.suffix != null">
+        f_suffix = #{record.suffix,jdbcType=VARCHAR},
+      </if>
+      <if test="record.name != null">
+        f_name = #{record.name,jdbcType=VARCHAR},
+      </if>
+      <if test="record.url != null">
+        f_url = #{record.url,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null">
+        f_create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update t_network_resource_info
+    set f_note_file_id = #{record.noteFileId,jdbcType=VARCHAR},
+      f_suffix = #{record.suffix,jdbcType=VARCHAR},
+      f_name = #{record.name,jdbcType=VARCHAR},
+      f_url = #{record.url,jdbcType=VARCHAR},
+      f_create_time = #{record.createTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="top.yms.note.entity.NetworkResourceInfo">
+    update t_network_resource_info
+    <set>
+      <if test="suffix != null">
+        f_suffix = #{suffix,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null">
+        f_name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="url != null">
+        f_url = #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        f_create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where f_note_file_id = #{noteFileId,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="top.yms.note.entity.NetworkResourceInfo">
+    update t_network_resource_info
+    set f_suffix = #{suffix,jdbcType=VARCHAR},
+      f_name = #{name,jdbcType=VARCHAR},
+      f_url = #{url,jdbcType=VARCHAR},
+      f_create_time = #{createTime,jdbcType=TIMESTAMP}
+    where f_note_file_id = #{noteFileId,jdbcType=VARCHAR}
+  </update>
+</mapper>

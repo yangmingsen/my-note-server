@@ -13,9 +13,12 @@ import top.yms.note.conpont.store.AsyncFileSaveDto;
 import top.yms.note.conpont.task.NoteScheduledExecutorService;
 import top.yms.note.conpont.task.ScheduledExecuteTask;
 import top.yms.note.entity.AsyncFileSaveInfo;
+import top.yms.note.entity.NetworkResourceInfo;
+import top.yms.note.mapper.NetworkResourceInfoMapper;
 import top.yms.note.repo.AsyncFileSaveInfoRepository;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -29,6 +32,9 @@ public class AsyncFileInfoSyncTask implements ScheduledExecuteTask , MessageList
     @Resource
     private AsyncFileSaveInfoRepository asyncFileSaveInfoRepository;
 
+    @Resource
+    private NetworkResourceInfoMapper networkResourceInfoMapper;
+
     private int maxTime = 3; //最大重试次数
 
 
@@ -38,9 +44,20 @@ public class AsyncFileInfoSyncTask implements ScheduledExecuteTask , MessageList
     }
 
     private void saveToDb(AsyncFileSaveDto fileSaveDto) {
-        AsyncFileSaveInfo asyncFileSaveInfo = new AsyncFileSaveInfo();
-        BeanUtils.copyProperties(fileSaveDto, asyncFileSaveInfo);
-        asyncFileSaveInfoRepository.save(asyncFileSaveInfo);
+        NetworkResourceInfo networkResourceInfo = new NetworkResourceInfo();
+        String noteFileId = fileSaveDto.getNoteFileId();
+        networkResourceInfo.setNoteFileId(noteFileId);
+        networkResourceInfo.setUrl(fileSaveDto.getFetchUrl());
+        networkResourceInfo.setSuffix(fileSaveDto.getSuffix());
+        networkResourceInfo.setName(fileSaveDto.getTmpFileName());
+        networkResourceInfo.setCreateTime(new Date());
+        //check
+        NetworkResourceInfo oldNRI = networkResourceInfoMapper.selectByPrimaryKey(noteFileId);
+        if (oldNRI == null) {
+            networkResourceInfoMapper.insertSelective(networkResourceInfo);
+        } else {
+            networkResourceInfoMapper.updateByPrimaryKeySelective(networkResourceInfo);
+        }
     }
 
     @Override
