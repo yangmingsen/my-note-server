@@ -5,6 +5,8 @@ import top.yms.note.comm.NoteCacheKey;
 import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.FileStoreService;
 import top.yms.note.conpont.cache.NoteRedisCacheService;
+import top.yms.note.conpont.queue.ProducerService;
+import top.yms.note.conpont.queue.imsg.AsyncFileInfoMessage;
 import top.yms.note.conpont.store.AsyncFileSaveDto;
 import top.yms.note.entity.NoteFile;
 import top.yms.note.enums.FileTypeEnum;
@@ -29,6 +31,9 @@ public class CrawlerImageUploader implements ImageUploader {
 
     @Resource
     private NoteRedisCacheService cacheService;
+
+    @Resource
+    private ProducerService producerService;
 
     @Override
     public String upload(InputStream inputStream, String suffix, Consumer<NoteFile> consumer) {
@@ -68,7 +73,11 @@ public class CrawlerImageUploader implements ImageUploader {
         asyncFileSaveDto.setNoteFileId(fileId);
         asyncFileSaveDto.setSuffix(suffix);
         asyncFileSaveDto.setTmpFileName(tmpFileName);
-        cacheService.rPush(NoteCacheKey.ASYNC_UPLOAD_FILE_LIST, asyncFileSaveDto);
+        //cacheService.rPush(NoteCacheKey.ASYNC_UPLOAD_FILE_LIST, asyncFileSaveDto);
+        //优化202603011228： redis改为使用队列
+        AsyncFileInfoMessage asyncFileInfoMessage = new AsyncFileInfoMessage();
+        asyncFileInfoMessage.setBody(asyncFileSaveDto);
+        producerService.send(asyncFileInfoMessage);
         //do file info add
         final NoteFile noteFile = new NoteFile();
         noteFile.setFileId(fileId);

@@ -2,7 +2,9 @@ package top.yms.note.conpont.store.network;
 
 import org.jetbrains.annotations.NotNull;
 import top.yms.note.exception.ComponentException;
+import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.msgcd.ComponentErrorCode;
+import top.yms.note.msgcd.CustomErrorCode;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -10,7 +12,7 @@ import java.io.InputStream;
 
 public class NoteResourceInputStream extends InputStream {
 
-    private static final int MAX_RESOURCE_SIZE = 1024*1024*1024*100; //100M
+    private static final int MAX_RESOURCE_SIZE = 1024*1024*100; //100M
 
     private ResourceCacheInputStream resourceCacheInputStream;
 
@@ -32,7 +34,7 @@ public class NoteResourceInputStream extends InputStream {
     private int cap = 0;
 
     public NoteResourceInputStream(InputStream inputStream) {
-        int defaultSize = 1024*8;
+        int defaultSize = 1024*100;
         byte [] buf = new byte[defaultSize];
         int p = 0;
         try {
@@ -51,8 +53,10 @@ public class NoteResourceInputStream extends InputStream {
                     buf = buf2;
                 }
             }
+        } catch (ComponentException ce) {
+            throw ce;
         } catch (Exception e) {
-            throw new ComponentException(ComponentErrorCode.E_204100);
+            throw new ComponentException(new CustomErrorCode(CommonErrorCode.UNKNOWN.getCode(), e.getMessage()));
         }  finally {
             try {
                 inputStream.close();

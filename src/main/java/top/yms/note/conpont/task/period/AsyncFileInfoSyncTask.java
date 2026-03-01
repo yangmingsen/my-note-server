@@ -6,6 +6,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteCacheKey;
 import top.yms.note.conpont.cache.NoteRedisCacheService;
+import top.yms.note.conpont.queue.IMessage;
+import top.yms.note.conpont.queue.MessageListener;
+import top.yms.note.conpont.queue.imsg.AsyncFileInfoMessage;
 import top.yms.note.conpont.store.AsyncFileSaveDto;
 import top.yms.note.conpont.task.NoteScheduledExecutorService;
 import top.yms.note.conpont.task.ScheduledExecuteTask;
@@ -16,7 +19,7 @@ import javax.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class AsyncFileInfoSyncTask implements ScheduledExecuteTask {
+public class AsyncFileInfoSyncTask implements ScheduledExecuteTask , MessageListener {
 
     private static final Logger log = LoggerFactory.getLogger(AsyncFileInfoSyncTask.class);
 
@@ -34,16 +37,18 @@ public class AsyncFileInfoSyncTask implements ScheduledExecuteTask {
         noteScheduledExecuteService.scheduleWithFixedDelay(this, 1, 60, TimeUnit.MINUTES);
     }
 
+    private void saveToDb(AsyncFileSaveDto fileSaveDto) {
+        AsyncFileSaveInfo asyncFileSaveInfo = new AsyncFileSaveInfo();
+        BeanUtils.copyProperties(fileSaveDto, asyncFileSaveInfo);
+        asyncFileSaveInfoRepository.save(asyncFileSaveInfo);
+    }
+
     @Override
     public void run() {
         int breakCond = 0;
         while (true) {
             try {
                 Object oV = cacheService.blPop(NoteCacheKey.ASYNC_UPLOAD_FILE_LIST, 15, TimeUnit.SECONDS);
-                //再看看 之前失败的场景
-                if (oV == null) {
-                    oV = cacheService.blPop(NoteCacheKey.ASYNC_UPLOAD_FILE_FAIL_DEAD_LIST, 15, TimeUnit.SECONDS);
-                }
                 if (oV == null) {
                     breakCond++;
                     if (breakCond >= this.maxTime) {
@@ -53,12 +58,21 @@ public class AsyncFileInfoSyncTask implements ScheduledExecuteTask {
                     continue;
                 }
                 AsyncFileSaveDto fileSaveDto = (AsyncFileSaveDto) oV;
-                AsyncFileSaveInfo asyncFileSaveInfo = new AsyncFileSaveInfo();
-                BeanUtils.copyProperties(fileSaveDto, asyncFileSaveInfo);
-                asyncFileSaveInfoRepository.save(asyncFileSaveInfo);
+                saveToDb(fileSaveDto);
             } catch (Exception e) {
                 log.error("AsyncFileInfoSyncTask error", e);
             }
         }
+    }
+
+    @Override
+    public boolean support(IMessage message) {
+        return message instanceof AsyncFileInfoMessage;
+    }
+
+    @Override
+    public void onMessage(IMessage message) {
+        AsyncFileSaveDto body = (AsyncFileSaveDto)message.getBody();
+        saveToDb(body);
     }
 }

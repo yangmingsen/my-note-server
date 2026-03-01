@@ -58,4 +58,12 @@ public class AsyncFileSaveInfo {
     public String getFullName() {
         return tmpFileName+"."+suffix;
     }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 }

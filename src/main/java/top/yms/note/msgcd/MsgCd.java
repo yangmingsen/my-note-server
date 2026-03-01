@@ -1,4 +1,5 @@
 package top.yms.note.msgcd;
 
-public class MsgCd {
+public final class MsgCd {
+
 }
