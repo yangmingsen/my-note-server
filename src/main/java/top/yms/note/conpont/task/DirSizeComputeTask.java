@@ -16,7 +16,7 @@ import top.yms.note.service.NoteMetaService;
 import javax.annotation.Resource;
 import java.util.List;
 
-@Component
+//@Component
 public class DirSizeComputeTask extends AbstractAsyncExecuteTask{
 
     private static final Logger log = LoggerFactory.getLogger(DirSizeComputeTask.class);

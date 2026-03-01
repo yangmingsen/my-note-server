@@ -59,7 +59,8 @@ public class AsyncExecuteTaskServiceImpl implements NoteAsyncExecuteTaskService,
                 return;
             }
         }
-        throw new BusinessException(CommonErrorCode.E_200216);
+        log.info("没有合适任务执行组件给: {}", task.getTaskName());
+        //throw new BusinessException(CommonErrorCode.E_200216);
     }
 
     /**

@@ -21,7 +21,7 @@ import java.util.Date;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@Component
+//@Component
 public class NoteBookmarksSyncTask  extends AbstractAsyncExecuteTask implements ScheduledExecuteTask  {
 
     private final static Logger log = LoggerFactory.getLogger(NoteBookmarksSyncTask.class);
