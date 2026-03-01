@@ -71,4 +71,8 @@ public class NetworkResourceInfo {
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
     }
+
+    public String getFullName() {
+        return name+"."+suffix;
+    }
 }

@@ -19,10 +19,12 @@ import top.yms.note.conpont.store.network.NoteResourceInputStream;
 import top.yms.note.entity.AsyncFileSaveInfo;
 import top.yms.note.entity.FileStoreRelation;
 import top.yms.note.entity.FileStoreRelationExample;
+import top.yms.note.entity.NetworkResourceInfo;
 import top.yms.note.exception.CommonException;
 import top.yms.note.mapper.FileStoreRelationMapper;
 import top.yms.note.msgcd.CommonErrorCode;
 import top.yms.note.repo.AsyncFileSaveInfoRepository;
+import top.yms.note.service.NetworkResourceInfoService;
 import top.yms.note.utils.IdWorker;
 import top.yms.storage.client.StorageClient;
 import top.yms.storage.entity.UploadResp;
@@ -64,6 +66,9 @@ public class FileStorageService implements FileStoreService {
 
     @Resource
     private NetworkResourceManageService networkResourceManageService;
+
+    @Resource
+    private NetworkResourceInfoService networkResourceInfoService;
 
     private FileStoreRelationExample getQueryCondition(FileStoreRelation fileStoreRelation) {
         FileStoreRelationExample example = new FileStoreRelationExample();
@@ -121,18 +126,18 @@ public class FileStorageService implements FileStoreService {
             //优化202602282124： if (anyFile == null) { //若是mongo中也没有，则返回
             //若是网络资源则先获取网络资源，再保存
             if (anyFile == null) {
-                AsyncFileSaveInfo asyncFileSaveInfo = asyncFileSaveInfoRepository.findByNoteFileId(id);
-                if (asyncFileSaveInfo == null) {
-                    log.info("也未找到合适的网络资源, 返回null");
+                NetworkResourceInfo networkResourceInfo = networkResourceInfoService.findOne(id);
+                if (networkResourceInfo == null) {
+                    log.info("未找到合适的网络资源, 返回null");
                     return null;
                 }
                 //找到了
                 //获取网络资源
-                NoteResourceInputStream noteResourceInputStream = networkResourceManageService.getNoteResourceInputStream(asyncFileSaveInfo.getFetchUrl());
+                NoteResourceInputStream noteResourceInputStream = networkResourceManageService.getNoteResourceInputStream(networkResourceInfo.getUrl());
                 //上传本地
-                UploadResp upload = storageClient.upload(noteResourceInputStream, asyncFileSaveInfo.getFullName());
+                UploadResp upload = storageClient.upload(noteResourceInputStream, networkResourceInfo.getFullName());
                 //建立关联
-                insertRelation(upload.getFileId(), id, asyncFileSaveInfo.getNoteFileId());
+                insertRelation(upload.getFileId(), id, networkResourceInfo.getNoteFileId());
                 //继续给前端使用
                 try {
                     noteResourceInputStream.reset();
@@ -141,7 +146,7 @@ public class FileStorageService implements FileStoreService {
                     return null;
                     //ignore
                 }
-                return new NetworkResourceFile(noteResourceInputStream, asyncFileSaveInfo);
+                return new NetworkResourceFile(noteResourceInputStream, networkResourceInfo);
             }
             UploadResp uploadRsp = storageClient.upload(anyFile.getInputStream(), anyFile.getFilename());
             insertRelation(uploadRsp.getFileId(), id, null);

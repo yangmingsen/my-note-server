@@ -145,6 +145,11 @@ public abstract class NoteCacheKey {
      */
     public static final String SYNC_NETNOTE_CNBLOGS_LEVEL_NAME_HASH = NOTE_PREFIX+"sync::hash::netnote::cnblogs";
 
+    /**
+     * NetworkResourceInfo 缓存
+     */
+    public static final String NETWORK_RESOURCE_INFO_HASH = NOTE_PREFIX+"hash::network-resource-info";
+
 
 
 

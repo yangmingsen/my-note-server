@@ -62,6 +62,7 @@ public class AsyncFileInfoSyncTask implements ScheduledExecuteTask , MessageList
 
     @Override
     public void run() {
+        /* 不再使用
         int breakCond = 0;
         while (true) {
             try {
@@ -79,7 +80,7 @@ public class AsyncFileInfoSyncTask implements ScheduledExecuteTask , MessageList
             } catch (Exception e) {
                 log.error("AsyncFileInfoSyncTask error", e);
             }
-        }
+        }*/
     }
 
     @Override

@@ -4,7 +4,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
 import top.yms.note.conpont.AnyFile;
 import top.yms.note.conpont.store.network.NoteResourceInputStream;
-import top.yms.note.entity.AsyncFileSaveInfo;
+import top.yms.note.entity.NetworkResourceInfo;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,13 +13,13 @@ import java.util.Optional;
 
 public class NetworkResourceFile implements AnyFile {
 
-    private NoteResourceInputStream noteResourceInputStream;
+    private final NoteResourceInputStream noteResourceInputStream;
 
-    private AsyncFileSaveInfo asyncFileSaveInfo;
+    private final NetworkResourceInfo networkResourceInfo;
 
-    public NetworkResourceFile(NoteResourceInputStream noteResourceInputStream, AsyncFileSaveInfo asyncFileSaveInfo) {
+    public NetworkResourceFile(NoteResourceInputStream noteResourceInputStream, NetworkResourceInfo networkResourceInfo) {
         this.noteResourceInputStream = noteResourceInputStream;
-        this.asyncFileSaveInfo = asyncFileSaveInfo;
+        this.networkResourceInfo = networkResourceInfo;
     }
 
     @Override
@@ -43,8 +43,8 @@ public class NetworkResourceFile implements AnyFile {
 
     @Override
     public String getContentType() {
-        String contentType = asyncFileSaveInfo.getSuffix();
-        String tName= asyncFileSaveInfo.getFullName();
+        String contentType = networkResourceInfo.getSuffix();
+        String tName= networkResourceInfo.getFullName();
         Optional<MediaType> mediaTypeOptional = MediaTypeFactory.getMediaType(tName);
         MediaType mediaType = mediaTypeOptional.orElse(null);
         if (mediaType != null) {
@@ -55,7 +55,7 @@ public class NetworkResourceFile implements AnyFile {
 
     @Override
     public String getFilename() {
-        return asyncFileSaveInfo.getTmpFileName();
+        return networkResourceInfo.getFullName();
     }
 
     @Override

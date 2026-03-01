@@ -1,5 +1,6 @@
 package top.yms.note.service.impl;
 
+import com.alibaba.fastjson2.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -36,7 +37,7 @@ public class TempServiceImpl implements TempService {
         int totalSize = list.size();
         for (int i = 0; i < totalSize; i += batchSize) {
             int end = Math.min(i + batchSize, totalSize);
-            List<NetworkResourceInfo> batchList = list.subList(i, end).stream().map(fileSaveDto -> {
+            List<NetworkResourceInfo> batchList = list.subList(i, end).stream().filter(fsd -> fsd.getFetchUrl().length() < 500 && fsd.getSuffix().length() < 10).map(fileSaveDto -> {
                 NetworkResourceInfo networkResourceInfo = new NetworkResourceInfo();
                 String noteFileId = fileSaveDto.getNoteFileId();
                 networkResourceInfo.setNoteFileId(noteFileId);
