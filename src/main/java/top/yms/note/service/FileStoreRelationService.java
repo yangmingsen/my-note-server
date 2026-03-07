@@ -9,4 +9,11 @@ public interface FileStoreRelationService {
      * @param fileStoreRelation
      */
     void update(FileStoreRelation fileStoreRelation);
+
+    /**
+     * 通过noteFileId获取映射信息
+     * @param noteFileId
+     * @return
+     */
+    FileStoreRelation findOneByNoteFileId(String noteFileId);
 }

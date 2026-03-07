@@ -31,7 +31,7 @@ public class CustomConfServiceImpl implements NoteCustomConfService {
     @Resource
     private MongoTemplate mongoTemplate;
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     private NoteRedisCacheService cacheService;
 
     public void updateUserConfig(JSONObject jsonObject) {

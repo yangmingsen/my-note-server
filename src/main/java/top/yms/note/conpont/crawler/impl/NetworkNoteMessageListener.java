@@ -3,6 +3,7 @@ package top.yms.note.conpont.crawler.impl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteCacheKey;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.conpont.queue.IMessage;
 import top.yms.note.conpont.queue.MessageListener;
@@ -17,7 +18,7 @@ public class NetworkNoteMessageListener implements MessageListener {
     @Resource
     private NetworkNoteRepository networkNoteRepository;
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     private NoteRedisCacheService cacheService;
 
     @Override

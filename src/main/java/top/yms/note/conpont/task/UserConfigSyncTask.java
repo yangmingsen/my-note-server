@@ -38,7 +38,7 @@ public class UserConfigSyncTask extends AbstractAsyncExecuteTask implements Sche
     @Value("${user-config.task.immediately}")
     private int immediatelySize;
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     private NoteRedisCacheService cacheService;
 
     /**

@@ -27,7 +27,7 @@ public class CnBlogsNetworkNoteSyncServiceImpl extends AbstractNetworkNoteSyncSe
 
     private Long secondLevelId2;
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     private NoteRedisCacheService cacheService;
 
     private int autoInCream = 0;

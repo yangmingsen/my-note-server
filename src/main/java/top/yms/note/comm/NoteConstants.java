@@ -51,6 +51,16 @@ public abstract class NoteConstants {
     public final static String noteLuceneDataServiceImpl = "noteLuceneDataServiceImpl";
     public final static String noteContentOptimizeServiceImpl = "noteContentOptimizeServiceImpl";
 
+    public final static String kryoRedisCacheServiceImpl = "kryoRedisCacheServiceImpl";
+
+    public final static String kryoRedisTemplate = "kryoRedisTemplate";
+    public final static String redisTemplate = "redisTemplate";
+
+    public final static String noteRedisCacheServiceImpl = "noteRedisCacheServiceImpl";
+
+    public final static String memoryQueueChannel = "MemoryQueueChannel";
+    public final static String redisQueueChannel = "RedisQueueChannel";
+
 
     public final static String bgImgInfo = "bgImgInfo";
     public final static String lastvisit = "lastvisit";

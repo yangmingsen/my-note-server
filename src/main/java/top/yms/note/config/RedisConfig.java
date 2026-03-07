@@ -11,10 +11,11 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import top.yms.note.comm.NoteConstants;
 
 @Configuration
 public class RedisConfig {
-    @Bean(name = "redisTemplate")
+    @Bean(name = NoteConstants.redisTemplate)
     public RedisTemplate<String, Object> getRedisTemplate(RedisConnectionFactory factory) {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
         redisTemplate.setConnectionFactory(factory);

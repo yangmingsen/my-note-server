@@ -101,7 +101,7 @@ public abstract class AbstractNote implements Note, NoteLuceneDataService {
     @Resource
     protected NoteDataService noteDataService;
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     protected NoteRedisCacheService cacheService;
 
     protected String getEncryptedKey() {

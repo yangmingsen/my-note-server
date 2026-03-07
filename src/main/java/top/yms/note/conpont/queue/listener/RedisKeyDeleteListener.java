@@ -1,6 +1,7 @@
 package top.yms.note.conpont.queue.listener;
 
 import org.springframework.stereotype.Component;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.conpont.queue.IMessage;
 import top.yms.note.conpont.queue.MessageListener;
@@ -14,7 +15,7 @@ import java.util.List;
 @Component
 public class RedisKeyDeleteListener implements MessageListener {
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     private NoteRedisCacheService cacheService;
 
     @Override

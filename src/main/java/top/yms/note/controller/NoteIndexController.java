@@ -63,7 +63,7 @@ public class NoteIndexController {
     @Resource
     private NoteShareService noteShareService;
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     private NoteRedisCacheService cacheService;
 
     @GetMapping("/list")

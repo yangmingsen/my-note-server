@@ -92,6 +92,11 @@ public class NoteMeta implements Serializable {
      */
     private Date shareExpireTime;
 
+    /**
+     * 0-默认，1加星
+     */
+    private String star;
+
     public String getShare() {
         return share;
     }
@@ -218,6 +223,14 @@ public class NoteMeta implements Serializable {
 
     public void setShareExpireTime(Date shareExpireTime) {
         this.shareExpireTime = shareExpireTime;
+    }
+
+    public String getStar() {
+        return star;
+    }
+
+    public void setStar(String star) {
+        this.star = star;
     }
 
     @Override

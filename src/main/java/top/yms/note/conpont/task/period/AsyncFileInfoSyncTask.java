@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteCacheKey;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.conpont.queue.IMessage;
 import top.yms.note.conpont.queue.MessageListener;
@@ -26,7 +27,7 @@ public class AsyncFileInfoSyncTask implements ScheduledExecuteTask , MessageList
 
     private static final Logger log = LoggerFactory.getLogger(AsyncFileInfoSyncTask.class);
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     private NoteRedisCacheService cacheService;
 
     @Resource

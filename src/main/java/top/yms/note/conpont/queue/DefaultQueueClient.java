@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.queue.channel.MemoryChannel;
 import top.yms.note.conpont.queue.channel.QueueChannel;
 import top.yms.note.conpont.task.NoteTask;
@@ -20,7 +21,7 @@ public class DefaultQueueClient implements InitializingBean, QueueClient{
 
     private final static Logger log = LoggerFactory.getLogger(DefaultQueueClient.class);
 
-    @Resource
+    @Resource(name = NoteConstants.memoryQueueChannel)
     private QueueChannel queueChannel;
 
     private Thread highLoopThread = null ;

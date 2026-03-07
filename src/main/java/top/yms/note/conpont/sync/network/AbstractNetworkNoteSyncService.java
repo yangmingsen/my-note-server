@@ -24,7 +24,7 @@ public abstract class AbstractNetworkNoteSyncService implements NoteSyncService 
     @Resource
     protected NetworkNoteRepository networkNoteRepository;
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     protected NoteRedisCacheService cacheService;
 
     @Resource

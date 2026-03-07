@@ -90,7 +90,7 @@ public class NoteMetaServiceImpl implements NoteMetaService {
     @Resource
     private NoteService noteService;
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     private NoteRedisCacheService cacheService;
 
     @Resource

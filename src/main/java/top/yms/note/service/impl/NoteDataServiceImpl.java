@@ -83,7 +83,7 @@ public class NoteDataServiceImpl implements NoteDataService {
     private NoteMetaService noteMetaService;
 
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     private NoteRedisCacheService cacheService;
 
     private final String noteMindMap = NoteConstants.noteMindMap;

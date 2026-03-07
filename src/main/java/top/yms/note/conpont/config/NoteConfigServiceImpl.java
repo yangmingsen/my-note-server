@@ -22,7 +22,7 @@ public class NoteConfigServiceImpl implements SysConfigService {
 
     private static final Logger log = LoggerFactory.getLogger(NoteConfigServiceImpl.class);
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     private NoteRedisCacheService cacheService;
 
     @Resource

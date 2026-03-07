@@ -1,21 +1,28 @@
 package top.yms.note.service.impl;
 
-import com.alibaba.fastjson2.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import top.yms.note.comm.NoteCacheKey;
+import top.yms.note.comm.NoteConstants;
+import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.entity.AsyncFileSaveInfo;
+import top.yms.note.entity.FileStoreRelation;
 import top.yms.note.entity.NetworkResourceInfo;
 import top.yms.note.entity.RestOut;
 import top.yms.note.mapper.NetworkResourceInfoMapper;
 import top.yms.note.repo.AsyncFileSaveInfoRepository;
+import top.yms.note.service.FileStoreRelationService;
 import top.yms.note.service.TempService;
+import top.yms.storage.client.StorageClient;
+import top.yms.storage.entity.FileMetaVo;
 
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +35,15 @@ public class TempServiceImpl implements TempService {
 
     @Resource
     private AsyncFileSaveInfoRepository asyncFileSaveInfoRepository;
+
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
+    private NoteRedisCacheService noteRedisCacheService;
+
+    @Resource
+    private StorageClient storageClient;
+
+    @Resource
+    private FileStoreRelationService fileStoreRelationService;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class, timeout = 240)
@@ -58,6 +74,43 @@ public class TempServiceImpl implements TempService {
             }
         }
         log.info("批量插入完成，共插入 {} 条记录", totalSize);
+        return RestOut.succeed("ok");
+    }
+
+    @Override
+    public RestOut<String> reduceFileStorageCap() {
+        Map<Object, Object> imageMap = noteRedisCacheService.hGetAll(NoteCacheKey.ASYNC_UPLOAD_FILE_DUP_CHECK_HASH);
+        for (Map.Entry<Object, Object> kv : imageMap.entrySet()) {
+            try {
+                String url = (String)kv.getKey();
+                String noteFileId = (String)kv.getValue();
+                noteFileId = noteFileId.split("id=")[1];
+                FileStoreRelation fileStoreRelation = fileStoreRelationService.findOneByNoteFileId(noteFileId);
+                if (fileStoreRelation == null) {
+                    continue;
+                }
+                String storageFileId = fileStoreRelation.getStorageFileId();
+                FileMetaVo fileMetaInfo = storageClient.getFileMetaInfo(storageFileId);
+                if (fileMetaInfo == null) {
+                    continue;
+                }
+                NetworkResourceInfo oldV = networkResourceInfoMapper.selectByPrimaryKey(noteFileId);
+                if (oldV != null) {
+                    continue;
+                }
+                NetworkResourceInfo networkResourceInfo = new NetworkResourceInfo();
+                networkResourceInfo.setNoteFileId(noteFileId);
+                networkResourceInfo.setName(fileMetaInfo.getName());
+                networkResourceInfo.setSuffix(fileMetaInfo.getName().split("/")[1]);
+                networkResourceInfo.setUrl(url);
+                networkResourceInfo.setCreateTime(new Date());
+                networkResourceInfoMapper.insertSelective(networkResourceInfo);
+                //del fileStorage
+                storageClient.destroy(storageFileId);
+            } catch (Exception e) {
+                log.error("imageMap foreach error", e);
+            }
+        }
         return RestOut.succeed("ok");
     }
 }

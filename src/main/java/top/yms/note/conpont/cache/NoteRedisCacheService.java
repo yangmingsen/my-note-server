@@ -4,6 +4,7 @@ import org.springframework.lang.Nullable;
 import top.yms.note.conpont.NoteCacheService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -48,6 +49,13 @@ public interface NoteRedisCacheService extends NoteCacheService {
      * @return v
      */
     Object hGet(String hash, String key);
+
+    /**
+     * hgetall命令
+     * @param hash
+     * @return
+     */
+    Map<Object, Object> hGetAll(String hash);
 
 
     /**

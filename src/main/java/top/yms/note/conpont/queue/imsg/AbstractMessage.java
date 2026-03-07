@@ -1,5 +1,6 @@
 package top.yms.note.conpont.queue.imsg;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import top.yms.note.conpont.queue.IMessage;
 import top.yms.note.conpont.queue.channel.MessagePriority;
 
@@ -20,6 +21,7 @@ public class AbstractMessage implements IMessage {
     }
 
     @Override
+    @JsonIgnore //忽略该字段的序列化和反序列化
     public MessagePriority getPriority() {
         return MessagePriority.LOW;
     }

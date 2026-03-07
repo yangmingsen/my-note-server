@@ -29,7 +29,7 @@ public class CrawlerImageUploader implements ImageUploader {
     @Resource
     private IdWorker  idWorker;
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     private NoteRedisCacheService cacheService;
 
     @Resource

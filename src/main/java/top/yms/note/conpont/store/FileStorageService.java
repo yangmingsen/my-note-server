@@ -58,7 +58,7 @@ public class FileStorageService implements FileStoreService {
     @Resource
     private IdWorker idWorker;
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     private NoteRedisCacheService cacheService;
 
     @Resource

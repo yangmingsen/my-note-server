@@ -2,8 +2,10 @@ package top.yms.note.conpont.cache;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.queue.ProducerService;
 import top.yms.note.conpont.queue.imsg.DelHashKeyMessage;
 import top.yms.note.conpont.queue.imsg.DelKeyMessage;
@@ -13,13 +15,18 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-@Component
+
+@Component(NoteConstants.noteRedisCacheServiceImpl)
 public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
 
     private final static Logger log = LoggerFactory.getLogger(NoteRedisCacheServiceImpl.class);
 
-    @Resource
+    @Resource(name = NoteConstants.redisTemplate)
     private RedisTemplate<String, Object> redisTemplate;
+
+    protected RedisTemplate<String, Object> getRedisTemplate() {
+        return redisTemplate;
+    }
 
     @Resource
     private ProducerService producerService;
@@ -42,7 +49,7 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
     @Override
     public Object delete(String id) {
         try {
-            redisTemplate.delete(id);
+            getRedisTemplate().delete(id);
         } catch (Throwable th) {
             //log.error("delete key error", th);
             //resend msg
@@ -63,7 +70,7 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
     @Override
     public void set(String key, Object value, long time) {
         try {
-            redisTemplate.opsForValue().set(key, value, time, TimeUnit.SECONDS);
+            getRedisTemplate().opsForValue().set(key, value, time, TimeUnit.SECONDS);
         } catch (Throwable th) {
             //log.error("set error", th);
         }
@@ -72,7 +79,7 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
     @Override
     public void set(String key, Object value) {
         try {
-            redisTemplate.opsForValue().set(key, value);
+            getRedisTemplate().opsForValue().set(key, value);
         } catch (Throwable th) {
             //log.error("set error", th);
         }
@@ -81,7 +88,7 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
     @Override
     public Object get(String key) {
         try {
-            return redisTemplate.opsForValue().get(key);
+            return getRedisTemplate().opsForValue().get(key);
         } catch (Throwable th) {
             //log.error("get error", th);
         }
@@ -91,7 +98,7 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
     @Override
     public void hSet(String hash, String key, Object value) {
         try {
-            redisTemplate.opsForHash().put(hash, key, value);
+            getRedisTemplate().opsForHash().put(hash, key, value);
         } catch (Exception e) {
             //log.error("hSet error", e);
         }
@@ -100,18 +107,22 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
     @Override
     public Object hGet(String hash, String key) {
         try {
-            return redisTemplate.opsForHash().get(hash, key);
+            return getRedisTemplate().opsForHash().get(hash, key);
         } catch (Throwable th) {
             //log.error("hGet error", th);
         }
         return null;
     }
 
+    @Override
+    public Map<Object, Object> hGetAll(String hash) {
+        return getRedisTemplate().opsForHash().entries(hash);
+    }
 
     @Override
     public void hDel(String hash, String ... keys) {
         try {
-            redisTemplate.opsForHash().delete(hash, keys);
+            getRedisTemplate().opsForHash().delete(hash, keys);
         } catch (Throwable th) {
             //log.error("hDel error", th);
             //resend msg
@@ -137,7 +148,7 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
     @Override
     public void del(List<String> keyList) {
         try {
-            redisTemplate.delete(keyList);
+            getRedisTemplate().delete(keyList);
         } catch (Throwable th) {
             //log.error("del error", th);
             DelMulKeysMessage delMsg = new DelMulKeysMessage();
@@ -149,7 +160,7 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
     @Override
     public Long sAdd(String key, Object... values) {
         try {
-            return redisTemplate.opsForSet().add(key, values);
+            return getRedisTemplate().opsForSet().add(key, values);
         } catch (Throwable th) {
             //忽略
             return 0L;
@@ -159,7 +170,7 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
     @Override
     public Boolean sIsMember(String key, Object o) {
         try {
-            Boolean isMember = redisTemplate.opsForSet().isMember(key, o);
+            Boolean isMember = getRedisTemplate().opsForSet().isMember(key, o);
             if (isMember == null) {
                 return false;
             }
@@ -178,7 +189,7 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
     @Override
     public Set<Object> sMembers(String key) {
         try {
-            return redisTemplate.opsForSet().members(key);
+            return getRedisTemplate().opsForSet().members(key);
         } catch (Throwable th) {
             log.error("sMembers error: {}", th.getMessage());
             return null;
@@ -188,7 +199,7 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
     @Override
     public Long sRem(String key, Object... values) {
         try {
-            return redisTemplate.opsForSet().remove(key, values);
+            return getRedisTemplate().opsForSet().remove(key, values);
         } catch (Throwable th) {
             log.error("sRem error: {}", th.getMessage());
             return -1L;
@@ -198,7 +209,7 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
     @Override
     public Object sRandMember(String key) {
         try {
-            return redisTemplate.opsForSet().randomMember(key);
+            return getRedisTemplate().opsForSet().randomMember(key);
         } catch (Throwable th) {
             log.error("sRandMember error: {}", th.getMessage());
             return null;
@@ -208,7 +219,7 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
     @Override
     public Long sCard(String key) {
         try {
-            Long size =  redisTemplate.opsForSet().size(key);
+            Long size =  getRedisTemplate().opsForSet().size(key);
             if (size == null) {
                 return 0L;
             }
@@ -222,7 +233,7 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
     @Override
     public List<Object> sPop(String key, long count) {
         try {
-            List<Object> objectList = redisTemplate.opsForSet().pop(key, count);
+            List<Object> objectList = getRedisTemplate().opsForSet().pop(key, count);
             if (objectList == null) {
                 return Collections.emptyList();
             }
@@ -235,21 +246,21 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
 
     @Override
     public Long rPush(String key, Object... values) {
-        Long res = redisTemplate.opsForList().rightPushAll(key, values);
+        Long res = getRedisTemplate().opsForList().rightPushAll(key, values);
         if (res == null) return 0L;
         return res;
     }
 
     @Override
     public Object lPop(String key) {
-        Object res = redisTemplate.opsForList().leftPop(key);
+        Object res = getRedisTemplate().opsForList().leftPop(key);
         return res;
     }
 
     @Override
     public Object blPop(String key, long timeout, TimeUnit unit) {
         try {
-            return redisTemplate.opsForList().leftPop(key, timeout, unit);
+            return getRedisTemplate().opsForList().leftPop(key, timeout, unit);
         } catch (org.springframework.dao.QueryTimeoutException qte) {
             log.info("blPop warning: {}", qte.getMessage());
         } catch (Exception e) {
@@ -260,18 +271,18 @@ public class NoteRedisCacheServiceImpl implements NoteRedisCacheService {
 
     @Override
     public Long lLen(String key) {
-        Long res = redisTemplate.opsForList().size(key);
+        Long res = getRedisTemplate().opsForList().size(key);
         if (res == null) return 0L;
         return res;
     }
 
     @Override
     public Object lIndex(String key, long index) {
-        return redisTemplate.opsForList().index(key, index);
+        return getRedisTemplate().opsForList().index(key, index);
     }
 
     @Override
     public List<Object> lRange(String key, long start, long end) {
-        return Optional.ofNullable(redisTemplate.opsForList().range(key, start, end)).orElse(Collections.emptyList());
+        return Optional.ofNullable(getRedisTemplate().opsForList().range(key, start, end)).orElse(Collections.emptyList());
     }
 }

@@ -22,7 +22,7 @@ public class AutoAsyncFailFileSaveService implements NoteTask, InitializingBean 
 
     private static  final Logger log = LoggerFactory.getLogger(AutoAsyncFailFileSaveService.class);
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     private NoteRedisCacheService cacheService;
 
     @Resource

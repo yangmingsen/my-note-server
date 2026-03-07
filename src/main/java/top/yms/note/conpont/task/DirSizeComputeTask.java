@@ -28,7 +28,7 @@ public class DirSizeComputeTask extends AbstractAsyncExecuteTask{
     @Resource
     private NoteMetaService noteMetaService;
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     private NoteRedisCacheService cacheService;
 
     private final Object flagObj = new Object();

@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteCacheKey;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.conpont.crawler.worker.CrawlWorkerQueue;
 import top.yms.note.conpont.task.NoteTask;
@@ -43,7 +44,7 @@ public class DefaultUrlScheduler implements  UrlScheduler, NoteTask {
     @Value("${crawler.status}")
     private boolean crawlerStatus;
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     private NoteRedisCacheService cacheService;
 
     /**

@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import top.yms.note.comm.NoteCacheKey;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.conpont.crawler.ImageUploader;
 import top.yms.note.conpont.crawler.NetworkNoteStorageService;
@@ -52,7 +53,7 @@ public abstract class AbstractNetworkNoteCrawler implements NetworkNoteCrawler{
     @Resource
     protected UrlScheduler urlScheduler;
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     protected NoteRedisCacheService cacheService;
 
     @Value("${crawler.file-upload-async}")

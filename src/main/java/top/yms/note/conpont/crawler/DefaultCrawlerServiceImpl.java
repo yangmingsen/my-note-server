@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteCacheKey;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.SysConfigService;
 import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.conpont.crawler.discoverer.UrlDiscoverer;
@@ -33,7 +34,7 @@ public class DefaultCrawlerServiceImpl implements CrawlerService, MessageListene
 
     private final static Logger log = LoggerFactory.getLogger(DefaultCrawlerServiceImpl.class);
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     private NoteRedisCacheService cacheService;
 
     @Resource

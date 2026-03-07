@@ -2,6 +2,7 @@ package top.yms.note.service.impl;
 
 import org.springframework.stereotype.Component;
 import top.yms.note.comm.NoteCacheKey;
+import top.yms.note.comm.NoteConstants;
 import top.yms.note.conpont.cache.NoteRedisCacheService;
 import top.yms.note.entity.NetworkResourceInfo;
 import top.yms.note.mapper.NetworkResourceInfoMapper;
@@ -12,7 +13,7 @@ import javax.annotation.Resource;
 @Component
 public class NetworkResourceInfoServiceImpl implements NetworkResourceInfoService {
 
-    @Resource
+    @Resource(name = NoteConstants.noteRedisCacheServiceImpl)
     private NoteRedisCacheService cacheService;
 
     @Resource
